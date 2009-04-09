@@ -1,0 +1,14 @@
+# ignore blender files
+blender/
+
+# ignore temp files
+*~
+
+# ignore output files
+*.o
+*.out
+*.pdf
+*.log
+*.aux
+*.dvi
+

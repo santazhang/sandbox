@@ -1,0 +1,183 @@
+\documentclass{article}
+\usepackage{amsmath,amsfonts,amsthm,amssymb}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{extramarks}
+\usepackage{chngpage}
+\usepackage{soul,color}
+\usepackage{graphicx,float,wrapfig}
+\usepackage{programs, algorithm2e, pseudocode}
+\usepackage{CJK}
+\newcommand{\Class}{Some class}
+\newcommand{\ClassInstructor}{Some instructor}
+
+% Homework Specific Information. Change it to your own
+\newcommand{\Title}{Homework 1}
+\newcommand{\DueDate}{Some day}
+\newcommand{\StudentName}{Zhang Yang}
+\newcommand{\StudentClass}{J53}
+\newcommand{\StudentNumber}{2005011295}
+
+% In case you need to adjust margins:
+\topmargin=-0.45in      %
+\evensidemargin=0in     %
+\oddsidemargin=0in      %
+\textwidth=6.5in        %
+\textheight=9.6in       %
+\headsep=0.25in         %
+
+% Setup the header and footer
+\pagestyle{fancy}                                                       %
+\lhead{\StudentName}                                                 %
+\chead{\Title}  %
+\rhead{\firstxmark}                                                     %
+\lfoot{\lastxmark}                                                      %
+\cfoot{}                                                                %
+\rfoot{Page\ \thepage\ of\ \protect\pageref{LastPage}}                          %
+\renewcommand\headrulewidth{0.4pt}                                      %
+\renewcommand\footrulewidth{0.4pt}                                      %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Some tools
+\newcommand{\enterProblemHeader}[1]{\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak%
+                                    \nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak}%
+\newcommand{\exitProblemHeader}[1]{\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak%
+                                   \nobreak\extramarks{#1}{}\nobreak}%
+
+\newcommand{\homeworkProblemName}{}%
+\newcounter{homeworkProblemCounter}%
+\newenvironment{homeworkProblem}[1][Problem \arabic{homeworkProblemCounter}]%
+  {\stepcounter{homeworkProblemCounter}%
+   \renewcommand{\homeworkProblemName}{#1}%
+   \section*{\homeworkProblemName}%
+   \enterProblemHeader{\homeworkProblemName}}%
+  {\exitProblemHeader{\homeworkProblemName}}%
+
+\newcommand{\homeworkSectionName}{}%
+\newlength{\homeworkSectionLabelLength}{}%
+\newenvironment{homeworkSection}[1]%
+  {% We put this space here to make sure we're not connected to the above.
+
+   \renewcommand{\homeworkSectionName}{#1}%
+   \settowidth{\homeworkSectionLabelLength}{\homeworkSectionName}%
+   \addtolength{\homeworkSectionLabelLength}{0.25in}%
+   \changetext{}{-\homeworkSectionLabelLength}{}{}{}%
+   \subsection*{\homeworkSectionName}%
+   \enterProblemHeader{\homeworkProblemName\ [\homeworkSectionName]}}%
+  {\enterProblemHeader{\homeworkProblemName}%
+
+   % We put the blank space above in order to make sure this margin
+   % change doesn't happen too soon.
+   \changetext{}{+\homeworkSectionLabelLength}{}{}{}}%
+
+
+\newcommand{\Answer}{\ \\\textbf{Answer:} }
+\newcommand{\Proof}{\ \\\textbf{Proof:} }
+\newcommand{\Acknowledgement}[1]{\ \\{\bf Acknowledgement:} #1}
+\newcommand{\Slash}{$\backslash$}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Make title
+\title{\textmd{\bf \Class: \Title}\\{\large Instructed by \textit{\ClassInstructor}}\\\normalsize\vspace{0.1in}\small{Due\ on\ \DueDate}}
+\date{}
+\author{\textbf{\StudentName}\ \ \StudentClass\ \ \StudentNumber}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+
+\begin{spacing}{1.1}
+\maketitle \thispagestyle{empty}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Begin edit from here
+
+
+文本文本
+
+\begin{homeworkProblem}[Some Problem]
+
+文字文字
+
+\Answer
+Some solution. 这是解答  \\
+\Proof Some proof. 这是证明 \\
+
+\begin{programf}
+some program code here 巍峨:wq
+
+Use package \{programs\} for this style
+\end{programf}
+
+
+\begin{program}
+some other program code here
+    Yes, they could be indented
+\end{program}
+
+\programsurround \SetProgramCounter{1999}
+\begin{programf}
+You could get the program code surrounded by \Slash{}programsurround
+And use \Slash{}SetProgramCounter\{?\} to set the line number
+Use \Slash{}emProgram, \Slash{}ttProgram and \Slash{}rmProgram to set default font
+Use \Slash{}ProgramIndent[?width?] to set indent, eg \Slash{}ProgramIndent{1cm}
+\end{programf}
+
+\programsurround
+\begin{programs}
+You could set the size of program, using environments:
+\Slash{}program, normal size
+\Slash{}programl, large
+\Slash{}programL, Large
+\Slash{}programs, small
+\Slash{}programf, foot note size
+\Slash{}programsc, scriptsize
+\Slash{}programt, tiny
+\end{programs}
+
+
+\begin{algorithm}[H]
+\SetLine \KwData{this text} \KwResult{how to write algorithm with \LaTeX2e } initialization\; \While{not at
+end of this document}{ read current\; \eIf{understand}{ go to next section\; current section becomes this
+one\; }{ go back to the beginning of current section\; } } \caption{How to write algorithms}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\SetLine \KwData{this text}
+\KwResult{how to write algorithm with \LaTeX2e}
+initialization\;
+\While{not at end of this document}{re}
+\caption{How to write algorithms}
+\end{algorithm}
+
+\begin{pseudocode}
+[ovalbox]{SquareAndMultiply}{x,b,n}
+\COMMENT{ Compute $x^b \pmod{n}$}\\
+z\GETS 1\\
+\WHILE b > 0 \DO
+\BEGIN
+z \GETS z^2 \pmod{n} \\
+\IF b\mbox{ is odd}
+\THEN z \GETS z \cdot x \pmod{n} \\
+b \GETS \CALL{ShiftRight}{b}
+\END\\
+\RETURN{z}
+\end{pseudocode}
+
+\end{homeworkProblem}
+
+\Acknowledgement{Thank somebody for something...}
+
+% End edit to here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{spacing}
+\end{CJK*}
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
