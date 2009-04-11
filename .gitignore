@@ -1,6 +1,9 @@
 # ignore blender files
 blender/
 
+# ignore kdevelop projects
+kdevelop/
+
 # ignore temp files
 *~
 
