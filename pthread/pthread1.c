@@ -7,10 +7,10 @@
 pthread_mutex_t mutex;
 
 void *echo_id(void *p_val) {
+  usleep(rand() % 3000);
   pthread_mutex_lock(&mutex);
-  usleep(rand() % 300000);
   printf("This is thread ");
-  usleep(rand() % 300000);
+  usleep(rand() % 3000);
   printf("%d\n", *(int *) p_val);
   free(p_val);
   pthread_mutex_unlock(&mutex);
@@ -28,7 +28,7 @@ int main() {
     *v = i;
     pthread_create(&th[i], NULL, echo_id, v);
   }
-  sleep(10);
+  sleep(1);
   pthread_mutex_destroy(&mutex);
   return 0;
 }
