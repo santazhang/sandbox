@@ -1,0 +1,16 @@
+# ignore generated ui files
+ui_*
+
+# ignore qtcreator project file
+*.pro.user
+
+# ignore generated Makefiles
+Makefile*
+
+# ignore unimportant folders
+debug/
+qtc-gdbmacros/
+
+# ignore generated binary files
+qedit/qedit
+
