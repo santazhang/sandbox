@@ -1,0 +1,2 @@
+To enable openmp support in gcc, add "-fopenmp" flag to command line.
+The file <omp.h> will be available once the flag is turned on.

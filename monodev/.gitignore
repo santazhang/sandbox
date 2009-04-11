@@ -1,0 +1,7 @@
+# ignore bin folder
+bin/
+
+# ignore settings files
+*.pidb
+*.userprefs
+
