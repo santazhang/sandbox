@@ -11,4 +11,7 @@ blender/
 *.log
 *.aux
 *.dvi
+*.toc
+*.snm
+*.nav
 
