@@ -1,6 +1,8 @@
 all: compile
 
-compile: showimg.o
+compile: showimg
+
+showimg: showimg.o
 	g++ showimg.o -o showimg -lhighgui
 
 showimg.o: showimg.cpp
