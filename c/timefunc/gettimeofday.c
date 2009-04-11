@@ -7,7 +7,7 @@ int main() {
   int i;
   for (i = 0; i < 1000000; i++) {
     gettimeofday(&tv, 0);
-    printf("%d %d\n", tv.tv_sec, tv.tv_usec);
+    printf("%d %d\n", (int) tv.tv_sec, (int) tv.tv_usec);
   }
   return 0;
 }
