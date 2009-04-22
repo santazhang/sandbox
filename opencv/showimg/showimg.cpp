@@ -1,9 +1,7 @@
-#include "cv.h"
-#include "highgui.h"
-
 #include <cstdio>
 
-using namespace std;
+#include "cv.h"
+#include "highgui.h"
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {

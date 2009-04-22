@@ -2,5 +2,5 @@ hello1: hello1.c
 	gcc hello1.c -o hello1 -lSDL
 
 clean:
-	rm *~ hello1
+	rm *~ hello1 -rf
 
