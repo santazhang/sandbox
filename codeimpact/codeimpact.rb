@@ -2,7 +2,11 @@
 
 require 'pp'
 
-f = IO.popen("git log --numstat")
+if ARGV.length > 0
+  f = IO.popen("cd '#{ARGV[0]}' && git log --numstat")
+else
+  f = IO.popen("git log --numstat")
+end
 lines = f.readlines
 f.close
 
