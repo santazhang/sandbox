@@ -9,5 +9,3 @@ fac(N) ->
 mult(X, Y) ->
   X * Y.
 
-
-
