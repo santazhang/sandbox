@@ -3,6 +3,17 @@
 require 'rubygems'
 require 'sinatra'
 
+def worker
+  counter = 1
+  loop do
+    `touch #{counter}`
+    sleep 1
+    counter = counter + 1
+  end
+end
+
+thread = Thread.new {worker}
+
 get '/' do
   "Hi!"
 end
