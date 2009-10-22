@@ -23,10 +23,10 @@ int basic_rev_count_method(string& str) {
 
 int rev_count_merge(string& str, int start, int end) {
   
-  if (str.length() < 5000) {
-    return basic_rev_count_method(str);
-  }
-  
+  //if (str.length() < 5000) {
+  return basic_rev_count_method(str);
+  //}
+  /*
   int mid = (end + start) / 2;
   int l_rev = rev_count_merge(str, start, mid);
   int r_rev = rev_count_merge(str, mid, end);
@@ -55,6 +55,7 @@ int rev_count_merge(string& str, int start, int end) {
   str = new_str;
   
   return l_rev + r_rev + cross_count;
+  */
 }
 
 int real_rev_count(const string& str) {
@@ -65,7 +66,7 @@ int real_rev_count(const string& str) {
 class DNA {
 public:
 
-  DNA(const string& _str) : str(_str){
+  DNA(const string& _str, int orig_pos) : str(_str), pos(orig_pos){
     my_rev_count = real_rev_count(str);
   }
   
@@ -75,15 +76,27 @@ public:
   }
   
   bool operator< (const DNA& another) const {
-    return this->my_rev_count < another.my_rev_count;
+    if (this->my_rev_count < another.my_rev_count) {
+      return true;
+    } else if (this->my_rev_count == another.my_rev_count){
+      return this->pos < another.pos;
+    } else {
+      return false;
+    }
   }
   
   bool operator> (const DNA& another) const {
-    return this->my_rev_count < another.my_rev_count;
+    if (this->my_rev_count > another.my_rev_count) {
+      return true;
+    } else if (this->my_rev_count == another.my_rev_count){
+      return this->pos > another.pos;
+    } else {
+      return false;
+    }
   }
   
   bool operator== (const DNA& another) const {
-    return this->my_rev_count == another.my_rev_count;
+    return this->my_rev_count == another.my_rev_count && this->pos == another.pos;
   }
   
   int get_rev() {
@@ -96,51 +109,24 @@ public:
   
 private:
   int my_rev_count;
+  int pos;
   string str;
 };
 
-void my_qsort(vector<DNA>& vec, int start = 0, int end = -1) {
-  
-  if (end < 0) {
-    end = vec.size();
-  }
-  
-  if (end - start < 5) {
-    for (int i = start; i < end; i++) {
-      for (int j = i + 1; j < end; j++) {
-        if (vec[i] > vec[j]) {
-          DNA swap = vec[i];
-          vec[i] = vec[j];
-          vec[j] = swap;
-        }
+void my_sort(vector<DNA>& vec) {
+  for (int i = 0; i < vec.size(); i++) {
+    int min_pos = i;
+    for (int j = i + 1; j < vec.size(); j++) {
+      if (vec[min_pos] > vec[j]) {
+        min_pos = j;
       }
     }
-    return;
-  }
-  
-  DNA key = vec[(start + end) / 2];
-  
-  int ptr = 0;
-  for (int i = start; i < end; i++) {
-    if (vec[i] < key && i != ptr) {
-      DNA swap = vec[i];
-      vec[i] = vec[ptr];
-      vec[ptr] = swap;
-      ptr++;
+    if (min_pos != i) {
+      DNA swap = vec[min_pos];
+      vec[min_pos] = vec[i];
+      vec[i] = swap;
     }
   }
-  
-  my_qsort(vec, start, ptr);
-  
-  for (int i = start; i < end; i++) {
-    if (vec[i] == key && i != ptr) {
-      DNA swap = vec[i];
-      vec[i] = vec[ptr];
-      vec[ptr] = swap;
-      ptr++;
-    }
-  }
-  my_qsort(vec, ptr, end);
 }
 
 int main() {
@@ -150,11 +136,11 @@ int main() {
   cin >> n >> m;
   for (int i = 0; i < m; i++) {
     cin >> str;
-    DNA dna = str;
-    cout << "REVCOUNT = " << dna.get_rev() << endl;
+    DNA dna(str, i);
+    //cout << "REVCOUNT = " << dna.get_rev() << endl;
     dnas.push_back(dna);
   }
-  my_qsort(dnas);
+  my_sort(dnas);
   for (int i = 0; i < dnas.size(); i++) {
     cout << dnas[i].get_str() << endl;
   }
