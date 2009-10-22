@@ -1,6 +1,3 @@
-# ignore blender files
-blender/
-
 # ignore temp files
 *~
 
@@ -15,4 +12,4 @@ blender/
 *.snm
 *.nav
 *.class
-
+*.exe

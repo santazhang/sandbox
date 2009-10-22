@@ -3,7 +3,7 @@ Added multiplication. The speed is faster by a factor of 2 than Python
 
 Jan 9, 2009
 Convertion from string to bigint is done, but not exclusivly tested
-Fiex a bug. "0.0055e2" -> "1" correctly
+Fixed a bug. "0.0055e2" -> "1" correctly
 
 Jan 8, 2009
 Added a few functions, such as multiply by int, divide by power of 10
