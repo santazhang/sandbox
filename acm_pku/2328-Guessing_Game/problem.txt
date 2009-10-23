@@ -1,0 +1,37 @@
+Guessing Game
+Time Limit: 1000MS		Memory Limit: 65536K
+Total Submissions: 8980		Accepted: 3097
+Description
+
+Stan and Ollie are playing a guessing game. Stan thinks of a number between 1 and 10 and Ollie guesses what the number might be. After each guess, Stan indicates whether Ollie's guess is too high, too low, or right on. 
+After playing several rounds, Ollie has become suspicious that Stan cheats; that is, that he changes the number between Ollie's guesses. To prepare his case against Stan, Ollie has recorded a transcript of several games. You are to determine whether or not each transcript proves that Stan is cheating.
+Input
+
+Standard input consists of several transcripts. Each transcript consists of a number of paired guesses and responses. A guess is a line containing single integer between 1 and 10, and a response is a line containing "too high", "too low", or "right on". Each game ends with "right on". A line containing 0 follows the last transcript.
+Output
+
+For each game, output a line "Stan is dishonest" if Stan's responses are inconsistent with the final guess and response. Otherwise, print "Stan may be honest".
+Sample Input
+
+10
+too high
+3
+too low
+4
+too high
+2
+right on
+5
+too low
+7
+too high
+6
+right on
+0
+Sample Output
+
+Stan is dishonest
+Stan may be honest
+Source
+
+Waterloo local 2003.07.05
