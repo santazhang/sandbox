@@ -1,9 +1,0 @@
-# (temporarily) ignore wxhello project, it is a kdevelop 3.5 project
-wxhello/
-
-# ignore CMake files
-CMakeLists.txt
-
-# ignore bulid folder
-build/
-
