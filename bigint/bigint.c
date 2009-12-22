@@ -629,7 +629,7 @@ bigint_errno bigint_from_string(bigint* p_bigint, char* str) {
         pos--;
 
       // test all zero numbers
-      if ('1' <= str[pos] && str[pos] <= '9' || carry != 0) {
+      if (('1' <= str[pos] && str[pos] <= '9') || carry != 0) {
         is_zero = 0;
       }
 
