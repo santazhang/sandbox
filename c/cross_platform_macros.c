@@ -26,6 +26,10 @@ void print() {
 #ifdef LINUX
   printf("Platform: LINUX\n");
 #endif
+
+#ifdef __linux__
+  printf("Platform: __linux__\n");
+#endif
 }
 
 
