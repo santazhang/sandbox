@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     fn = argv[1];
   }
   if (statvfs(fn, &st) == 0) {
-    printf("disk free @ %s is %lu, %.2lfG\n", fn, st.f_bavail * st.f_bsize, (st.f_bavail * st.f_bsize) / 1024.0 / 1024.0 / 1024.0);
+    printf("disk free @ %s is %llu, %.2lfG\n", fn, (long long unsigned) st.f_bavail * st.f_bsize, ((long long unsigned)st.f_bavail * st.f_bsize) / 1024.0 / 1024.0 / 1024.0);
     printf("== info ==\n");
     printf("file system block size:       %lu\n", st.f_bsize);
     printf("fragment size:                %lu\n", st.f_frsize);
