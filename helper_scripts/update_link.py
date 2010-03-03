@@ -12,7 +12,8 @@ def file_inode(f):
 
 list_f = open("projects_list")
 projects_list = map(str.strip, list_f.readlines())
-projects_list.remove("")
+if "" in projects_list:
+  projects_list.remove("")
 list_f.close()
 
 def project_folder(f):
