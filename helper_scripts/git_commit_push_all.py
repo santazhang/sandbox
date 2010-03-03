@@ -9,25 +9,6 @@ repo_list = map(str.strip, list_f.readlines())
 repo_list.remove("")
 list_f.close()
 
-print repo_list
-
-repo_list = [
-  "dummy_vm",
-  "jos/lab",
-  "liquid",
-  "liquid_admin",
-  "musql",
-  "nova",
-  "paper_impl",
-  "port_mapper",
-  "rainmeter_adapter",
-  "sandbox",
-  "simpledb/lab",
-  "vnc_proxy",
-  "xdk",
-  "yfs/lab"
-]
-
 for repo in repo_list:
   pipe = os.popen("cd %s && git remote" % repo)
   remotes = map(str.strip, pipe.readlines())
