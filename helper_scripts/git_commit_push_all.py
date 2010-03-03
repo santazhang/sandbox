@@ -18,7 +18,7 @@ for repo in repo_list:
   pipe = os.popen("cd %s && git remote" % repo)
   remotes = map(str.strip, pipe.readlines())
   pipe.close()
-  my_exec('cd %s && git commit -a -m "auto commit by commit-push-all.py"' % repo)
+  my_exec('cd "%s" && git commit -a -m "auto commit by commit-push-all.py"' % repo)
   for remote in remotes:
-    my_exec('cd %s git push %s --all' % (repo, remote))
+    my_exec('cd "%s" && git push %s --all' % (repo, remote))
   print
