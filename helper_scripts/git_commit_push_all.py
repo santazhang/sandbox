@@ -10,12 +10,15 @@ if "" in repo_list:
   repo_list.remove("")
 list_f.close()
 
+def my_exec(cmd):
+  print "[cmd] %s" % cmd
+  os.system(cmd)
+
 for repo in repo_list:
   pipe = os.popen("cd %s && git remote" % repo)
   remotes = map(str.strip, pipe.readlines())
   pipe.close()
+  my_exec('cd %s && git commit -a -m "auto commit by commit-push-all.py"' % repo)
   for remote in remotes:
-    cmd = 'cd %s && git commit -a -m "auto commit by commit-push-all.py" && git push %s --all' % (repo, remote)
-    print cmd
-    os.system(cmd)
-
+    my_exec('cd %s git push %s --all' % (repo, remote))
+  print
