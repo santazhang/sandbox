@@ -96,22 +96,25 @@ def link_folder(*folders):
     os.path.walk(folder, link_folder_walker, (folder, folders))
 
 if __name__ == "__main__":
-  link_file("liquid/Rakefile", "xdk/Rakefile", "vnc_proxy/Rakefile", "dummy_vm/Rakefile", "port_mapper/Rakefile", "nova/tools/server_side/Rakefile")
+  def make_links(lnk_grp):
+    if len(lnk_grp) == 0:
+      return
+    if os.path.isfile(lnk_grp[0]):
+      print "link_file", lnk_grp
+      link_file(*lnk_grp)
+    elif os.path.isdir(lnk_grp[0]):
+      print "link_folder", lnk_grp
+      link_folder(*lnk_grp)
 
-  link_file("sandbox/bigint/bigint.c", "xdk/3rdparty/bigint/bigint.c")
-  link_file("sandbox/bigint/bigint.h", "xdk/3rdparty/bigint/bigint.h")
-
-  link_file("liquid/test/test_path_normalize.c", "xdk/test/test_path_normalize.c")
-  link_file("liquid/test/test_md5sum.c", "xdk/test/test_md5sum.c")
-  link_file("liquid/test/test_sha1.c", "xdk/test/test_sha1.c")
-  link_file("liquid/test/test_xbigint.c", "xdk/test/test_xbigint.c")
-  link_file("liquid/test/test_xhash.c", "xdk/test/test_xhash.c")
-
-  link_folder("xdk/src", "vnc_proxy/xdk", "liquid/xdk", "dummy_vm/xdk", "port_mapper/xdk", "nova/tools/server_side/xdk")
-  link_folder("dummy_vm/src", "nova/tools/server_side/dummy_vm")
-  link_folder("port_mapper/src", "nova/tools/server_side/port_mapper")
-  link_folder("vnc_proxy/src", "nova/tools/server_side/vnc_proxy")
-  link_folder("xdk/3rdparty/bigint", "liquid/3rdparty/bigint", "vnc_proxy/3rdparty/bigint", "dummy_vm/3rdparty/bigint", "port_mapper/3rdparty/bigint", "nova/tools/server_side/3rdparty/bigint")
-  link_folder("xdk/3rdparty/crypto", "liquid/3rdparty/crypto", "vnc_proxy/3rdparty/crypto", "dummy_vm/3rdparty/crypto", "port_mapper/3rdparty/crypto", "nova/tools/server_side/3rdparty/crypto")
-  link_folder("vnc_proxy/3rdparty/vnc_auth", "nova/tools/server_side/3rdparty/vnc_auth")
+  f = open("links_list")
+  link_group = []
+  for line in f.readlines():
+    line = line.strip()
+    if line == "":
+      make_links(link_group)
+      link_group = []
+    else:
+      link_group += line,
+  make_links(link_group)  
+  f.close()
 
