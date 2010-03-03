@@ -10,6 +10,20 @@ def file_inode(f):
   else:
     return -1
 
+list_f = open("projects_list")
+projects_list = map(str.strip, list_f.readlines())
+projects_list.remove("")
+list_f.close()
+
+def project_folder(f):
+  global projects_list
+  f = os.path.split(f)[0]
+  for proj in projects_list:
+    if f.startswith(proj):
+      f = proj
+  print "[project] %s" % f
+  return f
+
 def fix_modified_link(fpaths):
   print "fixing link..."
   print "files:", fpaths
@@ -25,7 +39,7 @@ def fix_modified_link(fpaths):
     if newest_mtime < mt:
       newest_f = f
       newest_mtime = mt
-    os.system('cd "%s" && git commit -a -m "auto commit by update_link.py"' % os.path.split(f)[0])
+    os.system('cd "%s" && git commit -a -m "auto commit by update_link.py"' % project_folder(f))
   print "newest file is %s" % newest_f
   print "all changes have been git-committed, you can safely revert if anything goes wrong"
   for f in fpaths:
