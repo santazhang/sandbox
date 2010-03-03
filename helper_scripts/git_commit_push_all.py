@@ -6,6 +6,7 @@ import os
 
 list_f = open("projects_list")
 repo_list = map(str.strip, list_f.readlines())
+repo_list.remove("")
 list_f.close()
 
 print repo_list
