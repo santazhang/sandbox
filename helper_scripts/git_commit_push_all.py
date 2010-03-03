@@ -14,7 +14,7 @@ for repo in repo_list:
   remotes = map(str.strip, pipe.readlines())
   pipe.close()
   for remote in remotes:
-    cmd = 'cd %s && git commit -a -m "auto commit" && git push %s --all' % (repo, remote)
+    cmd = 'cd %s && git commit -a -m "auto commit by commit-push-all.py" && git push %s --all' % (repo, remote)
     print cmd
     os.system(cmd)
 
