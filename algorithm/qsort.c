@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+
+#ifndef __APPLE__
 #include <malloc.h>
+#endif  // __APPLE__
+
 #include <math.h>
 
 void select_sort_int(int arr[], int len) {
