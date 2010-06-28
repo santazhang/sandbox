@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+
+#ifndef __APPLE__
 #include <malloc.h>
+#endif  // __APPLE__
 
 pthread_mutex_t mutex;
 
