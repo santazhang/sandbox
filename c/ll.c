@@ -4,7 +4,7 @@
 int main(int argc, char* argv[]) {
   int i;
   char cmd[8192];
-  strcpy(cmd, "ls -la");
+  strcpy(cmd, "ls -lah");
   for (i = 1; i < argc; i++) {
     strcat(cmd, " ");
     strcat(cmd, argv[i]);
