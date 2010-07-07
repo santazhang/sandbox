@@ -1,0 +1,897 @@
+% spec92 DOCUMENT SUBSTYLE -- 25 Nov 91
+%    for LaTeX version 2.09
+% Copyright (C) 1991 by Leslie Lamport
+%
+% Last modified on Thu Apr  9 10:13:34 1992 by lamport
+%
+% Changed 9 Apr 92 to remove explicit em widths
+
+\typeout{NEW VERSION}
+% Defines a `spec' environment for printing my style of specifications.
+% The spec environment is like verbatim except for the following
+% differences:
+%    -- \ has its usual meaning (catcode)
+%
+%    -- _ and ^ produce sub- and superscripts.  However, because
+%       { and } produce symbols, the rules for arguments are different.  
+%       A 1-character script can be written like _3 or ^x .  
+%       Multi-character arguments are delimited by {...} or (...) or [...] 
+%       or <...>.  However, the same delimiter cannot be nested.  You can 
+%       write  _[x_{32}] or ^(a[i]).  You cannot write _[x_[32]] or
+%       ^(a(i)).
+%
+%    -- :foo: is translated to $\foo$, and made an integral
+%       number of character-widths.  For example, :beta: makes a 
+%       1-character wide $\beta$.  More precisely, ":" followed
+%       by any nonblank character other than ":" or "=" is assumed
+%       to be a command of the form ":xxx:", where "xxx" is a string
+%       with no blanks or ":"s.  The command 
+%
+%          \coloncommand{xxx}{text}
+%
+%       is like \newcommand{\xxx}{text} except that
+%       "xxx" can be any string not containing any of the following
+%       five characters: { } \ : %
+%       Also, "xxx" cannot consist of the single character * .
+%       
+%
+%    -- Comments are written either like this 
+%
+%            Optional Text  (* This is a comment *)  Optional Text
+%
+%       or like this
+%
+%          Optional Text (*******************************************)
+%                        (*   This is a multiline                   *)
+%                        (*   comment.                              *)
+%                        (*******************************************)
+%
+%       and formats them as minipages, indented the indicated distance
+%       from the left margin and extending to the right margin.
+%
+%
+%       Comments are formatted in a non-\tt font, matching " characters 
+%       are handled properly, and > and < work right outside math mode.
+%       `foo' is translated to {\tt foo}.
+%
+%       In comments, $ ^ and _  have their usual TeX meaning.
+%       except within `...', where they are literals.
+%
+%       SURPRISES:
+%         * THERE MUST BE A SPACE CHARACTER FOLLOWING the "(*"
+%         * BLANK LINES IN A COMMENT ACT LIKE A SINGLE SPACE
+%         * DON'T PUT ANY *'s IN A COMMENT.
+%         * DON'T PUT TWO *'s IN A ROW EXCEPT AROUND A COMMENT.
+%
+
+%    --  A sequence of 4 or more "-"s begins a horizontal line that runs 
+%        to the end of the page.  The two basic options are:
+% 
+%           ------| Text |------   produces      -------- Text --------
+%                                               |                      |
+% 
+%     
+%           --------------------   produces     |----------------------|
+% 
+%        Putting one or more "*"s in the line, any place after the first
+%        4 "-"s, causes the ends of the line to "point up" like
+%         
+%              |                |
+%               ----- ...  -----
+%
+%
+%    -- ^L (page break) is equivalent to \newpage
+%
+%    -- ' is interpreted as a prime rather than a quote
+%
+%    -- The following transformations are made
+%
+%         ==    -->  "equals by definition" symbol
+%         #     -->  not equal
+%         ->    -->  right arrow 
+%         <-    -->  left arrow
+%         <<    -->  something like \ltlt
+%         >>    -->  something like \gtgt
+%         [[    -->  two close left brackets
+%         ]]    -->  two close right brackets
+%         []    -->  Box
+%         <>    -->  Diamond
+%         =>    -->  double right arrow (implies)
+%         /\    -->  logical and (MUST HAVE SPACES AROUND IT, AND 
+%                                 MUST NOT END A LINE)
+%         \/    -->  logical or  (MUST HAVE SPACES AROUND IT)
+%         ||    -->  parallel sign
+%         |=    -->  validity symbol
+%         |-    -->  provable symbol
+%         (+)   -->  \oplus
+%         (-)   -->  \ominus
+%         <     -->  $<$
+%         >     -->  $>$
+%         |->   -->  \mapsto
+%
+%       You can get these combinations to rewrite to something else
+%       by redefining the following command names:
+%        == : \speceqeq      [[ : \speclblb        |=  : \specvdasheq
+%        #  : \specsharp     ]] : \specrbrb        |-  : \specvdashminus
+%        -> : \specdashgt    [] : \speclbrb        (+) : \specoplus
+%        <- : \specltdash    => : \speceqgt        (-) : \specominus
+%        << : \specltlt      /\ : \specvee         |-> : \specmapsto
+%        >> : \specgtgt      \/ : \specwedge       ||  : \specvdashvdash  
+%
+%   --  The transformations of < and > are disabled by the \nomathgreater
+%       declaration, and re-enabled by the \mathgreater declaration.  
+%
+%       The transformation of = is disabled by the \nomathequal
+%       declaration, and re-enabled by the \mathequal declaration.  
+%
+%       Text looks better with the transformations when :leq: or :geq:
+%       are mixed in with < and =.  Otherwise, it probably looks just as
+%       good without the transformations.
+%
+%   --  Any series of \'s followed by a space are no-ops
+%       (use to align stuff in both the .tex file and the output)
+%        WARNING : YOU MUST NOT END A LINE WITH A \ (OR WITH A \ 
+%                  FOLLOWED ONLY BY SPACES
+%
+%   --  \* == no page break between this line and the next
+%
+%       \+ == Used to start a new input line without a new line of output.
+%             Kills everything up to the end of this input line, and then
+%             until the next / .  So
+%
+%               abc\+ any /garbage/ here 
+%                 /def
+%             
+%             is equivalent to abcdef.
+%
+%   --  "\" has its usual meaning inside a spec environment, so
+%       ordinary commands that take no arguments can be used.  
+%       However, the space after a command is not gobbled as usual.
+%       The sequence :.: is a no-op that can be used to delimit
+%       commands--as in \foo:.:abc--or to prevent transformations,
+%       as in -:.:> to produce -> instead of \rightarrow.
+%
+%       Commands that take arguments inside a spec environment must
+%       be specially defined with the \speclet command.  If \innerfoo
+%       is an ordinary command that takes one argument,
+%
+%           \speclet{\foo}{\innerfoo} 
+%
+%       defines \foo inside the spec environment to be the same as 
+%       \innerfoo outside, except that \foo has the same argument 
+%       conventions as _ and ^.   If \innerfoo has two arguments,
+%       you can do the following:
+% 
+%         \newcommand{\foox}[1]{\begingroup\def\temp{#1}\fooy}
+%         \newcommand{\fooz}[1]{\innerfoo{\temp}{#1}\endgroup}
+%         \speclet{\foo}{\foox}
+%         \speclet{\fooy}{\fooz}
+%       
+%       This makes \foo(x)[y] mean \innerfoo{x}{y}.
+%
+%       The command \intmbox{text} puts text in a box whose width
+%       is an integral number of character widths.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                     CHARACTER WIDTHS                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \intmbox{foo}  : Puts foo in a box an integral number of 
+%                   character-widths wide.
+%
+
+\newlength{\@charwidth}
+\settowidth{\@charwidth}{{\small\tt M}}
+
+
+\def\intmbox#1{{\tt \sbox{\@tempboxa}{#1}%
+  \@tempdima=1\wd\@tempboxa \advance\@tempdima .5\@charwidth\relax
+  \@tempcnta = \@tempdima
+  \divide \@tempcnta \@charwidth
+  \makebox[\@tempcnta\@charwidth]{\usebox{\@tempboxa}}}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                         CATCODES                          %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% IN SPEC ENVIRONMENT
+%
+%  space   active         {     other           /     active      
+%    #     active         }     other           \       \   
+%    $     other          (     active          |     active
+%    %     other          )     other           .     other 
+%    @     other          [     active          ,     other 
+%    &     other          ]     active          :     active
+%    _     active         <     active          ;     other 
+%    ^     active         >     active          !     other 
+%    ~     active         =     active          ?     other 
+%    `     active         *     active         0-9    other 
+%    '     active         +     other          A-Z    letter
+%    "     other          -     active         a-z    letter
+%    ^L    active
+
+\catcode`=\active\relax
+\let=\newpage
+
+\def\spec@catcodes{\let\do\@makeother 
+\dospecials\catcode`\\=0\relax%
+\spec@activecatcodes}
+
+\begingroup
+\gdef\spec@activecatcodes{%
+\catcode`:=\active\relax%     :
+\catcode`|=\active\relax%     |
+\catcode`~=\active\relax%     ~
+\catcode`^=\active\relax%     ^
+\catcode`_=\active\relax%     _
+\catcode`(=\active\relax%     (
+\catcode`*=\active\relax%     *
+\catcode`'=\active\relax%     '
+\catcode`##=\active\relax%    #
+\catcode`<=\active\relax%     <
+\catcode`-=\active\relax%     -
+\catcode`>=\active\relax%     >
+\catcode`]=\active\relax%     ]
+\catcode`/=\active\relax%     /
+\catcode`[=\active\relax%     [
+\catcode`=\active\relax%      =
+\catcode``\active\relax%      `
+\@vobeyspaces%               space 
+}      
+\endgroup
+
+\def\@prespecsetup{%
+\def\/{\specvee}%
+\def\@xobeysp{\leavevmode\penalty10000\ \strut}%       
+}
+
+% Define \@postspecsetup
+\begingroup
+\spec@activecatcodes%
+\gdef\@postspecsetup{%
+\let:\@colon%
+\let(\@specleftparen%
+\if@superscripts\let^\@makesuper\else\let^\@caret\fi%
+\if@subscripts\let_\@makesub\else\let_\@under\fi%
+\let\\\relax%
+\let~\@spectilde%
+\let\*\nopagebreak%   \* == \nopagebreak
+\def\.{\relax}%       \. == \relax
+\let\+\@nonewline%    \+ == \@nonewline
+\let*\@specstar%
+\let'\@specprime%
+\let#\specsharp%
+\let<\@speclt%
+\let-\@specdash%
+\let>\@specgt%
+\let[\@speclbrack%
+\let]\@specrbrack%
+\let/\@specslash%
+\let|\@specvdash
+\let=\@speceq}
+\endgroup
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%               \spec... DEFAULT DEFINITIONS                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\specvee{\makebox[2\@charwidth]{$\lor$}}           % \/
+\def\specwedge{\makebox[2\@charwidth]{$\land$}}        % /\
+\def\speceqgt{\makebox[2\@charwidth]{$\Rightarrow$}}   % =>
+\def\specltlt{\makebox[2\@charwidth]{{\tt%             % <<
+    \char'74\hspace{-.5\@charwidth}\char'74}}}
+\def\specgtgt{\makebox[2\@charwidth]{{\tt%             % >>
+    \char'76\hspace{-.5\@charwidth}\char'76}}}
+\def\speceqeq{\makebox[2\@charwidth]{$%                % ==
+   \stackrel{\scriptscriptstyle\Delta}{=}$}}
+\def\speclblb{\makebox[2\@charwidth]{{\tt%             % [[
+   \char'133\hspace{-.35\@charwidth}\char'133}}}
+\def\specrbrb{\makebox[2\@charwidth]{{\tt%             % ]]
+   \char'135\hspace{-.35\@charwidth}\char'135}}}
+\def\specsharp{\if@mathequal\intmbox{$\neq$}\else%
+     \mbox{\tt =\hspace{-\@charwidth}/}\fi}            % #
+\def\specequal{\if@mathequal%
+    \intmbox{$=$}\else=\fi}                            % = 
+\def\specdashgt{\makebox[2\@charwidth]{$\rightarrow$}} % ->
+\def\specltdash{\makebox[2\@charwidth]{$\leftarrow$}}  % <-
+\def\speccoloncolon{\makebox[\@charwidth]{%            % ::
+  \@realcolon\hspace{-.5\@charwidth}\@realcolon}}
+\def\speccolonequal{:=}                                % :=
+\def\specltgt{\makebox[2\@charwidth]{\boldmath%        % <>
+   $\Diamond$}}
+\def\speclbrb{\makebox[2\@charwidth]{\boldmath$\Box$}} % []
+\def\spectilde{\makebox[\@charwidth]{\scriptsize%      % ~
+   $\neg$}}
+\def\spectildegt{\makebox[2\@charwidth]{\boldmath%     % ~>
+   $\leadsto$}}   
+\def\specvdashvdash{\makebox[2\@charwidth]{\boldmath%  % ||
+  $\|$}}
+\def\specvdasheq{\makebox[2\@charwidth]{\boldmath%     % |=
+  $\models$}}
+\def\specvdashminus{\makebox[2\@charwidth]{\boldmath%  % |-
+  $\vdash$}}
+\def\specoplus{\makebox[\@charwidth]{\boldmath%        % (+)
+   $\oplus$}}
+\def\specominus{\makebox[\@charwidth]{\boldmath%       % (-)
+   $\ominus$}}
+\def\specmapsto{\makebox[2\@charwidth]{\boldmath%      % |->
+  $\mapsto$}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%          HORIZONTAL LINES FOR MODULE SPECS         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newlength{\boxrulewd}\setlength{\boxrulewd}{.4pt}
+\newlength{\boxindent}\setlength{\boxindent}{22\@charwidth}
+\newlength{\boxlineht}\setlength{\boxlineht}{.5\baselineskip}
+\newcommand{\boxsep}{\@charwidth}
+\newlength{\boxruleht}
+\newlength{\boxruledp}
+\newcommand{\@computerule}{%
+  \setlength{\boxruleht}{.5ex}%
+  \setlength{\boxruledp}{-\boxruleht}%
+  \addtolength{\boxruledp}{\boxrulewd}}
+\newcommand{\boxrule}{\leaders\hrule height \boxruleht depth \boxruledp
+                      \hfill\mbox{}}
+
+\newcommand{\@nmlineraise}{\if@botline -\boxrulewd
+    \else-\boxlineht\fi}
+\newcommand{\nameline}[1]{\hspace*{-\boxsep}%
+    \raisebox{\@nmlineraise}[0pt][0pt]{\rule[.5ex]{\boxrulewd
+               }{\boxlineht}}%
+    \boxrule
+    #1\boxrule
+    \raisebox{\@nmlineraise}[0pt][0pt]{\rule[.5ex]{\boxrulewd
+               }{\boxlineht}}\hspace{-\boxsep}\vspace{.5\baselineskip}}
+
+\newcommand{\midline}{\hspace{-\boxsep}%
+    \raisebox{-.5\boxlineht}[0pt][0pt]{\rule[.5ex]{\boxrulewd
+               }{\boxlineht}}%
+     \boxrule
+    \raisebox{-.5\boxlineht}[0pt][0pt]{\rule[.5ex]{\boxrulewd
+               }{\boxlineht}}\hspace{-\boxsep}}
+
+\newcommand{\botline}{\hspace{-\boxsep}%
+    \raisebox{-\boxrulewd}[0pt][0pt]{\rule[.5ex]{\boxrulewd
+               }{\boxlineht}}%
+     \boxrule
+    \raisebox{-\boxrulewd}[0pt][0pt]{\rule[.5ex]{\boxrulewd
+               }{\boxlineht}}\hspace{-\boxsep}}
+
+\newif\if@nameline
+\newif\if@botline
+
+\newcommand{\@modname}{}
+
+\newcommand{\@makeline}{\if@nameline \nameline{\@modname}%
+  \else \if@botline \botline \else \midline \fi\fi}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                  COMMENT BRACES                     %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\def\@lcbrace{\makebox[0pt][r]{$\{$}}
+%\def\@rcbrace{\@italcorrection\mbox{$\}$}}
+\def\@lcbrace{}   % comment braces removed 29 Aug 91
+\def\@rcbrace{}   
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%               NEW MATH MODE COMMANDS                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\A}{\makebox[\@charwidth]{\boldmath $\forall$}}
+\newcommand{\E}{\makebox[\@charwidth]{\boldmath $\exists$}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%              ARROWS AND DASHES                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\mbonem#1{\makebox[2\@charwidth]{#1}}
+\begingroup
+\spec@activecatcodes
+\gdef\@speclt{\@nsifnextchar-{\@speclftarrow}{\@xspeclt}}%
+\gdef\@xspeclt{\@nsifnextchar<{\@specltlt}{\@yspeclt}}%
+\gdef\@yspeclt{\@nsifnextchar>{\@specdmd}{\if@comment\@lt%
+\else\@specless\fi}}
+\gdef\@specgt{\@nsifnextchar>{\@specgtgt}{\@xspecgt}}%
+\gdef\@xspecgt{\if@comment\@gt\else\@specgreater\fi}%
+\gdef\@specdash{\@nsifnextchar>{\@specrtarrow}{\@xspecdash}}%
+\gdef\@xspecdash{\@nsifnextchar-{\@xxspecdash}{\if@comment\@commentdash%
+\else\@dash\fi}}%
+\gdef\@xxspecdash-{\@nsifnextchar-{\@xxxspecdash}{\@commentddash}}%
+\gdef\@xxxspecdash-{\@botlinefalse\@namelinefalse%
+\@nsifnextchar-{\@gobbledash}{\@commentdddash}}%
+\gdef\@trygobbledash{\@nsifnextchar-{\@gobbledash}{\@endofdashes}}%
+\gdef\@gobbledash-{\@nsifnextchar-{\@gobbledash}{\@endofdashes}}%
+\gdef\@endofdashes{\@nsifnextchar*{\@innerbotline}{\@trymodname}}%
+\gdef\@innerbotline*{\@botlinetrue\@trygobbledash}%
+\gdef\@trymodname{\@nsifnextchar|{\@getmodname}{\@makeline}}%
+\gdef\@innermidline-{\midline}
+\gdef\@specrtarrow>{\specdashgt}%
+\gdef\@speclftarrow-{\specltdash}%
+\gdef\@specgtgt>{\specgtgt}%
+\gdef\@specltlt<{\specltlt}%
+\gdef\@specdmd>{\specltgt}%
+\gdef\@specbox]{\speclbrb}%
+\gdef\@speclbrack{\@nsifnextchar]{\@specbox}{\@xspeclbrack}}%
+\gdef\@specrbrack{\@nsifnextchar]{\@specrbrb}{\@realrb}}%
+\gdef\@xspeclbrack{\@nsifnextchar[{\@speclblb}{\@reallb}}%
+\gdef\@speclblb[{\speclblb}%
+\gdef\@specrbrb]{\specrbrb}%
+\gdef\@specslash{\@nsifnextchar\ {\@xand}{\@slash}}%
+\gdef\@xand\ {{\specwedge} }%
+\endgroup
+
+% special hack needed to define something with argument
+\begingroup
+\catcode`|=\active\relax%     -
+\catcode`-=\active\relax%     -
+\gdef\@getmodname|#1|{\def\@modname{#1}\@namelinetrue\@trygobbledash}
+\endgroup
+
+\def\@slash{/}
+\def\@dash{-}
+\def\@commentdash{-\hspace{-.5\@charwidth}-}%{$-$}
+\def\@commentddash{--}
+\def\@commentdddash{---}
+\def\@reallb{[}
+\def\@realrb{]}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                   <  AND  >                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \mathgreater causes the transformations 
+%                <  -> $<$ 
+%                >  -> $>$
+\newif\if@mathgreater \@mathgreatertrue
+\newcommand{\mathgreater}{\@mathgreatertrue}
+\newcommand{\nomathgreater}{\@mathgreaterfalse}
+\newcommand{\@specgreater}{\if@mathgreater\intmbox{$>$}\else\char62\relax\fi}
+\newcommand{\@specless}{\if@mathgreater\intmbox{$<$}\else\char60\relax\fi}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                   =  AND  #                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \mathequal causes the transformations 
+%                =  -> $=$ 
+%                #  -> $\neq$
+\newif\if@mathequal \@mathequaltrue
+\newcommand{\mathequal}{\@mathequaltrue}
+\newcommand{\nomathequal}{\@mathequalfalse}
+
+
+% Defines the formatting of one-line comments
+\def\@beginlinecomment{\begingroup\@commenttrue\catcode`"=\active
+\catcode`'=12\relax\@fixcomments\@fixspace
+ % \catcode`{=1\relax\catcode`}=2\relax
+\@fixdollar \catcode`{=\active\relax\catcode`}=\active\relax\@fixbraces
+  %\catcode`-=12\relax
+\footnotesize\sl\nonfrenchspacing     % comments changed to \footnotesize
+\@lcbrace\ignorespaces}               % 29 Aug 91
+
+% Defines formatting of multi-line comments
+\newlength{\@commentindent}
+\def\@begincomment{\hspace*{\@commentindent}\strut\advance\@commentindent 
+-\textwidth\begingroup\minipage[t]{-\@commentindent}
+\@commenttrue\catcode`"=\active
+\catcode`'=12\relax\@fixcomments\@fixspace
+ % \catcode`{=1\relax\catcode`}=2\relax
+\@fixdollar
+\catcode`{=\active\relax\catcode`}=\active\relax\@fixbraces
+ % \catcode`-=12\relax
+\nonfrenchspacing
+\let\@endcomment\@endcommentline\footnotesize
+\sl\makebox\@lcbrace\ignorespaces}
+
+\begingroup
+\catcode`$=12\relax
+\catcode`^=12\relax
+\catcode`_=12\relax
+\gdef\@fixdollar{\catcode`$=3\relax
+\catcode`^=7\relax\catcode`_=8\relax}
+\endgroup
+
+% The following redefines : so it works right inside a comment.
+% Needed because space has catcode 10 in the comment.
+\begingroup
+\catcode` =\active\relax%
+\gdef\@fixspace{\catcode` =10\relax\@refixcolon}%
+\endgroup
+
+\begingroup
+\catcode`:=\active
+\gdef\@refixcolon{\def\@colon{\@ifspace{\relax
+\@realcolon}{\@nspcolon}}\let:\@colon
+\def\@nspcolon{\@ifnextchar:{\@dblcolon}{\@xcmdcolon}}}
+\endgroup
+
+% \@ifspace{A}{B} executes A if the next token is a space token,
+% else it executes B and replaces next token.
+%
+% \@nsifnextchar like \@ifnextchar, except it doesn't skip over
+% space tokens.
+
+\def\@ifspace#1#2{\def\@tempa{#1}\def\@tempb{#2}\futurelet\@tempc\@ifspacex}
+\def\@ifspacex{\ifx\@sptoken\@tempc\let\@tempd\@tempa\else
+     \let\@tempd\@tempb\fi\@tempd}
+
+\def\@nsifnextchar#1#2#3{\let\@tempe #1\def\@tempa{#2}\def\@tempb{#3}\futurelet
+    \@tempc\@ifnsnch}
+\def\@ifnsnch{\ifx \@tempc \@tempe\let\@tempd\@tempa\else\let\@tempd\@tempb\fi
+      \@tempd}
+
+
+% Defines \@fixbraces to make braces show up; used in comments
+%
+\begingroup
+\catcode`{=\active
+\catcode`}=\active
+\catcode`[=1\relax \catcode`]=2\relax
+\gdef\@fixbraces[\let{=\@lcbrack \let}=\@rcbrack]
+\endgroup
+\def\@lcbrack{\mbox{$\{$}}
+\def\@rcbrack{\mbox{$\}$}}
+
+% Make ", <, and > work right in comments
+%
+\begingroup
+\catcode`"=\active\relax
+\catcode`<=\active\relax \catcode`>=\active
+\catcode``=\active\relax
+\gdef\@fixcomments{\let"=\@altquotes%
+  \def`{\begingroup
+    \catcode'44=12\relax  % $
+    \catcode'137=12\relax % _
+    \catcode'136=12\relax % ^
+    \catcode'55=12\relax  % -
+    \let<=\@specless      % <
+    \let>=\@specgreater   % >
+%    \catcode'74=12\relax  % <
+%    \catcode'76=12\relax  % >
+%    \catcode'75=12\relax  % =
+    \@nsifnextchar{`}{\@altssquote}{\@altsquote}}\@lqtrue}%
+\endgroup
+\begingroup
+\catcode`'=12\relax
+\gdef\@altsquote#1'{{\tt\frenchspacing #1}\endgroup}
+\catcode``=\active
+\gdef\@altssquote`#1''{{\tt\frenchspacing \char"60\relax
+              #1\char "27\relax}\endgroup}
+\endgroup
+\def\@altquotes{\if@lq ``\@lqfalse\else''\@lqtrue\fi}
+\newif\if@lq 
+\newif\if@comment \@commentfalse
+\def\@lt{\mbox{$<$}}
+\def\@gt{\mbox{$>$}}
+
+\def\@specundef{ undefined}
+% The following \gdef's define commands that must gobble characters
+% such as * or : that follow them.
+\begingroup
+\@vobeyspaces
+\catcode`>=\active
+\catcode`:=\active%
+\catcode`(=\active%
+\catcode`-=\active%
+\gdef\@colon{\@ifnextchar {\@realcolon}{\@nspcolon}}%
+\global\let:=\@colon%
+\gdef\@nspcolon{\@ifnextchar:{\@dblcolon}{\@xcmdcolon}}%
+%\gdef\@cmdcolon#1:{\expandafter\let\expandafter\@tempa\csname#1\endcsname%
+%\intmbox{$\@tempa$}}%
+\gdef\@cmdcolon#1:{\begingroup\@cmdcolonlet%        %% changed 25 Nov 91
+\expandafter\global\expandafter\let\expandafter\@tempaxs\csname#1\endcsname%
+\endgroup\ifx\@tempaxs\relax\@warning%
+{\@realcolon#1\@realcolon\@specundef}\fi\intmbox{$\@tempaxs$}}%
+\gdef\@dblcolon:{\speccoloncolon}%
+\catcode`*=\active%
+\gdef\@specstar{\@nsifnextchar*{}{\@sspecstar}}%
+\gdef\@sspecstar{\@nsifnextchar){\@endcomment}{\@realstar}}%
+\gdef\@endcomment){\unskip\@rcbrace\endgroup}%
+\gdef\@specleftparen{\@nsifnextchar*{\@speclpstar}{\@specleftparenx}}%
+\gdef\@specleftparenx{\@nsifnextchar+{\@speclpplus}{\@specleftpareny}}%
+\gdef\@specleftpareny{\@nsifnextchar-{\@speclpminus}{\@realleftparen}}%
+\gdef\@speclpplus+{\@nsifnextchar){\@specoplus}{\@reallpplus}}%
+\gdef\@speclpminus-{\@nsifnextchar){\@specominus}{\@reallpminus}}%
+\gdef\@specoplus){\specoplus}%
+\gdef\@specominus){\specominus}%
+\gdef\@speclpstar*{\@nsifnextchar*{\@rowofstars}{\@xbeglinecom}}%
+\gdef\@rowofstars#1){\@specxcr}%
+\gdef\@endcommentline#1(*{\@nsifnextchar*{\@xendcomment}{\ignorespaces}}
+\gdef\@xendcomment#1){\unskip\@rcbrace\endminipage
+\vspace{\botcommentskip\baselineskip}\endgroup}
+\catcode`=\active%
+\gdef\@speceq{\@nsifnextchar={\@dbleql}{\@xspeceq}}%
+\gdef\@xspeceq{\@nsifnextchar>{\@eqimpl}{\specequal}}%
+\gdef\@dbleql={\speceqeq}
+\gdef\@eqimpl>{\speceqgt}
+\catcode`\ \active\gdef\@xbeglinecom {\@beginlinecomment}%
+\endgroup
+
+
+\def\@specprime{\makebox[\@charwidth][l]{$\,^{\prime}$}}
+\let\@italcorrection\/ 
+\def\@realcolon{\if@comment{\@italcorrection\rm :}\@\else:\fi}
+\def\@realleftparen{(}
+\def\@realstar{*}
+\def\@reallpplus{(+}
+\def\@reallpminus{(-}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       DEFINITION OF spec ENVIRONMENT                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\spec{\@spec\frenchspacing\@chend}
+
+
+\def\@spec{\trivlist \begingroup\@computerule
+\small \baselineskip .75\baselineskip \lineskip\z@ 
+\item[]\if@minipage\else\vskip\parskip\fi
+\leftskip\@totalleftmargin\rightskip\z@
+\parindent\z@\parfillskip\@flushglue\parskip\z@
+\@tempswafalse \def\par{\if@tempswa\hbox{}\fi\@tempswatrue\@@par}
+\@prespecsetup
+\obeylines \tt \catcode``=13 \@noligs
+\@postspecsetup
+\spec@catcodes}
+
+\def\endspec{\endgroup\endtrivlist}
+
+% Defines \end{spec}
+%
+\begingroup \catcode `[= 1
+\catcode`]=2 \catcode `\{=12 \catcode `\}=12
+\gdef\@chend[\def\end{spec}[\@xend[spec]]]
+\endgroup
+\def\@xend{}
+\let\@xend=\end
+
+
+
+
+% Defines 
+%  \@specxcr == gobble up to <CR>
+%                \par 
+%                add -\topcommentskip\baselineskip vertical space, 
+%                \@commentindent == width of spaces up til next (*
+%                \@begincomment
+%                 
+%  \@xcmdcolon == IF next char = <CR> THEN \@realcolon
+%                                     ELSE \@ycmdcolon
+%                 FI
+%  \@ycmdcolon == IF next char = "=" THEN \@colonequal
+%                                    ELSE \@cmdcolon
+%                 FI
+
+\begingroup
+\catcode`=\active\relax%
+\catcode`\^^M\active\relax%
+\catcode`*\active\relax\catcode`(\active\relax%
+\gdef\@specxcr#1
+#2(*{\par\vskip-\topcommentskip\baselineskip\settowidth%
+{\@commentindent}{#2}\@begincomment}%
+\gdef\@xcmdcolon{\@ifnextchar
+{\@realcolon}{\@ycmdcolon}}%
+\gdef\@ycmdcolon{\@ifnextchar={\@colonequal}{\@cmdcolon}}%
+\gdef\@colonequal#1={\speccolonequal}
+\endgroup
+
+\def\topcommentskip{1.0}
+\def\botcommentskip{.4}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                \speclet                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+
+{\catcode`[=\active
+\catcode`]=\active
+\catcode`(=\active
+\catcode`<=\active
+\catcode`>=\active
+\catcode`;=1          % ; = left brace, ' = right brace
+\catcode`'=2
+\catcode`{=12
+\catcode`}=12
+\gdef\@getspecarg#1;\@ifnextchar[%
+    ;\@specbktarg;#1''%
+    ;\@ifnextchar(%
+      ;\@specpararg;#1''%
+      ;\@ifnextchar<%
+         ;\@specanglearg;#1''%
+         ;\@ifnextchar{%  }
+            ;\@specbracearg;#1''%
+            ;\@specshortarg;#1''''''
+\gdef\@specbktarg#1[#2];#1;#2''
+\gdef\@specpararg#1(#2);#1;#2''
+\gdef\@specanglearg#1<#2>;#1;#2''
+\gdef\@specbracearg#1{#2};#1;#2''
+\gdef\@specshortarg#1#2;#1;#2''
+'
+\def\speclet#1#2{\newcommand{#1}{\@getspecarg{#2}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                SUB- AND SUPERSCRIPTS                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \superscripts : makes ^X turn into super-X.
+% \subscripts   : makes _X turn into sub-X.
+% \nosuperscripts, \nosubscripts are inverse declarations
+%  Default is with sub- and super-scripts turned on.
+
+\newif\if@subscripts \@subscriptstrue
+\newif\if@superscripts \@superscriptstrue
+\newcommand{\superscripts}{\@superscriptstrue}
+\newcommand{\subscripts}{\@subscriptstrue}
+\newcommand{\nosuperscripts}{\@superscriptsfalse}
+\newcommand{\nosubscripts}{\@subscriptsfalse}
+\newcommand{\@under}{\char '137\relax}
+\newcommand{\@caret}{\char '136\relax}
+
+\def\@specsub#1{\@mathcmd{{}_{\raisebox{-.4ex}{\tt #1}}}}
+\def\@specsuper#1{\@mathcmd{{}^{\tt #1}}}
+\speclet{\@makesub}{\@specsub}
+\speclet{\@makesuper}{\@specsuper}
+
+\def\@mathcmd#1{\relax\ifmmode #1\else $#1$\fi}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                   :command:                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \spec@cmdcolonlet : \let's characters made active 
+%     in spec environment to expand to themselves
+%     For example, \let's ( to \@selflparent
+%
+% \@actives@to@other : \recatcodes characters normally
+%     active in spec environment to other
+%
+% \@rest@to@other : \recatcodes characters normally
+%     not active in spec environment but normally not "other"
+%     to "other".
+%
+% \coloncommand{name}{text} : defines :name: to expand to
+%          $text$ inside a spec environment, where :name:
+%          can contain any character except { } \ : or * .
+%          Note: name may not begin with "=" (since := is a recognized
+%          group.
+%
+\begingroup
+\spec@activecatcodes
+\gdef\@cmdcolonlet{%
+\let|\@selfbar%        |
+\let~\@selftilde%      ~
+\let^\@selfcaret%      ^
+\let_\@selfunderscore% _
+\let(\@selflparen%     (
+\let*\@selfstar%       *
+\let'\@selfrquote%     '
+\let#\@selfsharp%     #
+\let<\@selflt%         <
+\let-\@selfdash%       -
+\let>\@selfgt%         >
+\let]\@selfrbracket%   ]
+\let/\@selfslash%      /
+\let[\@selflbracket%   [
+\let=\@selfequal%      =
+\let`\@selflquote%     `
+}
+\endgroup
+
+\begingroup
+\gdef\@rest@to@other{%
+\catcode`$=12\relax%     $
+\catcode`&=12\relax%     &
+\catcode`"=12\relax%     "
+}
+\endgroup
+
+\def\coloncommand{%
+\begingroup
+\@actives@to@other
+\@rest@to@other 
+\@coloncommand}
+
+\def\@coloncommand#1{\gdef\@coloncmdfoo{#1}\endgroup\@coloncommandx}
+
+\def\@coloncommandx#1{\expandafter\def\csname\@coloncmdfoo\endcsname{#1}}
+
+\gdef\@actives@to@other{% 
+\catcode`|=12\relax%     |
+\catcode`~=12\relax%     ~
+\catcode`^=12\relax%     ^
+\catcode`_=12\relax%     _
+\catcode`(=12\relax%     (
+\catcode`*=12\relax%     *
+\catcode`'=12\relax%     '
+\catcode`##=12\relax%    #
+\catcode`<=12\relax%     <
+\catcode`-=12\relax%     -
+\catcode`>=12\relax%     >
+\catcode`]=12\relax%     ]
+\catcode`/=12\relax%     /
+\catcode`[=12\relax%     [
+\catcode`=12\relax%      =
+\catcode``12\relax%      `
+}
+%
+\begingroup
+\@actives@to@other
+\gdef\@selfbar{|}%         |
+\gdef\@selftilde{~}%       ~
+\gdef\@selfcaret{^}%       ^
+\gdef\@selfunderscore{_}%  _
+\gdef\@selflparen{(}%      (
+\gdef\@selfstar{*}%        *
+\gdef\@selfrquote{'}%      '
+\gdef\@selfsharp{#}%       #
+\gdef\@selflt{<}%          <
+\gdef\@selfdash{-}%        -
+\gdef\@selfgt{>}%          >
+\gdef\@selfrbracket{]}%    ]
+\gdef\@selfslash{/}%       /
+\gdef\@selflbracket{[}%    [
+\gdef\@selfequal{=}%       =
+\gdef\@selflquote{`}%      `
+\endgroup
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                       TILDE                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\let\@tilde~
+\begingroup
+\catcode`~=\active
+\catcode`>=\active
+\gdef\@spectilde{\@nsifnextchar>{\@specldsto}{\spectilde}}
+\gdef\@specldsto>{\spectildegt}
+\endgroup
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                       VDASH                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\begingroup
+\spec@activecatcodes
+\gdef\@specvdash{\@nsifnextchar|{\@specdblvdash}{\@xspecvdash}}%
+\gdef\@specdblvdash|{\specvdashvdash}%
+\gdef\@xspecvdash{\@nsifnextchar-{\@specvdashminus}{\@yspecvdash}}%
+\gdef\@specvdashminus-{\specvdashminus}%
+\gdef\@yspecvdash{\@nsifnextchar={\@specvdasheq}{\@realvdash}}%
+\gdef\@specvdasheq={\specvdasheq}%
+\endgroup
+
+\def\@realvdash{|}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                       |->                           %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\begingroup%
+\spec@activecatcodes% 
+\gdef\@specvdashminus-{\@nsifnextchar>{\@specmapsto}{\specvdashminus}}% 
+\gdef\@specmapsto>{\specmapsto}%
+\endgroup
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                       \+                            %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% \+ == kill everything up to first > on next line.
+%       
+\begingroup
+\catcode`/\active\relax%
+\catcode`\^^M\active\relax%
+\gdef\@nonewline#1
+#2/{}%
+\endgroup
+
+%%%%% END OF FILE
+

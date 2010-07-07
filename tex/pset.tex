@@ -1,0 +1,53 @@
+\documentclass[letter,12pt]{article}
+
+
+\usepackage{fullpage}
+\usepackage{latexsym}
+\usepackage{amsmath}
+
+\usepackage{spec92}
+
+\addtolength{\topmargin}{+6mm}
+
+\begin{document}
+
+\begin{flushright}
+ {\bf Tina Nolte} \\ {\tt tnolte@mit.edu}
+\end{flushright}
+
+\vspace{5mm}
+
+\begin{center}
+\Large Homework 8. Part a. Problem 99
+\end{center}
+
+\vspace{10mm}
+
+
+{\bf (a)} This is an example of a writeup that includes messages
+in the form {\tt (v, out, h)} and process identifiers like $i+1$.
+
+We can also add pseudocode using the spec environment.
+
+\begin{spec}
+if the message from i+1 is (u, out, h) then
+   a := a + 2^{phase}
+\end{spec}
+
+In math mode, you can write all sorts of math expressions like
+$\forall l < \log n, 2^l \le \frac{n}{2}$, or even
+\[
+	\sum_{l=0}^{\log n - 1} 2^l(n-2^l)
+		\ge
+	\sum_{l=0}^{\log n - 1} 2^l\frac{n}{2}
+		=
+	\frac{n}{2}\sum_{l=0}^{\log n - 1} 2^l
+		= 
+	\frac{n}{2}(n -1) = \mathcal{O}(n^2)
+\]
+
+
+\end{document}
+
+
+
