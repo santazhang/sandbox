@@ -1,5 +1,6 @@
 # ignore temp files
 *~
+*.swp
 
 # ignore output files
 *.o
