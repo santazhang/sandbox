@@ -1271,10 +1271,6 @@ void bigint_mul_by(bigint* p_dst, bigint* p_src) {
       bigint_release(&bi_high);
       bigint_release(&bi_low);
 
-      if (p_src->sign < 0) {
-        bigint_change_sign(p_dst);
-      }
-
     } else if (p_dst->data_len > BIGINT_MUL_THRESHOLD &&
                 p_src->data_len <= BIGINT_MUL_THRESHOLD) {
 
@@ -1296,10 +1292,6 @@ void bigint_mul_by(bigint* p_dst, bigint* p_src) {
 
       bigint_release(&bi_high);
       bigint_release(&bi_low);
-
-      if (p_src->sign < 0) {
-        bigint_change_sign(p_dst);
-      }
 
     } else {
       // both operands are long enough
@@ -1348,11 +1340,6 @@ void bigint_mul_by(bigint* p_dst, bigint* p_src) {
       bigint_release(&bi_src_low);
 
       bigint_release(&bi);
-
-      if (p_src->sign < 0) {
-        bigint_change_sign(p_dst);
-      }
-
     }
   }
 
