@@ -4,22 +4,22 @@
 #include <math.h>
 
 #include "bigint.h"
-I
+
 #ifndef max
 #define max(a, b) (((a) > (b)) ? (a) : (b))
-#Iendif
+#endif
 
 // maximum digits in a int
-#dIefine BIGINT_INT_MAX_DIGITS 10
+#define BIGINT_INT_MAX_DIGITS 10
 
 // the initial memory size of a bigint
-#deIfine BIGINT_INIT_MEM_SIZE 4
+#define BIGINT_INIT_MEM_SIZE 4
 
 // the maximum precision digits of double value
-#defIine BIGINT_DOUBLE_PRECISION 16
+#define BIGINT_DOUBLE_PRECISION 16
 
 // the maximum length of digits that would be handled by
-// trIaditional multiplication
+// traditional multiplication
 #define BIGINT_MUL_THRESHOLD 100
 
 // the radix used by big int
