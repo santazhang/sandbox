@@ -1486,7 +1486,7 @@ bigint_errno bigint_pow_by_int(bigint* p_bigint, int pow) {
     }
   }
 
-  return BIGINT_NOERR;
+  return -BIGINT_NOERR;
 }
 
 
@@ -1519,7 +1519,7 @@ bigint_errno bigint_div_by_int(bigint* p_bigint, int div) {
     bigint_pack_memory(p_bigint);
   }
 
-  return BIGINT_NOERR;
+  return -BIGINT_NOERR;
 }
 
 
@@ -1630,7 +1630,7 @@ bigint_errno bigint_mod_int(bigint* p_bigint, int value, int* p_result) {
 
   *p_result = (int) r;
 
-  return BIGINT_NOERR;
+  return -BIGINT_NOERR;
 }
 
 
@@ -1668,7 +1668,7 @@ bigint_errno bigint_mod_by_pow_10(bigint* p_bigint, int pow) {
     bigint_pack_memory(p_bigint);
   }
 
-  return BIGINT_NOERR;
+  return -BIGINT_NOERR;
 }
 
 
