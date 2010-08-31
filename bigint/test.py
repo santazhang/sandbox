@@ -22,7 +22,7 @@ def rand_bigint_str():
     return "-" + rand_bigint_str_positive();
 
 os.system("rm -f test")
-os.system("gcc bigint.c test.c -O3 -o test")
+os.system("gcc bigint.c test.c -O3 -o test -lm")
 
 op_list = ["+", "-", "time", "div", "pow", "mod"]
 
