@@ -1018,38 +1018,29 @@ void bigint_mul_by_int(bigint* p_bigint, int value) {
 }
 
 void bigint_mul_by_pow_10(bigint* p_bigint, int pow) {
-
   // we dont consider the case of pow = 1, where nothing should be done
   if (pow < 0) {
     bigint_div_by_pow_10(p_bigint, -pow);
-
   } else if (pow > 0) {
     int approx_segments = pow / BIGINT_RADIX_LOG10 + 2 + p_bigint->data_len;
     int* p_new_data = BIGINT_ALLOC(sizeof(int) * (approx_segments));
     int prod;
     int index;
-
     // helper variable
     int helper_var;
-
     // number of 0 segments need to insert at the back of segments
     helper_var = pow / BIGINT_RADIX_LOG10;
-
     for (index = 0; index < helper_var; index++) {
       p_new_data[index] = 0;
     }
-
     // copy original numbers here
     for (index = 0; index < p_bigint->data_len; index++) {
       p_new_data[index + helper_var] = p_bigint->p_data[index];
     }
-
     p_bigint->data_len += helper_var;
     BIGINT_FREE(p_bigint->p_data);
     p_bigint->p_data = p_new_data;
     p_bigint->mem_size = approx_segments;
-
-
     // get the value to multiply as a param of bigint_mul_by_int
     helper_var = pow % BIGINT_RADIX_LOG10;
     prod = 1;
@@ -1057,16 +1048,11 @@ void bigint_mul_by_pow_10(bigint* p_bigint, int pow) {
       prod *= 10;
       helper_var--;
     }
-
     bigint_mul_by_int(p_bigint, prod);
-
   }
 }
 
-
-
 bigint_errno bigint_pow_by_int(bigint* p_bigint, int pow) {
-
   if (pow < 0) {
     return -BIGINT_ILLEGAL_PARAM;
   } else if (pow == 0) {
@@ -1085,30 +1071,22 @@ bigint_errno bigint_pow_by_int(bigint* p_bigint, int pow) {
       bigint_mul_by(p_bigint, p_bigint);
     }
   }
-
   return -BIGINT_NOERR;
 }
 
-
-
 bigint_errno bigint_div_by_int(bigint* p_bigint, int div) {
-
   if (div == 0) {
     return -BIGINT_ILLEGAL_PARAM;
   }
-
   if (div < 0) {
     div = -div;
     bigint_change_sign(p_bigint);
   }
-
   if (div != 1) {
     // from now on, only consider the case of value > 1
-
     // the value that holds a segment's value
     long long val = 0;
     long long r;
-
     int index;
     for (index = p_bigint->data_len - 1; index >= 0; index--) {
       val += (long long) p_bigint->p_data[index];
@@ -1116,13 +1094,10 @@ bigint_errno bigint_div_by_int(bigint* p_bigint, int div) {
       p_bigint->p_data[index] = (int) (val / (long) (long) div);
       val = r * BIGINT_RADIX;
     }
-
     bigint_pack_memory(p_bigint);
   }
-
   return -BIGINT_NOERR;
 }
-
 
 // This is a helper function which is used by div and mod function
 // a / b -> q
@@ -1131,7 +1106,6 @@ static bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   // TODO
   return -BIGINT_NOERR;
 }
-
 
 bigint_errno bigint_div_by(bigint* p_dst, bigint* p_src) {
   bigint_errno ret;
@@ -1149,90 +1123,61 @@ bigint_errno bigint_div_by(bigint* p_dst, bigint* p_src) {
   return ret;
 }
 
-
-
 void bigint_div_by_pow_10(bigint* p_bigint, int pow) {
-
   // we don't consider the case of pow = 1, where nothing should be done
   if (pow < 0) {
     bigint_mul_by_pow_10(p_bigint, -pow);
-
   } else if (pow > 0) {
-
     // the number of segments that should be directly thrown away
     int throw_segments = pow / BIGINT_RADIX_LOG10;
-
     // the additional number of digits that should be thrown away
     int throw_offset = pow % BIGINT_RADIX_LOG10;
-
     // approximate segments in result
     int approx_len = p_bigint->data_len - throw_segments + 1;
-
     if (p_bigint->data_len <= throw_segments) {
       // too much data is thrown away, the result is definitly zero
-
       assert(pow > bigint_digit_count(p_bigint));
       bigint_set_zero(p_bigint);
-
     } else {
-
       int index;
-
       // we might need to shift the number, insert new digits in the lower
       // part of the number. we will do this by multiplying 'prod'
       int prod = 1;
-
       // we might need to add a trailing number, by adding 'trailing'
       int trailing = 0;
-
       int* p_new_data = (int *) BIGINT_ALLOC(sizeof(int) * approx_len);
-
       if (throw_offset != 0) {
-
         // if the throw_offset is not zero, then we have to consider
         // the segment between 'thrown' and 'not thrown' segments.
         // we try to get the final trailing zeros, and use the following
         // formula:
         //   value = 'not thrown' * prod + trailing
-
         int i;
-
         trailing = p_bigint->p_data[throw_segments];
         prod = BIGINT_RADIX;
-
         for (i = 0; i < throw_offset; i++) {
           trailing /= 10;
           prod /= 10;
         }
-
         for (index = 0; index + throw_segments + 1 < p_bigint->data_len; index++) {
           p_new_data[index] = p_bigint->p_data[index + throw_segments + 1];
         }
-
         BIGINT_FREE(p_bigint->p_data);
-
         p_bigint->data_len -= throw_segments + 1;
         p_bigint->p_data = p_new_data;
         p_bigint->mem_size = approx_len;
-
         bigint_mul_by_int(p_bigint, prod);
         bigint_add_by_int(p_bigint, trailing);
-
       } else {
         // only need to discard a few segments
-
         BIGINT_FREE(p_bigint->p_data);
-
         p_bigint->data_len -= throw_segments;
         p_bigint->p_data = p_new_data;
         p_bigint->mem_size = approx_len;
-
       }
-
     }
   }
 }
-
 
 bigint_errno bigint_mod_by(bigint* p_dst, bigint* p_src) {
   bigint_errno ret;
@@ -1251,69 +1196,46 @@ bigint_errno bigint_mod_by(bigint* p_dst, bigint* p_src) {
 }
 
 bigint_errno bigint_mod_by_int(bigint* p_bigint, int value, int* p_result) {
-
   long long r = 0;
-
   int i;
-
   if (value == 0) {
     return -BIGINT_ILLEGAL_PARAM;
   }
-
   for (i = p_bigint->data_len - 1; i >= 0; i--) {
     r = (r * BIGINT_RADIX + p_bigint->p_data[i]) % value;
   }
-
   if (p_bigint->sign < 0) {
     r = -r;
   }
-
   assert(-2147483648ll <= r && r < 2147483648ull);
-
   *p_result = (int) r;
-
   return -BIGINT_NOERR;
 }
 
-
-
 bigint_errno bigint_mod_by_pow_10(bigint* p_bigint, int pow) {
-
   // the segments to keep
   int keep_segments;
-
   // the digits to keep with the segments to keep
   int keep_digits;
-
   if (pow < 0) {
     return -BIGINT_ILLEGAL_PARAM;
   }
-
   // from now on pow >= 0
-
   keep_segments = pow / BIGINT_RADIX_LOG10;
   keep_digits = pow % BIGINT_RADIX_LOG10;
-
   if (keep_segments < p_bigint->data_len) {
-
     // only consider the case that only some number should be kept
     int r = 1;
     int i;
-
     p_bigint->data_len = keep_segments + 1;
-
     for (i = 0; i < keep_digits; i++) {
       r *= 10;
     }
-
     p_bigint->p_data[p_bigint->data_len - 1] %= r;
     bigint_pack_memory(p_bigint);
   }
-
   return -BIGINT_NOERR;
 }
-
-
 
 int bigint_compare(bigint* p_bigint1, bigint* p_bigint2) {
   if (p_bigint1->sign < p_bigint2->sign) {
@@ -1322,30 +1244,21 @@ int bigint_compare(bigint* p_bigint1, bigint* p_bigint2) {
     return 1;
   } else {
     // same sign
-
     if (p_bigint1->sign == 0) {
       // both zero
-
       return 0;
     } else if (p_bigint1->sign < 0) {
       // both negative
       // use the positive solution
-
       int result;
-
       bigint_change_sign(p_bigint1);
       bigint_change_sign(p_bigint2);
-
       result = bigint_compare(p_bigint2, p_bigint1);
-
       bigint_change_sign(p_bigint2);
       bigint_change_sign(p_bigint1);
-
       return result;
-
     } else {
       // both positive
-
       if (p_bigint1->data_len > p_bigint2->data_len) {
         return 1;
       } else if (p_bigint1->data_len < p_bigint2->data_len) {
@@ -1353,7 +1266,6 @@ int bigint_compare(bigint* p_bigint1, bigint* p_bigint2) {
       } else {
         // both positive, same length
         int index = p_bigint1->data_len - 1;
-
         // compare segment to segment
         while (index >= 0) {
           if (p_bigint1->p_data[index] > p_bigint2->p_data[index]) {
@@ -1363,16 +1275,11 @@ int bigint_compare(bigint* p_bigint1, bigint* p_bigint2) {
           }
           index--;
         }
-
         return 0;
       }
-
     }
   }
 }
-
-
-
 
 int bigint_equal(bigint* p_bigint1, bigint* p_bigint2) {
   if (p_bigint1 == p_bigint2)
@@ -1381,33 +1288,23 @@ int bigint_equal(bigint* p_bigint1, bigint* p_bigint2) {
     return bigint_compare(p_bigint1, p_bigint2) == 0;
 }
 
-
-
-
 int bigint_nth_digit(bigint* p_bigint, int nth) {
-
   if (nth < 0) {
     // handle error
     return -1;
-
   } else if (bigint_is_zero(p_bigint)) {
     // when the bigint is zero, every nth will return 0
     return 0;
-
   } else {
     // general case, with bigint > 0
-
     // which segment is the value located
     int segment = nth / BIGINT_RADIX_LOG10;
-
     // the offset in the segment
     int segment_offset = nth % BIGINT_RADIX_LOG10;
-
     // test if the segment is with in data range
     if (segment >= p_bigint->data_len) {
       // nth is too big for this number, always return 0
       return 0;
-
     } else {
       // the value of the segment
       int segment_value = p_bigint->p_data[segment];
