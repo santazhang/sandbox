@@ -1,5 +1,9 @@
 #!/usr/bin/ruby
 
+# Analyze a git project's history
+# shows each commiter's work (# lines changed)
+# shows each files' change (lines added/deleted, times changed)
+
 require 'pp'
 
 if ARGV.length > 0
