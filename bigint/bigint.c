@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -1106,6 +1107,35 @@ bigint_errno bigint_div_by_int(bigint* p_bigint, int div) {
 // note: v should be adjusted so that first digit is in range 5~9 (1/2 ~ 1)
 static void bigint_newton_inversion(bigint* v, int n, bigint* z, int* m) {
 // TODO
+  bigint s, z2;
+  int k = 0;
+  int expo;
+  double base;
+  bigint_init(&s);
+  bigint_init(&z2);
+  bigint_to_scientific(v, &base, &expo);
+  *m = -3 * expo;
+
+  // init value of z (1/v)
+  bigint_from_scientific(z, 1.0 / base, expo);
+  for (;;) {
+    bigint_copy(&s, z);
+    bigint_mul_by(&s, &s);
+    bigint_mul_by(&s, v);
+    bigint_div_by_pow_10(&s, 3 * expo);
+    bigint_copy(&z2, z);
+    bigint_mul_by_int(z, 2);
+    bigint_sub_by(z, &s);
+    if (bigint_compare(z, &z2) == 0) {
+      break;
+    }
+    if (k >= n * 3.4 /* log_2(10) */) {
+      break;
+    }
+    k++;
+  }
+  bigint_release(&s);
+  bigint_release(&z2);
 }
 
 // This is a helper function which is used by div and mod function
@@ -1113,17 +1143,23 @@ static void bigint_newton_inversion(bigint* v, int n, bigint* z, int* m) {
 // a % b -> r
 //
 // invariant: a = b * q + r
-static bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
-  bigint b_inv;
+bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
+  bigint b_inv, q2, r2;
   int b_inv_m;
   bigint_init(&b_inv);
+  bigint_init(&q2);
+  bigint_init(&r2);
+
+  // TODO might need to change b to range (1/2 ~ 1)
   bigint_newton_inversion(b, bigint_string_length(b) + 2, &b_inv, &b_inv_m);
 
   // set init q
   // q = a * (1/b)
   bigint_copy(q, a);
   bigint_mul_by(q, &b_inv);
-  bigint_div_by_pow_10(q, b_inv_m);
+  print_bigint(q);
+  printf("\ninv_m=%d\n", b_inv_m);
+  bigint_mul_by_pow_10(q, b_inv_m);
 
   // set init r
   // r = -(q * b) + a
@@ -1136,11 +1172,27 @@ static bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   int try_count = 0;
   for (;;) {
     if (bigint_is_negative(r)) {
-      bigint_sub_by_int(q, 1);
-      bigint_add_by(r, b);
+      bigint_change_sign(r);
+      bigint_divmod(r, b, &q2, &r2);
+      bigint_change_sign(r);
+      if (bigint_is_zero(&q2)) {
+        bigint_sub_by_int(q, 1);
+        bigint_add_by(r, b);
+      } else {
+        bigint_sub_by(q, &q2);
+        bigint_copy(&r2, &q2);
+        bigint_mul_by(&r2, b);
+        bigint_add_by(r, &r2);
+      }
     } else if (bigint_compare(r, b) >= 0) {
-      bigint_add_by_int(q, 1);
-      bigint_sub_by(r, b);
+      bigint_divmod(r, b, &q2, &r2);
+      if (bigint_is_zero(&q2)) {
+        bigint_add_by_int(q, 1);
+        bigint_sub_by(r, b);
+      } else {
+        bigint_add_by(q, &q2);
+        bigint_copy(r, &r2);
+      }
     } else {
       break;
     }
@@ -1149,6 +1201,8 @@ static bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   }
   printf("[div] barret try count = %d\n", try_count);
   bigint_release(&b_inv);
+  bigint_release(&q2);
+  bigint_release(&r2);
 
 #if 1
   {
@@ -1194,45 +1248,25 @@ void bigint_div_by_pow_10(bigint* p_bigint, int pow) {
     int approx_len = p_bigint->data_len - throw_segments + 1;
     if (p_bigint->data_len <= throw_segments) {
       // too much data is thrown away, the result is definitly zero
-      assert(pow > bigint_digit_count(p_bigint));
+      assert(pow >= bigint_digit_count(p_bigint));
       bigint_set_zero(p_bigint);
     } else {
-      int index;
-      // we might need to shift the number, insert new digits in the lower
-      // part of the number. we will do this by multiplying 'prod'
-      int prod = 1;
-      // we might need to add a trailing number, by adding 'trailing'
-      int trailing = 0;
-      int* p_new_data = (int *) BIGINT_ALLOC(sizeof(int) * approx_len);
-      if (throw_offset != 0) {
-        // if the throw_offset is not zero, then we have to consider
-        // the segment between 'thrown' and 'not thrown' segments.
-        // we try to get the final trailing zeros, and use the following
-        // formula:
-        //   value = 'not thrown' * prod + trailing
-        int i;
-        trailing = p_bigint->p_data[throw_segments];
-        prod = BIGINT_RADIX;
-        for (i = 0; i < throw_offset; i++) {
-          trailing /= 10;
-          prod /= 10;
-        }
-        for (index = 0; index + throw_segments + 1 < p_bigint->data_len; index++) {
-          p_new_data[index] = p_bigint->p_data[index + throw_segments + 1];
-        }
-        BIGINT_FREE(p_bigint->p_data);
-        p_bigint->data_len -= throw_segments + 1;
-        p_bigint->p_data = p_new_data;
-        p_bigint->mem_size = approx_len;
-        bigint_mul_by_int(p_bigint, prod);
-        bigint_add_by_int(p_bigint, trailing);
-      } else {
-        // only need to discard a few segments
-        BIGINT_FREE(p_bigint->p_data);
-        p_bigint->data_len -= throw_segments;
-        p_bigint->p_data = p_new_data;
-        p_bigint->mem_size = approx_len;
+      // throw unnecessary segments
+      int div_int, i;
+      int* p_new_data = BIGINT_ALLOC(p_bigint->data_len - throw_segments);
+      for (i = throw_segments; i < p_bigint->data_len; i++) {
+        p_new_data[i - throw_segments] = p_bigint->p_data[i];
       }
+      BIGINT_FREE(p_bigint->p_data);
+      p_bigint->p_data = p_new_data;
+      p_bigint->data_len -= throw_segments;
+
+      // then divide by int value, one pass
+      div_int = 1;
+      for (i = 0; i < throw_offset; i++) {
+        div_int *= 10;
+      }
+      bigint_div_by_int(p_bigint, div_int);
     }
   }
 }
@@ -1375,7 +1409,7 @@ int bigint_nth_digit(bigint* p_bigint, int nth) {
   }
 }
 
-bigint_errno bigint_scientific(bigint* b, double* base, int* expo) {
+bigint_errno bigint_to_scientific(bigint* b, double* base, int* expo) {
   if (bigint_is_zero(b)) {
     *base = 0.0;
     *expo = 0;
@@ -1397,5 +1431,14 @@ bigint_errno bigint_scientific(bigint* b, double* base, int* expo) {
     }
   }
   return -BIGINT_NOERR;
+}
+
+
+bigint_errno bigint_from_scientific(bigint* b, double base, int expo) {
+  char buf[64];
+  bigint_errno ret;
+  sprintf(buf, "%.20lfE%d", base, expo);
+  ret = bigint_from_string(b, buf);
+  return ret;
 }
 

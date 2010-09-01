@@ -269,10 +269,44 @@ void test_scientific() {
     printf("%d of 10, input a bigint string val:\n", i + 1);
     scanf("%s", str_val);
     bigint_from_string(&b, str_val);
-    bigint_scientific(&b, &base, &expo);
+    bigint_to_scientific(&b, &base, &expo);
     printf("sci = %lf    E   %d\n", base, expo);
   }
   bigint_release(&b);
+}
+
+void print_bigint(bigint* b) {
+  char* str = (char *) malloc(bigint_string_length(b) + 10);
+  bigint_to_string(b, str);
+  printf("%s", str);
+  free(str);
+}
+
+void test_division() {
+  bigint a, b, q, r;
+  char str_val[100];
+  bigint_init(&a);
+  bigint_init(&b);
+  bigint_init(&r);
+  bigint_init(&q);
+  printf("(divmod) please input a, b, separate by space:\n");
+  scanf("%s", str_val);
+  bigint_from_string(&a, str_val);
+  scanf("%s", str_val);
+  bigint_from_string(&b, str_val);
+  print_bigint(&a);
+  printf(" divmod ");
+  print_bigint(&b);
+  bigint_divmod(&a, &b, &q, &r);
+  printf("\nq=");
+  print_bigint(&q);
+  printf("\nr=");
+  print_bigint(&r);
+  printf("\n");
+  bigint_release(&a);
+  bigint_release(&b);
+  bigint_release(&q);
+  bigint_release(&r);
 }
 
 int main(int argc, char* argv) {
@@ -287,7 +321,8 @@ int main(int argc, char* argv) {
   test(test_sterling_number_1st_kind(14, 12));
   test(test_bigint_show_fibonacci(10000));
 //  profile_big_cal();
-  test_scientific();
+//  test_scientific();
+  test_division();
   test(test_bigint_alloc_counter());
   return 0;
 }

@@ -159,6 +159,10 @@ void bigint_mul_by_pow_10(bigint* p_bigint, int pow);
 // return -BIGINT_ILLEGAL_PARAM if pow < 0
 bigint_errno bigint_pow_by_int(bigint* p_bigint, int pow);
 
+// input: a, b;
+// output: q, r st. a = b * q + r, 0 <= r < b
+bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r);
+
 // return -BIGINT_ILLEGAL_PARAM if p_src is zero
 // TODO division
 bigint_errno bigint_div_by(bigint* p_dst, bigint* p_src);
@@ -226,7 +230,9 @@ int bigint_nth_digit(bigint* p_bigint, int nth);
 // b ~= base * 10^expo
 // base is 0.0, or +/- 1.0~9.99.......
 // for 0, expo is always 0
-bigint_errno bigint_scientific(bigint* b, double* base, int* expo);
+bigint_errno bigint_to_scientific(bigint* b, double* base, int* expo);
+
+bigint_errno bigint_from_scientific(bigint* b, double base, int expo);
 
 #ifdef __cplusplus
 };
