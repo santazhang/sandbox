@@ -1099,11 +1099,69 @@ bigint_errno bigint_div_by_int(bigint* p_bigint, int div) {
   return -BIGINT_NOERR;
 }
 
+// Newton inversion for division.
+// input: real number v such that 1/2 <= v < 1, and small integer n
+// output: approximation z, so that |z * 10^m - 1/v| < 2^(-2^n)
+//
+// note: v should be adjusted so that first digit is in range 5~9 (1/2 ~ 1)
+static void bigint_newton_inversion(bigint* v, int n, bigint* z, int* m) {
+// TODO
+}
+
 // This is a helper function which is used by div and mod function
 // a / b -> q
 // a % b -> r
+//
+// invariant: a = b * q + r
 static bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
-  // TODO
+  bigint b_inv;
+  int b_inv_m;
+  bigint_init(&b_inv);
+  bigint_newton_inversion(b, bigint_string_length(b) + 2, &b_inv, &b_inv_m);
+
+  // set init q
+  // q = a * (1/b)
+  bigint_copy(q, a);
+  bigint_mul_by(q, &b_inv);
+  bigint_div_by_pow_10(q, b_inv_m);
+
+  // set init r
+  // r = -(q * b) + a
+  bigint_copy(r, q);
+  bigint_mul_by(r, b);
+  bigint_change_sign(r);
+  bigint_add_by(r, a);
+
+  // Barret's method, keep trying
+  int try_count = 0;
+  for (;;) {
+    if (bigint_is_negative(r)) {
+      bigint_sub_by_int(q, 1);
+      bigint_add_by(r, b);
+    } else if (bigint_compare(r, b) >= 0) {
+      bigint_add_by_int(q, 1);
+      bigint_sub_by(r, b);
+    } else {
+      break;
+    }
+    try_count++;
+    assert(try_count < 20);
+  }
+  printf("[div] barret try count = %d\n", try_count);
+  bigint_release(&b_inv);
+
+#if 1
+  {
+    // test the invariant a = b * q + r
+    bigint t;
+    bigint_init(&t);
+    bigint_copy(&t, b);
+    bigint_mul_by(&t, q);
+    bigint_add_by(&t, r);
+    assert(bigint_equal(&t, a));
+    bigint_release(&t);
+  }
+#endif
   return -BIGINT_NOERR;
 }
 

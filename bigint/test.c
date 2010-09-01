@@ -28,6 +28,10 @@ void do_test(char* a, char* op, char* b) {
     int v;
     bigint_to_int(&vb, &v);
     bigint_pow_by_int(&va, v);
+  } else if (strcmp(op, "div") == 0) {
+    bigint_div_by(&va, &vb);
+  } else if (strcmp(op, "mod") == 0) {
+    bigint_mod_by(&va, &vb);
   } else {
     printf("err: op not known: %s\n", op);
   }
