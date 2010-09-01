@@ -222,6 +222,12 @@ int bigint_equal(bigint* p_bigint1, bigint* p_bigint2);
 // if nth is bigger than the bigint's length, return will always be 0
 int bigint_nth_digit(bigint* p_bigint, int nth);
 
+// get scientific notation (approximation), such that
+// b ~= base * 10^expo
+// base is 0.0, or +/- 1.0~9.99.......
+// for 0, expo is always 0
+bigint_errno bigint_scientific(bigint* b, double* base, int* expo);
+
 #ifdef __cplusplus
 };
 #endif

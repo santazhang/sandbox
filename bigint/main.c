@@ -183,7 +183,7 @@ int test_bigint_mod() {
 
   bigint_from_string(&bi, "1231231235325423425");
 
-  bigint_mod_int(&bi, 13, &v);
+  bigint_mod_by_int(&bi, 13, &v);
 
   printf("v = %d\n", v);
 
@@ -422,6 +422,24 @@ void test(int return_code) {
 }
 
 
+void test_scientific() {
+  bigint b;
+  char str_val[100];
+  int i;
+  bigint_init(&b);
+
+  for (i = 0; i < 10; i++) {
+    double base;
+    int expo;
+    printf("%d of 10, input a bigint string val:\n", i + 1);
+    scanf("%s", str_val);
+    bigint_from_string(&b, str_val);
+    bigint_scientific(&b, &base, &expo);
+    printf("sci = %lf    E   %d\n", base, expo);
+  }
+  
+  bigint_release(&b);
+}
 
 int main(int argc, char* argv) {
 
@@ -445,7 +463,9 @@ int main(int argc, char* argv) {
 
   test(test_bigint_show_fibonacci(10000));
 
-  profile_big_cal();
+//  profile_big_cal();
+
+  test_scientific();
 
   test(test_bigint_alloc_counter());
   

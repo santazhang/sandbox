@@ -1375,3 +1375,27 @@ int bigint_nth_digit(bigint* p_bigint, int nth) {
   }
 }
 
+bigint_errno bigint_scientific(bigint* b, double* base, int* expo) {
+  if (bigint_is_zero(b)) {
+    *base = 0.0;
+    *expo = 0;
+  } else {
+    int nth = bigint_digit_count(b) - 1;
+    double w = 1.0;
+    int i;
+    *expo = nth;
+    *base = 0.0;
+    for (i = 0; i < BIGINT_DOUBLE_PRECISION + 1 && nth >= 0; i++) {
+      int v = bigint_nth_digit(b, nth);
+      assert(v >= 0);
+      *base += w * v;
+      w *= 0.1;
+      nth--;
+    }
+    if (bigint_is_negative(b)) {
+      *base = -*base;
+    }
+  }
+  return -BIGINT_NOERR;
+}
+
