@@ -16,6 +16,13 @@ extern void bigint_mul_by_trad(bigint* p_dst, bigint* p_src);
 };
 #endif
 
+void print_bigint(bigint* b) {
+  char* str = (char *) malloc(bigint_string_length(b) + 10);
+  bigint_to_string(b, str);
+  printf("%s", str);
+  free(str);
+}
+
 int test_bigint_init_release() {
   bigint bi, bi2, bi3;
   printf("==== TEST BIGINT INIT RELEASE ====\n");
@@ -35,6 +42,16 @@ int test_bigint_init_release() {
   return 0;
 }
 
+// test that from_str(str) == val
+static void test_bigint_str_helper(bigint* b, char* str, int val) {
+  bigint_from_string(b, str);
+  printf("bi: %s -> ", str);
+  print_bigint(b);
+  bigint_sub_by_int(b, val);
+  printf("\n");
+  assert(bigint_is_zero(b));
+}
+
 int test_bigint_from_string() {
   char str[10000];
   bigint bi;
@@ -49,6 +66,18 @@ int test_bigint_from_string() {
   printf("%s\n", str);
   printf("*** %d\n", bigint_to_int(&bi, &holder));
   printf("*** holder = %d\n", holder);
+
+  // some more tests
+  test_bigint_str_helper(&bi, "0000e0", 0);
+  test_bigint_str_helper(&bi, "00000e-1", 0);
+  test_bigint_str_helper(&bi, "0.000e1", 0);
+  test_bigint_str_helper(&bi, "5.5e-1", 1);
+  test_bigint_str_helper(&bi, "5e-1", 1);
+  test_bigint_str_helper(&bi, "4e-1", 0);
+  test_bigint_str_helper(&bi, "0.395e5", 39500);
+  test_bigint_str_helper(&bi, "0.395e2", 40);
+  test_bigint_str_helper(&bi, "0.39995e4", 4000);
+
   bigint_release(&bi);
   printf("\n");
   return 0;
@@ -273,13 +302,6 @@ void test_scientific() {
     printf("sci = %lf    E   %d\n", base, expo);
   }
   bigint_release(&b);
-}
-
-void print_bigint(bigint* b) {
-  char* str = (char *) malloc(bigint_string_length(b) + 10);
-  bigint_to_string(b, str);
-  printf("%s", str);
-  free(str);
 }
 
 void test_division() {

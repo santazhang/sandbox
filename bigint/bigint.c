@@ -24,15 +24,16 @@
 #define BIGINT_MUL_THRESHOLD 100
 
 // the radix used by big int
-#define BIGINT_RADIX 1000000000
+#define BIGINT_RADIX 10
 
 // the log10() result of BIGINT_RADIX, also is text length of a segment
-#define BIGINT_RADIX_LOG10 9
+#define BIGINT_RADIX_LOG10 1
 
+// the alloc & free functions are wrappers around malloc/free
 #define BIGINT_ALLOC(size) bigint_alloc(size)
-
 #define BIGINT_FREE(ptr) bigint_free(ptr)
 
+// act as accounter for allocations
 static int bigint_alloc_counter = 0;
 
 static void* bigint_alloc(int size) {
@@ -95,6 +96,7 @@ static int bigint_split_number_check(bigint* p_bigint, bigint* p_high,
   bigint_mul_by_pow_10(&bi, low_len * BIGINT_RADIX_LOG10);
   bigint_add_by(&bi, p_low);
   ret = bigint_equal(&bi, p_bigint);
+  assert(ret == 1);
   bigint_release(&bi);
   return ret;
 }
@@ -103,7 +105,7 @@ static int bigint_split_number_check(bigint* p_bigint, bigint* p_high,
 // the sign is copied into high and low parts
 // (with the special case of high part = 0)
 // and it is made sure that
-// biging = high * 10^(low_len * BIGINT_RADIX_LOG10) + low
+// bigint = high * 10^(low_len * BIGINT_RADIX_LOG10) + low
 static void bigint_split_number(bigint* p_bigint, bigint* p_high,
                                 bigint* p_low, int low_len) {
   if (low_len >= p_bigint->data_len) {
@@ -113,21 +115,21 @@ static void bigint_split_number(bigint* p_bigint, bigint* p_high,
   } else {
     int index;
     p_high->sign = p_bigint->sign;
-    bigint_assure_memory(p_high, p_bigint->data_len - low_len);
     p_high->data_len = p_bigint->data_len - low_len;
+    bigint_assure_memory(p_high, p_high->data_len);
     for (index = 0; index < p_high->data_len; index++) {
       p_high->p_data[index] = p_bigint->p_data[low_len + index];
     }
     bigint_pack_memory(p_high);
     p_low->sign = p_bigint->sign;
-    bigint_assure_memory(p_low, low_len);
     p_low->data_len = low_len;
+    bigint_assure_memory(p_low, p_low->data_len);
     for (index = 0; index < p_low->data_len; index++) {
       p_low->p_data[index] = p_bigint->p_data[index];
     }
     bigint_pack_memory(p_low);
   }
-  assert(bigint_split_number_check(p_bigint, p_high, p_low, low_len));
+  assert(bigint_split_number_check(p_bigint, p_high, p_low, low_len) == 1);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -138,6 +140,7 @@ void bigint_init(bigint* p_bigint) {
   p_bigint->data_len = 1;
   p_bigint->sign = 0;
   p_bigint->p_data[0] = 0;
+  assert(bigint_is_zero(p_bigint) == 1);
 }
 
 void bigint_release(bigint* p_bigint) {
@@ -224,7 +227,9 @@ bigint_errno bigint_from_double(bigint* p_bigint, double value) {
 // 0000e0 00000e-1   0.0000e1
 // 5e-1 (shoule be 1)
 // 4e-1 (should be 0)
-// 0.395e2 (should be 40) (set BIGINT_RADIX = 10, there is a carriage problem)
+//
+// 0.395e2 (should be 40)
+// FIXME when BIGINT_RADIX = 10, there will be a carriage problem with 0.395e2
 bigint_errno bigint_from_string(bigint* p_bigint, char* str) {
   // first of all, check grammar, and get the approximate length
   int approx_len = 0;
@@ -240,7 +245,7 @@ bigint_errno bigint_from_string(bigint* p_bigint, char* str) {
   int fraction_len = 0;
   int mantissa_begin = -1;
   int mantissa_end = -1;
-  // we should construct a FSM to parst the string
+  // we construct a FSM to parst the string
   // the FSM has the following states: (end states are marked with *)
   //
   //  0: start state
@@ -449,7 +454,7 @@ bigint_errno bigint_from_string(bigint* p_bigint, char* str) {
       }
       mantissa_value = 0;
     }
-    // from then on, we don't consider the fraction part
+    // from now on, we don't consider the fraction part
     // instead, we consider the fixed and fraction part as a whole
 
     // skip the lower segments, leave them to be 0
@@ -460,25 +465,27 @@ bigint_errno bigint_from_string(bigint* p_bigint, char* str) {
       weight *= 10;
       i++;
     }
+
     // write the digits in the integer
     while (pos >= fixed_begin) {
       // skip the period
       if (str[pos] == '.')
         pos--;
-      // test all zero numbers
+      // check if the number is all zero like 000000e3 = 0
       if (('1' <= str[pos] && str[pos] <= '9') || carry != 0) {
         is_zero = 0;
       }
       p_bigint->p_data[index] += weight * (str[pos] - '0' + carry);
-      carry = 0;
+      if (p_bigint->p_data[index] >= BIGINT_RADIX) {
+        p_bigint->p_data[index] %= BIGINT_RADIX;
+        carry = 1;
+      } else {
+        carry = 0;
+      }
       weight *= 10;
       // go to a higher segment
       if (weight >= BIGINT_RADIX) {
         weight = 1;
-        if (p_bigint->p_data[index] > BIGINT_RADIX) {
-          p_bigint->p_data[index] %= BIGINT_RADIX;
-          carry = 1;
-        }
         index++;
         p_bigint->p_data[index] = 0;
       }
@@ -716,7 +723,7 @@ void bigint_add_by(bigint* p_dst, bigint* p_src) {
     // bigint_pack_memory at the end
     p_dst->data_len = result_mem_size_bound;
 
-    // from then on, we put the 'sign' into p_data, and after the addition,
+    // from now on, we put the 'sign' into p_data, and after the addition,
     // we determine the sign of result, and put it back into 'sign'.
     // also, we make all the p_data in result to be positive numbers (or 0)
 
