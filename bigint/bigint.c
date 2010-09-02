@@ -1114,15 +1114,15 @@ static void bigint_newton_inversion(bigint* v, int n, bigint* z, int* m) {
   bigint_init(&s);
   bigint_init(&z2);
   bigint_to_scientific(v, &base, &expo);
-  *m = -3 * expo;
+  *m = -2 * expo - n;
 
   // init value of z (1/v)
-  bigint_from_scientific(z, 1.0 / base, expo);
+  bigint_from_scientific(z, 1.0 / base, expo + n);
   for (;;) {
     bigint_copy(&s, z);
     bigint_mul_by(&s, &s);
     bigint_mul_by(&s, v);
-    bigint_div_by_pow_10(&s, 3 * expo);
+    bigint_div_by_pow_10(&s, 2 * expo + n);
     bigint_copy(&z2, z);
     bigint_mul_by_int(z, 2);
     bigint_sub_by(z, &s);
@@ -1151,12 +1151,13 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   bigint_init(&r2);
 
   // TODO might need to change b to range (1/2 ~ 1)
-  bigint_newton_inversion(b, bigint_string_length(b) + 2, &b_inv, &b_inv_m);
+  bigint_newton_inversion(b, bigint_string_length(b) + bigint_string_length(a) + 2, &b_inv, &b_inv_m);
 
   // set init q
   // q = a * (1/b)
   bigint_copy(q, a);
   bigint_mul_by(q, &b_inv);
+  printf("\n");
   print_bigint(q);
   printf("\ninv_m=%d\n", b_inv_m);
   bigint_mul_by_pow_10(q, b_inv_m);
@@ -1172,27 +1173,11 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   int try_count = 0;
   for (;;) {
     if (bigint_is_negative(r)) {
-      bigint_change_sign(r);
-      bigint_divmod(r, b, &q2, &r2);
-      bigint_change_sign(r);
-      if (bigint_is_zero(&q2)) {
-        bigint_sub_by_int(q, 1);
-        bigint_add_by(r, b);
-      } else {
-        bigint_sub_by(q, &q2);
-        bigint_copy(&r2, &q2);
-        bigint_mul_by(&r2, b);
-        bigint_add_by(r, &r2);
-      }
+      bigint_sub_by_int(q, 1);
+      bigint_add_by(r, b);
     } else if (bigint_compare(r, b) >= 0) {
-      bigint_divmod(r, b, &q2, &r2);
-      if (bigint_is_zero(&q2)) {
-        bigint_add_by_int(q, 1);
-        bigint_sub_by(r, b);
-      } else {
-        bigint_add_by(q, &q2);
-        bigint_copy(r, &r2);
-      }
+      bigint_add_by_int(q, 1);
+      bigint_sub_by(r, b);
     } else {
       break;
     }
