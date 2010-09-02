@@ -24,10 +24,10 @@
 #define BIGINT_MUL_THRESHOLD 100
 
 // the radix used by big int
-#define BIGINT_RADIX 10
+#define BIGINT_RADIX 1000000000
 
 // the log10() result of BIGINT_RADIX, also is text length of a segment
-#define BIGINT_RADIX_LOG10 1
+#define BIGINT_RADIX_LOG10 9
 
 // the alloc & free functions are wrappers around malloc/free
 #define BIGINT_ALLOC(size) bigint_alloc(size)
@@ -227,9 +227,7 @@ bigint_errno bigint_from_double(bigint* p_bigint, double value) {
 // 0000e0 00000e-1   0.0000e1
 // 5e-1 (shoule be 1)
 // 4e-1 (should be 0)
-//
 // 0.395e2 (should be 40)
-// FIXME when BIGINT_RADIX = 10, there will be a carriage problem with 0.395e2
 bigint_errno bigint_from_string(bigint* p_bigint, char* str) {
   // first of all, check grammar, and get the approximate length
   int approx_len = 0;
@@ -598,10 +596,9 @@ void bigint_to_string(bigint* p_bigint, char* str) {
 }
 
 bigint_errno bigint_to_double(bigint* p_bigint, double* p_double) {
-  // TODO check overflow
   int index = p_bigint->data_len - 1;
   // trivial overflow test
-  if (BIGINT_RADIX_LOG10 * p_bigint->data_len > 310) {
+  if (BIGINT_RADIX_LOG10 * p_bigint->data_len > 308) {
     return -BIGINT_OVERFLOW;
   }
   *p_double = 0;
@@ -637,13 +634,21 @@ bigint_errno bigint_to_int(bigint* p_bigint, int* p_int) {
   }
   index = p_bigint->data_len - 1;
   *p_int = 0;
-  while (index >= 0) {
-    *p_int *= BIGINT_RADIX;
-    *p_int += p_bigint->p_data[index];
-    index--;
-  }
-  if (p_bigint->sign == -1) {
-    *p_int = -*p_int;
+
+  // we treat negative and positive differently, because they have
+  // different maximum value (-2147483648 is valid, but +2147483648 is not)
+  if (p_bigint->sign == 1) {
+    while (index >= 0) {
+      *p_int *= BIGINT_RADIX;
+      *p_int += p_bigint->p_data[index];
+      index--;
+    }
+  } else if (p_bigint->sign == -1) {
+    while (index >= 0) {
+      *p_int *= BIGINT_RADIX;
+      *p_int -= p_bigint->p_data[index];
+      index--;
+    }
   }
   return -BIGINT_NOERR;
 }
@@ -653,6 +658,7 @@ void bigint_copy(bigint* p_dst, bigint* p_src) {
   memcpy(p_dst->p_data, p_src->p_data, sizeof(int) * p_src->data_len);
   p_dst->data_len = p_src->data_len;
   p_dst->sign = p_src->sign;
+  bigint_pack_memory(p_dst);
 }
 
 void bigint_change_sign(bigint* p_bigint) {
@@ -1123,11 +1129,15 @@ static void bigint_newton_inversion(bigint* v, int n, bigint* z, int* m) {
   *m = -2 * expo - n;
 
   // init value of z (1/v)
+  // note that we have added expo+n as its exponent, since we need to
+  // save so many precision digits
   bigint_from_scientific(z, 1.0 / base, expo + n);
   for (;;) {
     bigint_copy(&s, z);
     bigint_mul_by(&s, &s);
     bigint_mul_by(&s, v);
+
+    // drop a few un necessary digits, keep precision at (expo+n)
     bigint_div_by_pow_10(&s, 2 * expo + n);
     bigint_copy(&z2, z);
     bigint_mul_by_int(z, 2);
@@ -1149,6 +1159,8 @@ static void bigint_newton_inversion(bigint* v, int n, bigint* z, int* m) {
 // a % b -> r
 //
 // invariant: a = b * q + r
+//
+// TODO: support negative numbers, and handle special cases with faster algorithm
 bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   bigint b_inv, q2, r2;
   int b_inv_m;
@@ -1158,7 +1170,7 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   bigint_init(&r2);
 
   // TODO might need to change b to range (1/2 ~ 1)
-  bigint_newton_inversion(b, bigint_string_length(b) + bigint_string_length(a) + 2, &b_inv, &b_inv_m);
+  bigint_newton_inversion(b, bigint_string_length(a) + bigint_string_length(b) + 2, &b_inv, &b_inv_m);
 
   // set init q
   // q = a * (1/b)
