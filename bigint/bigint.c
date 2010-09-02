@@ -1106,7 +1106,6 @@ bigint_errno bigint_div_by_int(bigint* p_bigint, int div) {
 //
 // note: v should be adjusted so that first digit is in range 5~9 (1/2 ~ 1)
 static void bigint_newton_inversion(bigint* v, int n, bigint* z, int* m) {
-// TODO
   bigint s, z2;
   int k = 0;
   int expo;
@@ -1146,6 +1145,7 @@ static void bigint_newton_inversion(bigint* v, int n, bigint* z, int* m) {
 bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   bigint b_inv, q2, r2;
   int b_inv_m;
+  int try_count = 0;
   bigint_init(&b_inv);
   bigint_init(&q2);
   bigint_init(&r2);
@@ -1170,7 +1170,6 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   bigint_add_by(r, a);
 
   // Barret's method, keep trying
-  int try_count = 0;
   for (;;) {
     if (bigint_is_negative(r)) {
       bigint_sub_by_int(q, 1);
@@ -1229,8 +1228,6 @@ void bigint_div_by_pow_10(bigint* p_bigint, int pow) {
     int throw_segments = pow / BIGINT_RADIX_LOG10;
     // the additional number of digits that should be thrown away
     int throw_offset = pow % BIGINT_RADIX_LOG10;
-    // approximate segments in result
-    int approx_len = p_bigint->data_len - throw_segments + 1;
     if (p_bigint->data_len <= throw_segments) {
       // too much data is thrown away, the result is definitly zero
       assert(pow >= bigint_digit_count(p_bigint));
