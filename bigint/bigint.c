@@ -38,6 +38,7 @@ static int bigint_alloc_counter = 0;
 
 static void* bigint_alloc(int size) {
   bigint_alloc_counter++;
+  assert(size % sizeof(int) == 0);
   return malloc(size);
 }
 
@@ -723,11 +724,13 @@ void bigint_add_by(bigint* p_dst, bigint* p_src) {
     // set the top segments to 0
     for (index = p_dst->data_len; index < result_mem_size_bound; index++) {
       p_dst->p_data[index] = 0;
+      assert(index < p_dst->mem_size);
     }
-    // from now on, we can extend the data length, though there might be
+    // from now on, we extend the data length, though there might be
     // leading zeros. we will get rid of the leading zeros by using
     // bigint_pack_memory at the end
     p_dst->data_len = result_mem_size_bound;
+    assert(p_dst->data_len <= p_dst->mem_size);
 
     // from now on, we put the 'sign' into p_data, and after the addition,
     // we determine the sign of result, and put it back into 'sign'.
@@ -1254,7 +1257,7 @@ void bigint_div_by_pow_10(bigint* p_bigint, int pow) {
     } else {
       // throw unnecessary segments
       int div_int, i;
-      int* p_new_data = BIGINT_ALLOC(p_bigint->data_len - throw_segments);
+      int* p_new_data = BIGINT_ALLOC(sizeof(int) * (p_bigint->data_len - throw_segments));
       for (i = throw_segments; i < p_bigint->data_len; i++) {
         p_new_data[i - throw_segments] = p_bigint->p_data[i];
       }
