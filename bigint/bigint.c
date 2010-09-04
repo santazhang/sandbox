@@ -678,6 +678,14 @@ int bigint_is_zero(bigint* p_bigint) {
   return p_bigint->sign == 0;
 }
 
+int bigint_is_one(bigint* p_bigint) {
+  return p_bigint->sign > 0 && p_bigint->data_len == 1 && p_bigint->p_data[0] == 1;
+}
+
+int bigint_is_neg_one(bigint* p_bigint) {
+  return p_bigint->sign < 0 && p_bigint->data_len == 1 && p_bigint->p_data[0] == 1;
+}
+
 void bigint_set_zero(bigint* p_bigint) {
   p_bigint->data_len = 1;
   p_bigint->p_data[0] = 0;
@@ -1031,11 +1039,12 @@ void bigint_mul_by_int(bigint* p_bigint, int value) {
       p_bigint->p_data[index] = prod % BIGINT_RADIX;
     }
     p_bigint->data_len = index;
+    assert(carry == 0);
   }
 }
 
 void bigint_mul_by_pow_10(bigint* p_bigint, int pow) {
-  // we dont consider the case of pow = 1, where nothing should be done
+  // we dont consider the case of pow = 0, where nothing should be done
   if (pow < 0) {
     bigint_div_by_pow_10(p_bigint, -pow);
   } else if (pow > 0) {
@@ -1054,6 +1063,7 @@ void bigint_mul_by_pow_10(bigint* p_bigint, int pow) {
     for (index = 0; index < p_bigint->data_len; index++) {
       p_new_data[index + helper_var] = p_bigint->p_data[index];
     }
+    assert(index + helper_var <= approx_segments);
     p_bigint->data_len += helper_var;
     BIGINT_FREE(p_bigint->p_data);
     p_bigint->p_data = p_new_data;
@@ -1073,8 +1083,25 @@ bigint_errno bigint_pow_by_int(bigint* p_bigint, int pow) {
   if (pow < 0) {
     return -BIGINT_ILLEGAL_PARAM;
   } else if (pow == 0) {
+    // n^0 = 1
+    // note the special case of 0^0 = 1 is included (Concrete Math, D.Knuth)
     bigint_set_one(p_bigint);
   } else if (pow > 1) {
+    // special case of 0^n = 0 (n>1), 1^n = 1
+    if (bigint_is_zero(p_bigint) || bigint_is_one(p_bigint)) {
+      // do nothing
+      return -BIGINT_NOERR;
+    }
+    // special case of (-1)^n
+    if (bigint_is_neg_one(p_bigint)) {
+      if (pow % 2 == 0) {
+        // (-1)^(2n) = 1
+        bigint_set_one(p_bigint);
+      } else {
+        // (-1)^(2n - 1) = -1, leave nothing changed
+      }
+      return -BIGINT_NOERR;
+    }
     if (pow % 2 == 1) {
       bigint bi;
       bigint_init(&bi);
