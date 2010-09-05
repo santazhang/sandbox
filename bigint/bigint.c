@@ -1282,14 +1282,15 @@ void bigint_div_by_pow_10(bigint* p_bigint, int pow) {
     } else {
       // throw unnecessary segments
       int div_int, i;
-      // XXX if we alloc sizeof(int) * (p_bigint->data_len - throw_segments), the program will become crashy, don't know why :-/
-      int* p_new_data = BIGINT_ALLOC(sizeof(int) * p_bigint->data_len);
+      int new_mem_size = p_bigint->data_len - throw_segments;
+      int* p_new_data = BIGINT_ALLOC(sizeof(int) * new_mem_size);
       for (i = throw_segments; i < p_bigint->data_len; i++) {
         p_new_data[i - throw_segments] = p_bigint->p_data[i];
       }
       BIGINT_FREE(p_bigint->p_data);
       p_bigint->p_data = p_new_data;
       p_bigint->data_len -= throw_segments;
+      p_bigint->mem_size = new_mem_size;
 
       // then divide by int value, one pass
       div_int = 1;
