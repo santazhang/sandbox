@@ -358,6 +358,51 @@ void test_division2_helper(char* a_str, char* b_str) {
   bigint_release(&r);
 }
 
+
+// check if a = b * q + r, and r has same sign as b
+static int divmod_check(bigint* a, bigint* b, bigint* q, bigint* r) {
+  bigint t;
+  bigint_init(&t);
+  bigint_copy(&t, b);
+  bigint_mul_by(&t, q);
+  bigint_add_by(&t, r);
+  assert(bigint_equal(&t, a));
+  bigint_release(&t);
+  assert(b->sign == r->sign || r->sign == 0);
+  return 1;
+}
+
+// test small int division
+void test_division2_helper2(char* a_str, char* b_str) {
+  bigint a, b, q, r_bi;
+  int r, b_int;
+  bigint_init(&a);
+  bigint_init(&b);
+  bigint_init(&q);
+  bigint_from_string(&a, a_str);
+  bigint_from_string(&b, b_str);
+  printf("\n+++++++++ test\n");
+  print_bigint(&a);
+  printf(" divmod ");
+  print_bigint(&b);
+  bigint_to_int(&b, &b_int);
+  bigint_mod_by_int(&a, b_int, &r);
+  bigint_copy(&q, &a);
+  bigint_div_by_int(&q, b_int);
+  printf("\nq=");
+  print_bigint(&q);
+  printf(", r=%d\n", r);
+  bigint_init(&r_bi);
+  bigint_from_int(&r_bi, r);
+  assert(divmod_check(&a, &b, &q, &r_bi) == 1);
+  bigint_release(&a);
+  bigint_release(&b);
+  bigint_release(&q);
+  bigint_release(&r_bi);
+
+  test_division2_helper(a_str, b_str);
+}
+
 void test_division2() {
   bigint a, b, q, r;
   bigint_init(&a);
@@ -376,25 +421,69 @@ void test_division2() {
   test_division2_helper("78612386481263487162784827634916749812739487e9", "487612983467182976489172643896712893476192876349812763476328746876347672176236172653761253765127653172653761527365127653761253761276317253715273561725637512e567");
 
   // test negative division
-  test_division2_helper("1", "-1");
-  test_division2_helper("7", "-2");
-  test_division2_helper("7", "2");
-  test_division2_helper("-7", "-2");
-  test_division2_helper("-7", "2");
-  test_division2_helper("-7", "1");
-  test_division2_helper("6", "-2");
-  test_division2_helper("6", "2");
-  test_division2_helper("-6", "-2");
-  test_division2_helper("-6", "2");
-  test_division2_helper("23", "-7");
-  test_division2_helper("23", "7");
-  test_division2_helper("-23", "-7");
-  test_division2_helper("-23", "7");
+  test_division2_helper2("8", "-8");
+  test_division2_helper2("8", "8");
+  test_division2_helper2("-8", "-8");
+  test_division2_helper2("-8", "8");
+  test_division2_helper2("1", "-1");
+  test_division2_helper2("7", "-2");
+  test_division2_helper2("7", "2");
+  test_division2_helper2("-7", "-2");
+  test_division2_helper2("-7", "2");
+  test_division2_helper2("-7", "1");
+  test_division2_helper2("6", "-2");
+  test_division2_helper2("6", "2");
+  test_division2_helper2("-6", "-2");
+  test_division2_helper2("-6", "2");
+  test_division2_helper2("23", "-7");
+  test_division2_helper2("23", "7");
+  test_division2_helper2("-23", "-7");
+  test_division2_helper2("-23", "7");
+  test_division2_helper2("988", "988");
+  test_division2_helper2("988", "-988");
+  test_division2_helper2("-988", "988");
+  test_division2_helper2("-988", "-988");
+  test_division2_helper2("988", "987");
+  test_division2_helper2("988", "-987");
+  test_division2_helper2("-988", "987");
+  test_division2_helper2("-988", "-987");
+  test_division2_helper2("987", "988");
+  test_division2_helper2("987", "-988");
+  test_division2_helper2("-987", "988");
+  test_division2_helper2("-987", "-988");
+  test_division2_helper2("989", "988");
+  test_division2_helper2("989", "-988");
+  test_division2_helper2("-989", "988");
+  test_division2_helper2("-989", "-988");
+  test_division2_helper2("988", "989");
+  test_division2_helper2("988", "-989");
+  test_division2_helper2("-988", "989");
+  test_division2_helper2("-988", "-989");
+  test_division2_helper("938080805300339434010988", "938080805300339434010988");
+  test_division2_helper("938080805300339434010988", "-938080805300339434010988");
+  test_division2_helper("-938080805300339434010988", "938080805300339434010988");
+  test_division2_helper("-938080805300339434010988", "-938080805300339434010988");
+  test_division2_helper("938080805300339434010989", "938080805300339434010988");
+  test_division2_helper("938080805300339434010989", "-938080805300339434010988");
+  test_division2_helper("-938080805300339434010989", "938080805300339434010988");
+  test_division2_helper("-938080805300339434010989", "-938080805300339434010988");
+  test_division2_helper("938080805300339434010987", "938080805300339434010988");
+  test_division2_helper("938080805300339434010987", "-938080805300339434010988");
+  test_division2_helper("-938080805300339434010987", "938080805300339434010988");
+  test_division2_helper("-938080805300339434010987", "-938080805300339434010988");
+  test_division2_helper("938080805300339434010988", "938080805300339434010987");
+  test_division2_helper("938080805300339434010988", "-938080805300339434010987");
+  test_division2_helper("-938080805300339434010988", "938080805300339434010987");
+  test_division2_helper("-938080805300339434010988", "-938080805300339434010987");
+  test_division2_helper("938080805300339434010988", "938080805300339434010989");
+  test_division2_helper("938080805300339434010988", "-938080805300339434010989");
+  test_division2_helper("-938080805300339434010988", "938080805300339434010989");
+  test_division2_helper("-938080805300339434010988", "-938080805300339434010989");
 
   // test division by 0
-  test_division2_helper("-7", "0");
-  test_division2_helper("0", "0");
-  test_division2_helper("0", "-4");
+  test_division2_helper2("-7", "0");
+  test_division2_helper2("0", "0");
+  test_division2_helper2("0", "-4");
 
   // test big division
   printf("=============\ntest big division:\n");

@@ -1140,10 +1140,12 @@ bigint_errno bigint_pow_by_int(bigint* p_bigint, int pow) {
 }
 
 bigint_errno bigint_div_by_int(bigint* p_bigint, int div) {
+  int div_was_neg = 0;
   if (div == 0) {
     return -BIGINT_ILLEGAL_PARAM;
   }
   if (div < 0) {
+    div_was_neg = 1;
     div = -div;
     bigint_change_sign(p_bigint);
   }
@@ -1253,6 +1255,96 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
     return ret;
   }
 
+  // from now on, b could only be positive number
+  
+  if (b->data_len == 1) {
+    // deal with small divisor
+    int r_int;
+    int b_small = b->p_data[0];
+    assert(b_small > 0);
+    bigint_copy(q, a);
+    bigint_div_by_int(q, b_small);
+    bigint_mod_by_int(a, b_small, &r_int);
+    //if (r_int < 0) {
+      // keep r to be positive, since it has same sign as b
+      //r_int += b_small;
+      //bigint_sub_by_int(q, 1);
+    //}
+    bigint_from_int(r, r_int);
+    printf("***** a = ");
+    print_bigint(a);
+    printf("  b = ");
+    print_bigint(b);
+    printf("\nq = ");
+    print_bigint(q);
+    printf(", r=");
+    print_bigint(r);
+    printf("\n");
+    assert(bigint_divmod_check(a, b, q, r));
+    return -BIGINT_NOERR;
+  }
+
+  // handle the case where |a| < |b|
+  if (bigint_is_negative(a)) {
+    int should_ret = 0;
+    // make sure a is also positive
+    bigint_change_sign(a);
+
+    // both a and b are positive
+    switch (bigint_compare(a, b)) {
+      case -1:
+        // -a < b, so q = -1, r = b + a
+        bigint_from_int(q, -1);
+        bigint_copy(r, a);  // the a here is actually "-a"
+        bigint_change_sign(r);  // now we got the actual "a" into r
+        bigint_add_by(r, b);
+        should_ret = 1;
+        break;
+      case 0:
+        // -a == b, so q = -1, r = 0
+        bigint_from_int(q, -1);
+        bigint_set_zero(r);
+        should_ret = 1;
+        break;
+      case 1:
+        // go on processing
+        break;
+      default:
+        assert(0);  // should not reach here
+    }
+
+    // change back the sign of a
+    bigint_change_sign(a);
+
+    if (should_ret != 0) {
+      // work done, should directly return
+      assert(bigint_divmod_check(a, b, q, r));
+      return -BIGINT_NOERR;
+    }
+  } else {
+    // both a and b are positive
+    switch (bigint_compare(a, b)) {
+      case -1:
+        // a < b, so q = 0, r = a
+        bigint_set_zero(q);
+        bigint_copy(r, a);
+        assert(bigint_divmod_check(a, b, q, r));
+        return -BIGINT_NOERR;
+      case 0:
+        // a == b, so q = 1, r = 0
+        bigint_set_one(q);
+        bigint_set_zero(r);
+        assert(bigint_divmod_check(a, b, q, r));
+        return -BIGINT_NOERR;
+      case 1:
+        // go on processing
+        break;
+      default:
+        assert(0);  // should not reach here
+    }
+  }
+
+  // from now on, we consider the division of really big numbers
   bigint_init(&b_inv);
   bigint_init(&q2);
   bigint_init(&r2);
@@ -1376,7 +1468,17 @@ bigint_errno bigint_mod_by_int(bigint* p_bigint, int value, int* p_result) {
   if (p_bigint->sign < 0) {
     r = -r;
   }
-  assert(-2147483648ll <= r && r < 2147483648ull);
+
+  // make sure that r has same sign as the divisor
+  if (value < 0 && r > 0) {
+    r += value;
+  } else if (value > 0 && r < 0) {
+    r += value;
+  }
+
+  // assert that r has same sign as the divisor
+  assert(value < 0 ? r <= 0 : r >= 0);
+  assert(r < 0 ? (-r <= 2147483648ll) : r < 2147483648ull);
   *p_result = (int) r;
   return -BIGINT_NOERR;
 }

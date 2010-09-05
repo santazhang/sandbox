@@ -1,3 +1,6 @@
+Sep 5, 2010
+Implemented division using Newton inversion.
+
 Sep 2, 2010
 Fixed a bug in conversion from string. Now could correctly treat: 0.395e2 -> 40.
 
