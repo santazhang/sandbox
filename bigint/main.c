@@ -368,7 +368,25 @@ void test_division2() {
   test_division2_helper("7879", "78");
   test_division2_helper("487612983467182976489172643896712893476192876349812763476328746876347672176236172653761253765127653172653761527365127653761253761276317253715273561725637512e567", "78612386481263487162784827634916749812739487e9");
   test_division2_helper("78612386481263487162784827634916749812739487e9", "487612983467182976489172643896712893476192876349812763476328746876347672176236172653761253765127653172653761527365127653761253761276317253715273561725637512e567");
- 
+
+  // test big division
+  printf("=============\ntest big division:\n");
+  bigint_from_string(&a, "234234234");
+  bigint_pow_by_int(&a, 23411);
+
+  bigint_from_string(&b, "233241");
+  bigint_pow_by_int(&b, 8911);
+
+  print_bigint(&a);
+  printf(" divmod ");
+  print_bigint(&b);
+  bigint_divmod(&a, &b, &q, &r);
+  printf("\nq=");
+  print_bigint(&q);
+  printf("\nr=");
+  print_bigint(&r);
+  printf("\n");
+
   bigint_release(&a);
   bigint_release(&b);
   bigint_release(&q);
