@@ -1141,6 +1141,7 @@ bigint_errno bigint_pow_by_int(bigint* p_bigint, int pow) {
 
 bigint_errno bigint_div_by_int(bigint* p_bigint, int div) {
   int div_was_neg = 0;
+  int orig_sign = p_bigint->sign;
   if (div == 0) {
     return -BIGINT_ILLEGAL_PARAM;
   }
@@ -1162,6 +1163,13 @@ bigint_errno bigint_div_by_int(bigint* p_bigint, int div) {
       val = r * BIGINT_RADIX;
     }
     bigint_pack_memory(p_bigint);
+
+    // final adjustment
+    // if not a clean division, and a & b has different sign
+    // we need to adjust the remainder
+    if (r != 0 && ((div_was_neg && orig_sign > 0) || (div_was_neg == 0 && orig_sign < 0))) {
+      bigint_sub_by_int(p_bigint, 1);
+    }
   }
   return -BIGINT_NOERR;
 }
@@ -1242,6 +1250,7 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
 
     bigint_change_sign(b);
     ret = bigint_divmod(a, b, q, r);
+    assert(bigint_divmod_check(a, b, q, r));
     bigint_change_sign(b);
     bigint_change_sign(q);
     if (bigint_is_zero(r) == 0) {
@@ -1265,21 +1274,12 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
     bigint_copy(q, a);
     bigint_div_by_int(q, b_small);
     bigint_mod_by_int(a, b_small, &r_int);
-    //if (r_int < 0) {
+    if (r_int < 0) {
       // keep r to be positive, since it has same sign as b
-      //r_int += b_small;
-      //bigint_sub_by_int(q, 1);
-    //}
+      r_int += b_small;
+      bigint_sub_by_int(q, 1);
+    }
     bigint_from_int(r, r_int);
-    printf("***** a = ");
-    print_bigint(a);
-    printf("  b = ");
-    print_bigint(b);
-    printf("\nq = ");
-    print_bigint(q);
-    printf(", r=");
-    print_bigint(r);
-    printf("\n");
     assert(bigint_divmod_check(a, b, q, r));
     return -BIGINT_NOERR;
   }
