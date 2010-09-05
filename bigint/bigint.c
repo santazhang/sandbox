@@ -53,6 +53,13 @@ int bigint_alloc_count() {
   return bigint_alloc_counter;
 }
 
+// make sure the sign is correct (mainly for 0)
+static void bigint_check_sign(bigint* p_bigint) {
+  if (p_bigint->data_len == 1 && p_bigint->p_data[0] == 0) {
+    p_bigint->sign = 0;
+  }
+}
+
 // used by bigint_assure_memory and bigint_pack_memory
 // it is made sure that new_mem_size >= p_bigint->data_len
 static void bigint_set_memory_size(bigint* p_bigint, int new_mem_size) {
@@ -85,6 +92,7 @@ static void bigint_pack_memory(bigint* p_bigint) {
   if (p_bigint->data_len * 4 < p_bigint->mem_size) {
     bigint_set_memory_size(p_bigint, p_bigint->data_len * 2);
   }
+  bigint_check_sign(p_bigint);
 }
 
 // check whether we splited a number correctly
@@ -545,6 +553,7 @@ void bigint_to_string(bigint* p_bigint, char* str) {
   int value;
   int first_seg_length = 0;
   int i;
+  bigint_check_sign(p_bigint);
   if (p_bigint->sign < 0) {
     // negative numbers
     *str = '-';
@@ -610,7 +619,7 @@ bigint_errno bigint_to_double(bigint* p_bigint, double* p_double) {
     *p_double += p_bigint->p_data[index];
     index--;
   }
-  if (p_bigint->sign == -1) {
+  if (bigint_is_negative(p_bigint)) {
     *p_double = -*p_double;
   }
   return -BIGINT_NOERR;
@@ -620,6 +629,7 @@ bigint_errno bigint_to_int(bigint* p_bigint, int* p_int) {
   int index;
   // used to test overflow
   long long overflow_tester = 0;
+  bigint_check_sign(p_bigint);
   if (p_bigint->sign > 0) {
     for (index = p_bigint->data_len - 1; index >= 0; index--) {
       overflow_tester *= (long long) BIGINT_RADIX;
@@ -640,13 +650,13 @@ bigint_errno bigint_to_int(bigint* p_bigint, int* p_int) {
 
   // we treat negative and positive differently, because they have
   // different maximum value (-2147483648 is valid, but +2147483648 is not)
-  if (p_bigint->sign == 1) {
+  if (bigint_is_positive(p_bigint)) {
     while (index >= 0) {
       *p_int *= BIGINT_RADIX;
       *p_int += p_bigint->p_data[index];
       index--;
     }
-  } else if (p_bigint->sign == -1) {
+  } else if (bigint_is_negative(p_bigint)) {
     while (index >= 0) {
       *p_int *= BIGINT_RADIX;
       *p_int -= p_bigint->p_data[index];
@@ -667,25 +677,31 @@ void bigint_copy(bigint* p_dst, bigint* p_src) {
 
 void bigint_change_sign(bigint* p_bigint) {
   p_bigint->sign = -p_bigint->sign;
+  bigint_check_sign(p_bigint);
 }
 
 int bigint_is_positive(bigint* p_bigint) {
+  bigint_check_sign(p_bigint);
   return p_bigint->sign > 0;
 }
 
 int bigint_is_negative(bigint* p_bigint) {
+  bigint_check_sign(p_bigint);
   return p_bigint->sign < 0;
 }
 
 int bigint_is_zero(bigint* p_bigint) {
+  bigint_check_sign(p_bigint);
   return p_bigint->sign == 0;
 }
 
 int bigint_is_one(bigint* p_bigint) {
+  bigint_check_sign(p_bigint);
   return p_bigint->sign > 0 && p_bigint->data_len == 1 && p_bigint->p_data[0] == 1;
 }
 
 int bigint_is_neg_one(bigint* p_bigint) {
+  bigint_check_sign(p_bigint);
   return p_bigint->sign < 0 && p_bigint->data_len == 1 && p_bigint->p_data[0] == 1;
 }
 
@@ -714,6 +730,7 @@ void bigint_add_by(bigint* p_dst, bigint* p_src) {
   } else if (bigint_is_zero(p_src)) {
     //source is zero, then we need to do nothing
   } else if (p_src->data_len == 1) {
+    bigint_check_sign(p_src);
     // if we got a small number, we could use quicker routine to handle that
     assert(p_src->sign != 0);
     if (p_src->sign < 0) {
@@ -906,6 +923,7 @@ void bigint_mul_by_trad(bigint* p_dst, bigint* p_src) {
     bigint_init(&bi);
     bigint_init(&bi_add);
     bigint_set_zero(&bi);
+    bigint_check_sign(p_src);
     if (p_src->sign < 0) {
       bigint_change_sign(p_dst);
     }
@@ -1196,6 +1214,8 @@ static int bigint_divmod_check(bigint* a, bigint* b, bigint* q, bigint* r) {
   bigint_add_by(&t, r);
   assert(bigint_equal(&t, a));
   bigint_release(&t);
+  bigint_check_sign(b);
+  bigint_check_sign(r);
   assert(b->sign == r->sign || r->sign == 0);
   return 1;
 }
@@ -1352,6 +1372,7 @@ bigint_errno bigint_mod_by_int(bigint* p_bigint, int value, int* p_result) {
   for (i = p_bigint->data_len - 1; i >= 0; i--) {
     r = (r * BIGINT_RADIX + p_bigint->p_data[i]) % value;
   }
+  bigint_check_sign(p_bigint);
   if (p_bigint->sign < 0) {
     r = -r;
   }
@@ -1386,6 +1407,8 @@ bigint_errno bigint_mod_by_pow_10(bigint* p_bigint, int pow) {
 }
 
 int bigint_compare(bigint* p_bigint1, bigint* p_bigint2) {
+  bigint_check_sign(p_bigint1);
+  bigint_check_sign(p_bigint2);
   if (p_bigint1->sign < p_bigint2->sign) {
     return -1;
   } else if (p_bigint1->sign > p_bigint2->sign) {
