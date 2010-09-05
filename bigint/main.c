@@ -93,7 +93,7 @@ int test_bigint_alloc_counter() {
 int test_bigint_mul_by_pow_10() {
   bigint bi;
   char str[100];
-  printf("==== TEST BIGINT MUL BY POW 10 ====\n");  
+  printf("==== TEST BIGINT MUL BY POW 10 ====\n");
   bigint_init(&bi);
   bigint_from_int(&bi, 123);
   bigint_mul_by_pow_10(&bi, -300);

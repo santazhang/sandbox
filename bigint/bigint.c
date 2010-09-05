@@ -1237,7 +1237,7 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   if (bigint_is_negative(b)) {
     int ret;
     // make sure r has same sign as b, so we change the signs
-    
+
     bigint_change_sign(b);
     ret = bigint_divmod(a, b, q, r);
     bigint_change_sign(b);
@@ -1290,7 +1290,7 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   bigint_release(&b_inv);
   bigint_release(&q2);
   bigint_release(&r2);
-  
+
   assert(bigint_divmod_check(a, b, q, r));
   return -BIGINT_NOERR;
 }
