@@ -115,16 +115,18 @@ static void bigint_split_number(bigint* p_bigint, bigint* p_high,
     bigint_copy(p_low, p_bigint);
   } else {
     int index;
+    int new_data_len = p_bigint->data_len - low_len;
     p_high->sign = p_bigint->sign;
-    p_high->data_len = p_bigint->data_len - low_len;
-    bigint_assure_memory(p_high, p_high->data_len);
+    bigint_assure_memory(p_high, new_data_len);
+    p_high->data_len = new_data_len;
     for (index = 0; index < p_high->data_len; index++) {
       p_high->p_data[index] = p_bigint->p_data[low_len + index];
     }
     bigint_pack_memory(p_high);
     p_low->sign = p_bigint->sign;
-    p_low->data_len = low_len;
-    bigint_assure_memory(p_low, p_low->data_len);
+    new_data_len = low_len;
+    bigint_assure_memory(p_low, new_data_len);
+    p_low->data_len = new_data_len;
     for (index = 0; index < p_low->data_len; index++) {
       p_low->p_data[index] = p_bigint->p_data[index];
     }

@@ -214,7 +214,7 @@ void sterling_number_1st_kind(bigint* p_bigint, int n, int k) {
 
 int test_sterling_number_1st_kind(int n, int k) {
   bigint bi;
-  char str[20000];
+  char* str = (char *) malloc(sizeof(char) * 20000);
   bigint_init(&bi);
   printf("==== TEST STERLING NUMBER 1ST KIND ====\n");
   sterling_number_1st_kind(&bi, n, k);
@@ -222,6 +222,7 @@ int test_sterling_number_1st_kind(int n, int k) {
   printf("sterling_1st(%d, %d) = %s\n", n, k, str);
   printf("\n");
   bigint_release(&bi);
+  free(str);
   return 0;
 }
 
@@ -232,7 +233,7 @@ int test_bigint_show_fibonacci(int nth) {
   bigint* p_f2 = &f2;
   bigint* p_swap;
   int i;
-  char str[200000];
+  char* str = (char *) malloc(sizeof(char) * 200000);
   printf("==== TEST BIGINT SHOW FIBONACCI ===\n");
   bigint_init(&f1);
   bigint_init(&f2);
@@ -262,6 +263,7 @@ int test_bigint_show_fibonacci(int nth) {
   printf("%s\n", str);
   bigint_release(&f1);
   bigint_release(&f2);
+  free(str);
   return 0;
 }
 
