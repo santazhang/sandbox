@@ -24,7 +24,7 @@ def rand_bigint_str():
 os.system("rm -f test")
 os.system("gcc bigint.c test.c -O3 -o test -lm")
 
-op_list = ["+", "-", "time", "div", "pow", "mod"]
+op_list = ["+", "-", "times", "div", "pow", "mod"]
 
 for i in range(10000):
   a = rand_bigint_str()
@@ -47,16 +47,24 @@ for i in range(10000):
     v = va % vb
   cmd = "./test %d %s %d" % (va, op, vb)
   pipe = os.popen(cmd)
-  line = pipe.readline()
+  lines = pipe.readlines()
+  line = lines[0]
   if line.startswith("va ="):
-    sp = line.split()
-    vc = int(sp[2])
-    if vc != v:
-      print "calc error, %d %s %d\n" % (va, op, vb)
-      print "%d (bigint)\n!=\n%d (python)" % (vc, v)
-    else:
-      print "calc ok"
+    try:
+      sp = line.split()
+      vc = int(sp[2])
+      if vc != v:
+        print "calc error, %d %s %d\n" % (va, op, vb)
+        print "%d (bigint)\n!=\n%d (python)" % (vc, v)
+      else:
+        print "calc ok"
+    except:
+      print "except: %s" % cmd
+      for l in lines:
+        print "## %s" % l
   else:
-    print "exec error"
+    print "exec error: %s" % cmd
+    for l in lines:
+      print "## %s" % l
   pipe.close()
 

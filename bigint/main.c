@@ -341,9 +341,11 @@ void test_division2_helper(char* a_str, char* b_str) {
   bigint_init(&q);
   bigint_from_string(&a, a_str);
   bigint_from_string(&b, b_str);
+  printf("\n+++++++++ test\n");
   print_bigint(&a);
   printf(" divmod ");
   print_bigint(&b);
+  printf("\n");
   bigint_divmod(&a, &b, &q, &r);
   printf("\nq=");
   print_bigint(&q);
@@ -364,12 +366,35 @@ void test_division2() {
   bigint_init(&q);
 
   // some crashy numbers check
+  test_division2_helper("1", "938080805300339434010988");
+  test_division2_helper("599865281365572520682477", "938080805300339434010988");
   test_division2_helper("98723786123512873698701290938120936128398216398126123981279812738912", "1298731273012790371027312703120937012390128039123123");
   test_division2_helper("987102874120983470891273409127903479123784", "129384709217834");
   test_division2_helper("4564654564564646", "131368");
   test_division2_helper("7879", "78");
   test_division2_helper("487612983467182976489172643896712893476192876349812763476328746876347672176236172653761253765127653172653761527365127653761253761276317253715273561725637512e567", "78612386481263487162784827634916749812739487e9");
   test_division2_helper("78612386481263487162784827634916749812739487e9", "487612983467182976489172643896712893476192876349812763476328746876347672176236172653761253765127653172653761527365127653761253761276317253715273561725637512e567");
+
+  // test negative division
+  test_division2_helper("1", "-1");
+  test_division2_helper("7", "-2");
+  test_division2_helper("7", "2");
+  test_division2_helper("-7", "-2");
+  test_division2_helper("-7", "2");
+  test_division2_helper("-7", "1");
+  test_division2_helper("6", "-2");
+  test_division2_helper("6", "2");
+  test_division2_helper("-6", "-2");
+  test_division2_helper("-6", "2");
+  test_division2_helper("23", "-7");
+  test_division2_helper("23", "7");
+  test_division2_helper("-23", "-7");
+  test_division2_helper("-23", "7");
+
+  // test division by 0
+  test_division2_helper("-7", "0");
+  test_division2_helper("0", "0");
+  test_division2_helper("0", "-4");
 
   // test big division
   printf("=============\ntest big division:\n");

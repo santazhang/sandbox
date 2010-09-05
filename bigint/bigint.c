@@ -1183,22 +1183,56 @@ static void bigint_newton_inversion(bigint* v, int n, bigint* z, int* m) {
     }
     k++;
   }
-  printf("newton inversion, k = %d\n", k);
   bigint_release(&s);
   bigint_release(&z2);
+}
+
+// check if a = b * q + r, and r has same sign as b
+static int bigint_divmod_check(bigint* a, bigint* b, bigint* q, bigint* r) {
+  bigint t;
+  bigint_init(&t);
+  bigint_copy(&t, b);
+  bigint_mul_by(&t, q);
+  bigint_add_by(&t, r);
+  assert(bigint_equal(&t, a));
+  bigint_release(&t);
+  assert(b->sign == r->sign || r->sign == 0);
+  return 1;
 }
 
 // This is a helper function which is used by div and mod function
 // a / b -> q
 // a % b -> r
+// r has same sign as b
 //
 // invariant: a = b * q + r
-//
-// TODO: support negative numbers, and handle special cases with faster algorithm
 bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   bigint b_inv, q2, r2;
   int b_inv_m;
   int try_count = 0;
+
+  if (bigint_is_zero(b)) {
+    return -BIGINT_ILLEGAL_PARAM;
+  }
+  if (bigint_is_negative(b)) {
+    int ret;
+    // make sure r has same sign as b, so we change the signs
+    
+    bigint_change_sign(b);
+    ret = bigint_divmod(a, b, q, r);
+    bigint_change_sign(b);
+    bigint_change_sign(q);
+    if (bigint_is_zero(r) == 0) {
+      // if the remainder is not 0, we have to do a little math for it
+      bigint_change_sign(r);
+      bigint_sub_by(r, b);
+      bigint_change_sign(r);
+      bigint_sub_by_int(q, 1);
+    }
+    assert(bigint_divmod_check(a, b, q, r));
+    return ret;
+  }
+
   bigint_init(&b_inv);
   bigint_init(&q2);
   bigint_init(&r2);
@@ -1236,19 +1270,8 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   bigint_release(&b_inv);
   bigint_release(&q2);
   bigint_release(&r2);
-
-#if 1
-  {
-    // test the invariant a = b * q + r
-    bigint t;
-    bigint_init(&t);
-    bigint_copy(&t, b);
-    bigint_mul_by(&t, q);
-    bigint_add_by(&t, r);
-    assert(bigint_equal(&t, a));
-    bigint_release(&t);
-  }
-#endif
+  
+  assert(bigint_divmod_check(a, b, q, r));
   return -BIGINT_NOERR;
 }
 
