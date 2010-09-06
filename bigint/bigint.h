@@ -182,19 +182,17 @@ void bigint_div_by_pow_10(bigint* p_bigint, int pow);
 // change a bigint into the ceiling value of square root of its value
 // that is result * result >= value && (result - 1) * (result - 1) < value
 // if p_bigint is negative, return -BIGINT_ILLEGAL_EVALUATION
-// TODO
 bigint_errno bigint_square_root_ceiling(bigint* p_bigint);
 
 // change a bigint into the floor value of square root of its value
 // that is result * result <= value && (result + 1) * (result + 1) > value
 // if p_bigint is negative, return -BIGINT_ILLEGAL_EVALUATION
-// TODO
 bigint_errno bigint_square_root_floor(bigint* p_bigint);
 
-// TODO
+// result^n >= value && (result - 1)^n < value
 bigint_errno bigint_root_n_ceiling(bigint* p_bigint, int n);
 
-// TODO
+// result^n <= value && (result + 1)^n > value
 bigint_errno bigint_root_n_floor(bigint* p_bigint, int n);
 
 // get the remainder as a % b, it has same sign as b

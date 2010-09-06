@@ -1,6 +1,4 @@
 [critical]
-* support division for negative numbers
-* make sure division behave like python (for negative numbers)
 
 [planning]
 * use binary format to save internal data

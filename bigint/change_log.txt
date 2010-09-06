@@ -1,3 +1,6 @@
+Sep 6, 2010
+Implemented root n (square root, etc.) using Newton iteration.
+
 Sep 5, 2010
 Implemented division using Newton inversion.
 

@@ -1439,6 +1439,162 @@ void bigint_div_by_pow_10(bigint* p_bigint, int pow) {
   }
 }
 
+bigint_errno bigint_square_root_ceiling(bigint* p_bigint) {
+  return bigint_root_n_ceiling(p_bigint, 2);
+}
+
+bigint_errno bigint_square_root_floor(bigint* p_bigint) {
+  return bigint_root_n_floor(p_bigint, 2);
+}
+
+// b should be positive
+static void bigint_approx_root_n(bigint* b, bigint* root, int n) {
+  double base, base_r;
+  int expo, expo_r, i;
+  bigint_to_scientific(b, &base, &expo);
+  expo_r = expo / n;
+  base_r = pow(10, log10(base) / n + (expo % n) / ((double) n));
+  bigint_from_scientific(root, base_r, expo_r);
+}
+
+static void bigint_newton_root_n(bigint* b, bigint* root, int n) {
+  int is_neg = 0;
+  int k;
+  int nth = bigint_digit_count(b);
+  bigint div, a, r2;
+  if (bigint_is_negative(b)) {
+    is_neg = 1;
+    bigint_change_sign(b);
+  }
+  // from now on, b is positive
+
+  // get an approximate value of root
+  bigint_approx_root_n(b, root, n);
+
+  bigint_init(&a);
+  bigint_init(&div);
+  bigint_init(&r2);
+  k = 0;
+  for (;;) {
+    bigint_copy(&a, root);
+    bigint_pow_by_int(&a, n);
+    bigint_mul_by_int(&a, n - 1);
+    bigint_add_by(&a, b);
+    bigint_copy(&div, root);
+    bigint_pow_by_int(&div, n - 1);
+    bigint_mul_by_int(&div, n);
+    bigint_div_by(&a, &div);
+    bigint_copy(&r2, &a);
+    if (bigint_compare(root, &r2) == 0) {
+      break;
+    }
+    bigint_copy(root, &r2);
+    if (k > nth * 3.4 * n) {
+      break;
+    }
+    k++;
+  }
+
+  bigint_release(&a);
+  bigint_release(&div);
+  bigint_release(&r2);
+  if (is_neg) {
+    bigint_change_sign(root);
+  }
+}
+
+// assert that b lies in root^n and (root + d)^n, d = +/- 1
+static int bigint_root_n_assert(bigint* b, bigint* root, int d, int n) {
+  bigint t;
+  int cmp1, cmp2;
+  assert(d == -1 || d == 1);
+  bigint_init(&t);
+  bigint_copy(&t, root);
+  bigint_pow_by_int(&t, n);
+  cmp1 = bigint_compare(&t, b);
+  bigint_copy(&t, root);
+  bigint_add_by_int(&t, d);
+  bigint_pow_by_int(&t, n);
+  cmp2 = bigint_compare(&t, b);
+  if (d == 1) {
+    assert(cmp1 <= 0 && cmp2 > 0);
+  } else { // d == -1
+    assert(cmp1 >= 0 && cmp2 < 0);
+  }
+  bigint_release(&t);
+  return 1;
+}
+
+bigint_errno bigint_root_n_ceiling(bigint* b, int n) {
+  bigint root, t;
+  if (n % 2 == 0 && bigint_is_negative(b)) {
+    return -BIGINT_ILLEGAL_PARAM;
+  }
+  bigint_init(&root);
+  bigint_newton_root_n(b, &root, n);
+
+  // adjust the result, the following loop will run only a few rounds
+  bigint_init(&t);
+  for (;;) {
+    int cmp1, cmp2;
+    bigint_copy(&t, &root);
+    bigint_pow_by_int(&t, n);
+    cmp1 = bigint_compare(&t, b);
+    bigint_copy(&t, &root);
+    bigint_sub_by_int(&t, 1);
+    bigint_pow_by_int(&t, n);
+    cmp2 = bigint_compare(&t, b);
+    if (cmp1 < 0) {
+      bigint_add_by_int(&root, 1);
+    } else if (cmp2 >= 0) {
+      bigint_sub_by_int(&root, 1);
+    } else {
+      break;
+    }
+  }
+  assert(bigint_root_n_assert(b, &root, -1, n));
+
+  bigint_copy(b, &root);
+  bigint_release(&root);
+  bigint_release(&t);
+  return -BIGINT_NOERR;
+}
+
+bigint_errno bigint_root_n_floor(bigint* b, int n) {
+  bigint root, t;
+  if (n % 2 == 0 && bigint_is_negative(b)) {
+    return -BIGINT_ILLEGAL_PARAM;
+  }
+  bigint_init(&root);
+  bigint_newton_root_n(b, &root, n);
+
+  // adjust the result, the following loop will run only a few rounds
+  bigint_init(&t);
+  for (;;) {
+    int cmp1, cmp2;
+    bigint_copy(&t, &root);
+    bigint_pow_by_int(&t, n);
+    cmp1 = bigint_compare(&t, b);
+    bigint_copy(&t, &root);
+    bigint_add_by_int(&t, 1);
+    bigint_pow_by_int(&t, n);
+    cmp2 = bigint_compare(&t, b);
+    if (cmp1 > 0) {
+      bigint_sub_by_int(&root, 1);
+    } else if (cmp2 <= 0) {
+      bigint_add_by_int(&root, 1);
+    } else {
+      break;
+    }
+  }
+  assert(bigint_root_n_assert(b, &root, 1, n));
+
+  bigint_copy(b, &root);
+  bigint_release(&root);
+  bigint_release(&t);
+  return -BIGINT_NOERR;
+}
+
 bigint_errno bigint_mod_by(bigint* p_dst, bigint* p_src) {
   bigint_errno ret;
   bigint q, r;

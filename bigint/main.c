@@ -513,10 +513,10 @@ void test_division2() {
   // test big division
   printf("=============\ntest big division:\n");
   bigint_from_string(&a, "234234234");
-  bigint_pow_by_int(&a, 23411);
+  bigint_pow_by_int(&a, 2341);
 
   bigint_from_string(&b, "233241");
-  bigint_pow_by_int(&b, 8911);
+  bigint_pow_by_int(&b, 891);
 
   print_bigint(&a);
   printf(" divmod ");
@@ -534,6 +534,18 @@ void test_division2() {
   bigint_release(&r);
 }
 
+void test_root_n() {
+  bigint r;
+  printf("######### testing root_n\n");
+  bigint_init(&r);
+  bigint_from_string(&r, "987192839834982930474");
+  bigint_root_n_floor(&r, 4);
+  printf("sqaure root = ");
+  print_bigint(&r);
+  printf("\n");
+  bigint_release(&r);
+}
+
 int main(int argc, char* argv) {
   test(test_bigint_init_release());
   test(test_bigint_from_string());
@@ -545,7 +557,8 @@ int main(int argc, char* argv) {
   test(test_bigint_mul_by());
   test(test_sterling_number_1st_kind(14, 12));
   test(test_bigint_show_fibonacci(10000));
-//  profile_big_cal();
+  test_root_n();
+  profile_big_cal();
 //  test_scientific();
 //  test_division();
   test_division2();
