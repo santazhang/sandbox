@@ -1,0 +1,16 @@
+Parameter List
+
+dt 0.005
+rCut		1.5
+rDifferent	0.75
+rE 1.5
+amplitude_A	-40
+amplitude_B	25
+sigma		7.45
+gamma 		27.75125
+kT		1
+gravity_effect	0
+gravityforce 	-0.0
+amplitude_A0	-16
+amplitude_B0	60
+total_step	15

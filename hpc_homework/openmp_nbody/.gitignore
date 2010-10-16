@@ -1,0 +1,4 @@
+*.input
+nbody
+nbody.omp
+*.test
