@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="DBRocks" default="pack">
+
+	<property name="src.dir" value="src" />
+	<property name="drop.dir" value="drop" />
+	<property name="bin.dir" value="bin" />
+	<property name="doc.dir" value="doc" />
+	<property name="test.dir" value="test" />
+	<property name="report.dir" value="report" />
+	<property name="junit.jar.location" value="tools/junit-4.6.jar" />
+	
+	<property name="jflex.jar" value="tools/JFlex.jar" />
+	<condition property="byacc" value="tools/yacc.exe">
+		<os family="windows" arch="x86" />
+	</condition>
+	<condition property="byacc" value="${basedir}/tools/yacc.linux">
+		<or>
+			<os family="unix" arch="x86" />
+			<os family="unix" arch="i386" />
+			<os family="unix" arch="i486" />
+			<os family="unix" arch="i586" />
+			<os family="unix" arch="i686" />
+		</or>
+	</condition>
+
+	<target name="prepare" description="Prepare...">
+		<mkdir dir="${bin.dir}" />
+		<mkdir dir="${doc.dir}" />
+		<mkdir dir="${drop.dir}" />
+		<mkdir dir="${report.dir}" />
+	</target>
+
+	<target name="jflex" description="Run JFlex...">
+		<java jar="${jflex.jar}" fork="true" maxmemory="128m" failonerror="true">
+			<sysproperty key="file.encoding" value="UTF-8" />
+			<arg value="${src.dir}/dbrocks/frontend/Lexer.l" />
+		</java>
+		<delete file="${src.dir}/dbrocks/frontend/Lexer.java~" />
+	</target>
+
+	<target name="byacc" description="Run BYACC/J...">
+		<chmod file="${byacc}" perm="+rx" />
+		<exec dir="${src.dir}/dbrocks/frontend" executable="${byacc}" failonerror="true">
+			<arg line="-v -J Parser.y" />
+		</exec>
+		<move file="${src.dir}/dbrocks/frontend/y.output" tofile="${src.dir}/dbrocks/frontend/Parser.output" />
+	</target>
+
+	<target name="compile" depends="prepare,jflex,byacc" description="Compile All...">
+		<javac srcdir="${src.dir}" destdir="${bin.dir}" encoding="UTF8" debug="on" optimize="off" />
+		<javac srcdir="${test.dir}" destdir="${bin.dir}" encoding="UTF8" debug="on" optimize="off">
+			<classpath>
+				<pathelement location="${bin.dir}" />
+				<pathelement location="${junit.jar.location}" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="pack" depends="compile" description="Prepare package...">
+		<delete file="${drop.dir}/dbrocks-server.jar" />
+		<delete file="${drop.dir}/dbrocks-client.jar" />
+		<delete file="${drop.dir}/dbrocks-console.jar" />
+		<delete file="${drop.dir}/dbrocks-querybrowser.jar" />
+		
+		<jar destfile="${drop.dir}/dbrocks-server.jar">
+			<fileset dir="${bin.dir}" excludes="dbrocks/test/** dbrocks/client/** dbrocks/console/** dbrocks/querybroser/**" />
+			<manifest>
+				<attribute name="Main-Class" value="dbrocks.server.Server" />
+			</manifest>
+		</jar>
+		
+		<jar destfile="${drop.dir}/dbrocks-client.jar">
+			<fileset dir="${bin.dir}" includes="dbrocks/client/**" />
+			<manifest>
+				<attribute name="Main-Class" value="dbrocks.client.Client" />
+			</manifest>
+		</jar>
+		
+		<jar destfile="${drop.dir}/dbrocks-console.jar">
+			<fileset dir="${bin.dir}" excludes="dbrocks/test/** dbrocks/client/** dbrocks/server/** dbrocks/querybrowser/**" />
+			<manifest>
+				<attribute name="Main-Class" value="dbrocks.console.Console" />
+			</manifest>
+		</jar>
+		
+		<jar destfile="${drop.dir}/dbrocks-querybrowser.jar">
+			<fileset dir="${bin.dir}" includes="dbrocks/client/** dbrocks/querybrowser/**" />
+			<manifest>
+				<attribute name="Main-Class" value="dbrocks.querybrowser.Application" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="javadoc" depends="compile" description="Make documentation...">
+		<javadoc access="private" encoding="UTF8" author="false" classpath="." destdir="${doc.dir}" doctitle="DBRocks Documentation" nodeprecated="true" nodeprecatedlist="true" packagenames="*" source="1.5" sourcepath="${basedir}/src" use="true" version="false" locale="en_US">
+			<link href="." />
+		</javadoc>
+	</target>
+
+	<target name="clean" description="Clean...">
+		<delete dir="${doc.dir}" />
+		<delete dir="${bin.dir}" />
+		<delete dir="${drop.dir}" />
+		<delete dir="${report.dir}" />
+	</target>
+	
+	<target name="test" depends="compile" description="Run tests...">
+		<junit fork="true" printsummary="on" haltonfailure="false" showoutput="true">
+			<classpath>
+				<pathelement location="${bin.dir}" />
+				<pathelement location="${junit.jar.location}" />
+			</classpath>
+			<formatter type="xml" />
+			<batchtest todir="${report.dir}">
+				<fileset dir="${test.dir}" />
+			</batchtest>
+		</junit>
+		<junitreport todir="${report.dir}">
+			<fileset dir="${report.dir}">
+				<include name="*.xml" />
+			</fileset>
+			<report format="frames" todir="${report.dir}" />
+		</junitreport>
+	</target>
+</project>
