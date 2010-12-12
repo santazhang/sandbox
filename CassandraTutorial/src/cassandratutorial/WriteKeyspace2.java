@@ -8,6 +8,7 @@ public class WriteKeyspace2 {
 	private final static String HOST_PORT = "localhost:9160";
 	
 	public static void main(String[] args) throws HectorException {
+		System.out.println("Connecting to " + HOST_PORT);
 		ExampleCommons ec = new ExampleCommons(HOST_PORT, KEYSPACE);
 		int count = 100;
 		int oopsCounter = 0;
