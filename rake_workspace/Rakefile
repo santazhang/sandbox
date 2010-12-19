@@ -1,0 +1,190 @@
+# This is the Rakefile for managing my Workspace
+#
+# Santa Zhang (santa1987@gmail.com)
+
+require 'pp'
+require 'fileutils'
+
+load "workspace.conf"
+
+def my_exec cmds
+  cmds.each_line do |cmd|
+    cmd = cmd.strip
+    puts "[cmd] #{cmd}"
+    system cmd
+  end
+end
+
+desc "List all my projects"
+task :list do
+  space = (PROJECT_LIST.keys.collect {|k| k.length}).max + 4
+  PROJECT_LIST.each do |prj, description|
+    print prj
+    print " " * (space - prj.length) + "# "
+    puts description
+  end
+end
+
+desc "Git commit-push all my projects"
+task :push do
+  PROJECT_LIST.keys.each do |prj|
+    IO.popen "cd #{File.dirname __FILE__}/#{prj} && git remote" do |p|
+      my_exec "cd #{File.dirname __FILE__}/#{prj} && git commit -a -m \"auto commit by my Workspace Rakefile\""
+      p.each_line do |remote|
+        remote = remote.strip
+        my_exec "cd #{File.dirname __FILE__}/#{prj} && git push #{remote} --all"
+      end
+    end
+  end
+end
+
+desc "Git gc all my projects, including git backup repositories"
+task :gc do
+  if defined? GIT_BACKUP_ROOT
+    bkup_root = "#{File.dirname __FILE__}/#{GIT_BACKUP_ROOT}"
+    Dir.foreach bkup_root do |entry|
+      next if entry.start_with? "."
+      full_path = "#{bkup_root}/#{entry}"
+      next unless File::directory? full_path
+      my_exec "cd #{full_path} && git gc --aggressive --prune"
+    end
+  end
+  PROJECT_LIST.keys.each do |prj|
+    my_exec "cd #{File.dirname __FILE__}/#{prj} && git gc --aggressive --prune"
+  end
+end
+
+desc "Create a new git project"
+task :new do
+  puts "Please input the project name:"
+  name = $stdin.gets.chomp
+  proj_dir = "#{File.dirname __FILE__}/#{name}"
+  if File.exists? proj_dir
+    puts "[error] The project '#{proj_dir}' already exists!"
+    exit
+  end
+  puts "Please input a brief description for the project:"
+  brief = $stdin.gets.chomp
+  my_exec "mkdir #{proj_dir} && cd #{proj_dir} && git init"
+ 
+  # write new dev settings
+  dev_settings_fn = "#{File.dirname __FILE__}/dev_settings.conf"
+  dev_settings_orig = File.read dev_settings_fn
+  
+  File.open(dev_settings_fn, "w") do |f|
+    dev_settings_orig.each_line do |line|
+      f.write line
+      if line =~ /^PROJECT_LIST/
+        f.write <<NEW_PROJ
+  "#{name}" => "#{brief}",
+
+NEW_PROJ
+      end
+    end
+  end
+end
+
+def all_files? f_list
+  f_list.each do |f|
+    return false if File::directory? f
+  end
+  true
+end
+
+def all_folders? f_list
+  f_list.each do |f|
+    return false unless File::directory? f
+  end
+  true
+end
+
+def resolve_files_mirror mirror_set
+  mtime_map = {}
+  mirror_set.each do |f|
+    FileUtils.mkdir_p(File.dirname f)
+    begin
+      mt = File.new(f).mtime
+    rescue
+      mt = nil
+    end
+    if mtime_map.has_key? mt
+      mtime_map[mt] << f
+    else
+      mtime_map[mt] = [f]
+    end
+  end
+  if mtime_map.keys.size != 1
+    puts "[conflict]"
+    pp mtime_map
+    sorted_key = mtime_map.keys.sort do |a, b|
+      if a == nil
+        -1
+      elsif b == nil
+        1
+      else
+        a <=> b
+      end
+    end
+    newest_key = sorted_key.last
+    puts "use the newest one? [#{newest_key} => #{mtime_map[newest_key]}]"
+    puts "(Y/n)"
+    opt = STDIN.gets.chomp
+    if opt.downcase.start_with? "y" or opt == ""
+      # replace
+      mtime_map.keys.each do |k|
+        if k != newest_key
+          mtime_map[k].each do |f|
+            begin
+              atime = File.new(f).atime
+            rescue
+              atime = newest_key
+            end
+            my_exec "cp #{mtime_map[newest_key].first} #{f}"
+            my_exec "cd #{File.dirname f} && git commit -a -m \"[auto] update #{f} to newest version\""
+            File.utime(atime, newest_key, f)
+          end
+        end
+      end
+    end
+  end
+end
+
+def resolve_folders_mirror mirror_set
+  handled_files = []
+  handled_folders = []
+  mirror_set.each do |f|
+    FileUtils.mkdir_p f
+    Dir.entries(f).each do |ent|
+      next if ent.start_with? "."
+      fpath = File.join f, ent
+      if File::directory? fpath
+        new_mirror_set = mirror_set.collect {|m| File.join m, ent}
+        resolve_folders_mirror new_mirror_set
+      else
+        new_mirror_set = mirror_set.collect {|m| File.join m, ent}
+        resolve_files_mirror new_mirror_set
+      end
+      
+    end
+  end
+end
+
+desc "Update mirrored files/folders"
+task :mirror do
+  MIRROR_LIST.each do |mirror_set|
+    unless (all_files? mirror_set) or (all_folders? mirror_set)
+      puts "Invalid mirror set (should all be files or all be folders):"
+      pp mirror_set
+      next
+    end
+
+    if all_files? mirror_set
+      resolve_files_mirror mirror_set
+    else # all folders
+      resolve_folders_mirror mirror_set
+    end
+  end
+end
+
+task :default => :list
+
