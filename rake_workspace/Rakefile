@@ -68,7 +68,7 @@ task :new do
   my_exec "mkdir #{proj_dir} && cd #{proj_dir} && git init"
  
   # write new dev settings
-  dev_settings_fn = "#{File.dirname __FILE__}/dev_settings.conf"
+  dev_settings_fn = "#{File.dirname __FILE__}/workspace.conf"
   dev_settings_orig = File.read dev_settings_fn
   
   File.open(dev_settings_fn, "w") do |f|
