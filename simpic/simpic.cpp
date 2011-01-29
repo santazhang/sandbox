@@ -40,6 +40,43 @@ IplImage* gray_scale_image(IplImage* image) {
   return new_image;
 }
 
+void normalize_gray_image(IplImage* gray) {
+  int area = gray->width * gray->height;
+  int i, sum;
+  double scale = 255. / area;
+  const int hist_sz = 256;
+  int hist[hist_sz];
+  int lut[hist_sz + 1];
+  for (i = 0; i < hist_sz; i++) {
+    hist[i] = 0;
+    lut[i] = 0;
+  }
+  CvScalar s;
+  for (int row = 0; row < gray->height; row++) {
+    for (int col = 0; col < gray->width; col++) {
+      s = cvGet2D(gray, row, col);
+      hist[(int) s.val[0]]++;
+    }
+  }
+  sum = 0;
+  for (i = 0; i < hist_sz; i++) {
+    sum += hist[i];
+    int val = (int)(sum * scale);
+    if (val > 255) {
+      val = 255;
+    }
+    lut[i] = val;
+  }
+  lut[0] = 0;
+  for (int row = 0; row < gray->height; row++) {
+    for (int col = 0; col < gray->width; col++) {
+      s = cvGet2D(gray, row, col);
+      s.val[0] = lut[(int) s.val[0]];
+      cvSet2D(gray, row, col, s);
+    }
+  }
+}
+
 PicFP::PicFP(const string& pic_fn) : fn(pic_fn) {
   for (int i = 0; i < 27; i++) {
     data[i] = 0;
@@ -53,6 +90,7 @@ PicFP::PicFP(const string& pic_fn) : fn(pic_fn) {
     fn = "";
   } else {
     IplImage* gray = gray_scale_image(pic);
+    normalize_gray_image(gray);
     int h[12];
     CvScalar s;
     for (int i = 0; i < 12; i++) {
@@ -149,27 +187,18 @@ double fingerprint_distance(const PicFP& fp1, const PicFP& fp2) {
     return -1;
   }
   double d = 0;
-  for (int i = 0; i < 9; i++) {
-    for (int j = 0; j < 9; j++) {
-      int scale = 1;
-      if (region_width[i] != region_width[j]) {
-        scale *= 2;
-      }
-      if (region_height[i] != region_height[j]) {
-        scale *= 2;
-      }
-      double region_d = 0;
-      double ha0 = fp1.data[i * 3] / 255.0;
-      double ha1 = fp1.data[i * 3 + 1] / 255.0;
-      double ha2 = fp1.data[i * 3 + 2] / 255.0;
-      double ha3 = 1.0 - ha0 - ha1 - ha2;
-      double hb0 = fp2.data[j * 3] / 255.0;
-      double hb1 = fp2.data[j * 3 + 1] / 255.0;
-      double hb2 = fp2.data[j * 3 + 2] / 255.0;
-      double hb3 = 1.0 - hb0 - hb1 - hb2;
-      region_d = (ha0 - hb0) * (ha0 - hb0) + (ha1 - hb1) * (ha1 - hb1) + (ha2 - hb2) * (ha2 - hb2) + (ha3 - hb3) * (ha3 - hb3);
-      d += region_d * scale;
-    }
+  for (int i = 0; i < 4; i++) {
+    double region_d = 0;
+    double ha0 = fp1.data[i * 3] / 255.0;
+    double ha1 = fp1.data[i * 3 + 1] / 255.0;
+    double ha2 = fp1.data[i * 3 + 2] / 255.0;
+    double ha3 = 1.0 - ha0 - ha1 - ha2;
+    double hb0 = fp2.data[i * 3] / 255.0;
+    double hb1 = fp2.data[i * 3 + 1] / 255.0;
+    double hb2 = fp2.data[i * 3 + 2] / 255.0;
+    double hb3 = 1.0 - hb0 - hb1 - hb2;
+    region_d = (ha0 - hb0) * (ha0 - hb0) + (ha1 - hb1) * (ha1 - hb1) + (ha2 - hb2) * (ha2 - hb2) + (ha3 - hb3) * (ha3 - hb3);
+    d += region_d;
   }
   return d;
 }
@@ -253,7 +282,7 @@ int main(int argc, char* argv[]) {
   for (int i = 0; i < all_pic.size(); i++){
     for (int j = i + 1; j < all_pic.size(); j++) {
       double d = fingerprint_distance(all_pic[i], all_pic[j]);
-      if (d >= 0 && d < 5.0) {
+      if (d >= 0 && d < 1.0) {
         printf("distance: %s, %s, %f\n", all_pic[i].fn.c_str(), all_pic[j].fn.c_str(), d);
         fprintf(fp, "%s,%s,%f\n", all_pic[i].fn.c_str(), all_pic[j].fn.c_str(), d);
       }
