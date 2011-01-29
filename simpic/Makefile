@@ -10,7 +10,7 @@ LDFLAGS=-L/opt/local/lib -lpthread -lcv -lhighgui -lcxcore
 
 default: simpic
 
-simpic:
+simpic: simpic.cpp
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) simpic.cpp  -o simpic
 
 clean:
