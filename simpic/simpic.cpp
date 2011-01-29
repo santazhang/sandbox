@@ -34,14 +34,145 @@ public:
   byte data[27];  // 3 * 9
 };
 
+IplImage* gray_scale_image(IplImage* image) {
+  IplImage* new_image = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+  cvCvtColor(image, new_image, CV_RGB2GRAY);
+  return new_image;
+}
+
 PicFP::PicFP(const string& pic_fn) : fn(pic_fn) {
+  for (int i = 0; i < 27; i++) {
+    data[i] = 0;
+  }
   IplImage* pic = cvLoadImage(fn.c_str());
+  if (pic == NULL) {
+    printf("*** bad image: '%s'\n", fn.c_str());
+    fn = "";
+  } else if (pic->height <= 20 || pic->width <= 20) {
+    printf("*** skip image: '%s', %d x %d\n", fn.c_str(), pic->width, pic->height);
+    fn = "";
+  } else {
+    IplImage* gray = gray_scale_image(pic);
+    int h[12];
+    CvScalar s;
+    for (int i = 0; i < 12; i++) {
+      h[i] = 0;
+    }
+    int half_height = gray->height / 2;
+    int half_width = gray->width / 2;
+    for (int row = 0; row < gray->height; row++) {
+      for (int col = 0; col < gray->width; col++) {
+        s = cvGet2D(gray, row, col);
+        int* hx;
+        if (row < half_height && col < half_width) {
+          hx = h;
+        } else if (row < half_height && col >= half_width) {
+          hx = h + 3;
+        } else if (row >= half_height && col < half_width) {
+          hx = h + 6;
+        } else if (row >= half_height && col >= half_width) {
+          hx = h + 9;
+        }
+        if (s.val[0] < 64) {
+          hx[0]++;
+        } else if (s.val[0] < 128) {
+          hx[1]++;
+        } else if (s.val[0] < 192) {
+          hx[2]++;
+        }
+      }
+    }
+    
+    // size of 4 regions
+    int s0 = half_width * half_height;
+    int s1 = (gray->width - half_width) * half_height;
+    int s2 = half_width * (gray->height - half_height);
+    int s3 = (gray->width - half_width) * (gray->height - half_height);
+    
+    data[0] = (byte) (255 * h[0] / s0);
+    data[1] = (byte) (255 * h[1] / s0);
+    data[2] = (byte) (255 * h[2] / s0);
+    
+    data[3] = (byte) (255 * h[3] / s1);
+    data[4] = (byte) (255 * h[4] / s1);
+    data[5] = (byte) (255 * h[5] / s1);
+    
+    data[6] = (byte) (255 * h[6] / s2);
+    data[7] = (byte) (255 * h[7] / s2);
+    data[8] = (byte) (255 * h[8] / s2);
+    
+    data[9] = (byte) (255 * h[9] / s3);
+    data[10] = (byte) (255 * h[10] / s3);
+    data[11] = (byte) (255 * h[11] / s3);
+    
+    data[12] = (byte) (255 * (h[0] + h[3]) / (s0 + s1));
+    data[13] = (byte) (255 * (h[1] + h[4]) / (s0 + s1));
+    data[14] = (byte) (255 * (h[2] + h[5]) / (s0 + s1));
+    
+    data[15] = (byte) (255 * (h[6] + h[9]) / (s2 + s3));
+    data[16] = (byte) (255 * (h[7] + h[10]) / (s2 + s3));
+    data[17] = (byte) (255 * (h[8] + h[11]) / (s2 + s3));
+    
+    data[18] = (byte) (255 * (h[0] + h[6]) / (s0 + s2));
+    data[19] = (byte) (255 * (h[1] + h[7]) / (s0 + s2));
+    data[20] = (byte) (255 * (h[2] + h[8]) / (s0 + s2));
+    
+    data[21] = (byte) (255 * (h[3] + h[9]) / (s1 + s3));
+    data[22] = (byte) (255 * (h[4] + h[10]) / (s1 + s3));
+    data[23] = (byte) (255 * (h[5] + h[11]) / (s1 + s3));
+    
+    data[24] = (byte) (255 * (h[0] + h[3] + h[6] + h[9]) / (s0 + s1 + s2 + s3));
+    data[25] = (byte) (255 * (h[1] + h[4] + h[7] + h[10]) / (s0 + s1 + s2 + s3));
+    data[26] = (byte) (255 * (h[2] + h[5] + h[8] + h[11]) / (s0 + s1 + s2 + s3));
+    
+    printf("fingerprint:");
+    for (int i = 0; i < 27; i++) {
+      printf(" %d", data[i]);
+    }
+    printf("\n");
+    
+    cvReleaseImage(&gray);
+  }
   cvReleaseImage(&pic);
 }
 
 vector<PicFP> all_pic;
 
-static const char* image_exts[] = {".jpg", ".png", ".gif", ".bmp", NULL};
+static const char* image_exts[] = {".jpg", ".png", ".bmp", NULL};
+
+static const int region_width[] = {1, 1, 1, 1, 2, 2, 1, 1, 2};
+static const int region_height[] = {1, 1, 1, 1, 1, 1, 2, 2, 2};
+
+// if not valid, -1 will be returned
+double fingerprint_distance(const PicFP& fp1, const PicFP& fp2) {
+  if (fp1.fn == "" || fp2.fn == "") {
+    return -1;
+  }
+  double d = 0;
+  for (int i = 0; i < 9; i++) {
+    for (int j = 0; j < 9; j++) {
+      int scale = 1;
+      if (region_width[i] != region_width[j]) {
+        scale *= 2;
+      }
+      if (region_height[i] != region_height[j]) {
+        scale *= 2;
+      }
+      double region_d = 0;
+      double ha0 = fp1.data[i * 3] / 255.0;
+      double ha1 = fp1.data[i * 3 + 1] / 255.0;
+      double ha2 = fp1.data[i * 3 + 2] / 255.0;
+      double ha3 = 1.0 - ha0 - ha1 - ha2;
+      double hb0 = fp2.data[j * 3] / 255.0;
+      double hb1 = fp2.data[j * 3 + 1] / 255.0;
+      double hb2 = fp2.data[j * 3 + 2] / 255.0;
+      double hb3 = 1.0 - hb0 - hb1 - hb2;
+      region_d = (ha0 - hb0) * (ha0 - hb0) + (ha1 - hb1) * (ha1 - hb1) + (ha2 - hb2) * (ha2 - hb2) + (ha3 - hb3) * (ha3 - hb3);
+      d += region_d * scale;
+    }
+  }
+  return d;
+}
 
 static int strcmp_ignore_case(const char* str1, const char* str2) {
   int i;
@@ -95,10 +226,10 @@ void walk_image_root(const char* image_root) {
         continue;
       }
       fpath = string(image_root) + "/" + string(p_ent->d_name);
-      printf("fingerprinting: %s\n", fpath.c_str());
       struct stat st;
       if (stat(fpath.c_str(), &st) == 0) {
         if (S_ISREG(st.st_mode) && is_image(fpath.c_str())) {
+          printf("fingerprinting: %s\n", fpath.c_str());
           all_pic.push_back(PicFP(fpath.c_str()));
         } else if (S_ISDIR(st.st_mode)) {
           walk_image_root(fpath.c_str());
@@ -117,6 +248,17 @@ int main(int argc, char* argv[]) {
   // walk all pictures
   const char* image_root = argv[1];
   walk_image_root(image_root);
-  
+  FILE* fp = fopen("simpic.csv", "w");
+  fprintf(fp, "pic1,pic2,distance\n");
+  for (int i = 0; i < all_pic.size(); i++){
+    for (int j = i + 1; j < all_pic.size(); j++) {
+      double d = fingerprint_distance(all_pic[i], all_pic[j]);
+      if (d >= 0 && d < 5.0) {
+        printf("distance: %s, %s, %f\n", all_pic[i].fn.c_str(), all_pic[j].fn.c_str(), d);
+        fprintf(fp, "%s,%s,%f\n", all_pic[i].fn.c_str(), all_pic[j].fn.c_str(), d);
+      }
+    }
+  }
+  fclose(fp);
   return 0;
 }
