@@ -4,9 +4,9 @@ DEL_RECURSIVE=find . -iname
 DEL_RECURSIVE_OPTIONS=-delete
 CC=gcc
 CXX=g++
-CFLAGS=-O3 -pthread -DRELEASE -I/opt/local/include/opencv -Isrc 
-CXXFLAGS=-O3 -pthread -DRELEASE -I/opt/local/include/opencv -Isrc 
-LDFLAGS=-L/opt/local/lib -lpthread -lcv -lhighgui -lcxcore
+CFLAGS=-O3 -pthread -DRELEASE -I/opt/local/include/opencv -I/opt/local/include -Isrc
+CXXFLAGS=-O3 -pthread -DRELEASE -I/opt/local/include/opencv -I/opt/local/include -Isrc
+LDFLAGS=-L/opt/local/lib -lpthread -lopencv_highgui -lopencv_core -lopencv_imgproc
 
 default: simpic
 
