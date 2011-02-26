@@ -1,0 +1,27 @@
+This is an adapter to Rainmeter. It ports Windows Rainmeter gadgets to
+Linux Screenlets.
+
+
+Implementation Details:
+
+==== Skin Configs ====
+
+  * BackgroundMode is ALWAYS considered to be 1, thus the following are
+    NOT supported:
+      
+      Background, BackgroundMargins, SolidColor, SolidColor2, GradientAngle,
+      BevelType
+  
+  * Update is SUPPORTED (Default to 1000, the same with Rainmeter)
+  
+  * DynamicWindowSize is ALWAYS ENABLED
+  
+  * DragMargins is NOT supported
+  
+  * KeepOnScreen is NOT supported
+  
+  * Author is IGNORED
+  
+  * AppVersion is IGNORED
+  
+
