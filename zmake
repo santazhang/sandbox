@@ -1,0 +1,33 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+def look_for_mkfile(folder):
+  for fn in os.listdir(folder):
+    if "makefile" in fn.lower():
+      return fn
+  return None
+
+folder = os.getcwd()
+while True:
+  mkfile = look_for_mkfile(folder)
+  if mkfile != None:
+    print "*** using make file: %s" % os.path.join(folder, mkfile)
+    mk_cmd = "make"
+    for arg in sys.argv[1:]:
+      mk_cmd += " " + arg
+    cwd = os.getcwd()
+    os.chdir(folder)
+    os.system(mk_cmd)
+    try:
+      os.chdir(cwd)
+    except:
+      pass
+  if folder != os.path.split(folder)[0]:
+    folder = os.path.split(folder)[0]
+  else:
+    break
+
+
+
