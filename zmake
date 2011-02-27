@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+# run make even in sub folders
+
 import os
 import sys
 
 def look_for_mkfile(folder):
   for fn in os.listdir(folder):
-    if "makefile" in fn.lower():
+    if fn.lower() == "makefile" or fn.lower() == "gnumakefile":
       return fn
   return None
 
