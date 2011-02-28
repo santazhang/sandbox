@@ -1,0 +1,5 @@
+*.tar.gz
+config.log
+config.status
+*.cache/
+.deps/
