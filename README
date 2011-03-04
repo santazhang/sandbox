@@ -52,6 +52,9 @@ report_ifconfig/
 simpic/
   find similar images
 
+sos/
+  Santa's Operation System
+
 vim_rc/
   good vim.rc files
 
