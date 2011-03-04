@@ -6,11 +6,11 @@
 megs: 32
 
 # filename of ROM images
-romimage: file=/usr/share/bochs/BIOS-bochs-latest
-vgaromimage: file=/usr/share/vgabios/vgabios.bin
+romimage: file=/opt/local/share/bochs/BIOS-bochs-latest
+vgaromimage: file=/opt/local/share/bochs/VGABIOS-elpin-2.40
 
 # what disk images will be used
-floppya: 1_44=a.img, status=inserted
+floppya: 1_44=boot, status=inserted
 
 # choose the boot disk.
 boot: floppy
@@ -22,4 +22,4 @@ boot: floppy
 mouse: enabled=0
 
 # enable key mapping, using US layout as default.
-keyboard_mapping: enabled=1, map=/usr/share/bochs/keymaps/x11-pc-us.map
+#keyboard_mapping: enabled=1, map=/opt/local/share/bochs/keymaps/x11-pc-us.map
