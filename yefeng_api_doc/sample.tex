@@ -1,0 +1,32 @@
+\documentclass[adobefonts,UTF8,a4paper,fancyhdr,fntef]{ctexart}
+
+\usepackage{apidoc}  % API模板
+
+\begin{document}
+
+\title{API说明文档模板样例文档}
+\author{文档作者}
+\maketitle
+
+
+\section{综述}
+关于此集合函数的综述第一段，关于此集合函数的综述第一段，关于此集合函数的综述第一段，关于此集合函数的综述第一段。
+
+关于此集合函数的综述第二段，关于此集合函数的综述第二段，关于此集合函数的综述第二段，关于此集合函数的综述第二段。
+
+
+\section{函数概要}
+\input{func_table.tex} % 加入函数表格，代码放置在func_table.tex下
+\newpage % 结束此页
+
+
+\section{函数详解}
+\input{func_detail.tex} % 加入函数详解，代码放置在func_table.tex下
+\newpage % 结束此页
+
+
+\section{引用的数据类型}
+\input{strc_detail.tex}
+
+
+\end{document}
