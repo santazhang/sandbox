@@ -58,7 +58,7 @@
 {\wm 
 	\begin{textblock}{1}(0,0)
 		\rotatebox{-90}{\parbox{500mm}{
-			Typeset by Yang Zhang with \XeTeX\ on {\wmtoday \today}
+			Typeset by Yang ZHANG with \XeTeX\ on {\wmtoday \today}
 		}
 	}
 	\end{textblock}
@@ -104,7 +104,7 @@ The version of \textsc{Partition} given in this chapter is not the original part
 Here is the original parition algorithm, which is due to T.Hoare:
 
 \begin{algorithm}[H]
-\caption{\textsc{Hoare-Partition}(A, p, r)}
+\caption{\textsc{Hoare-Partition}$(A, p, r)$}
 $x \leftarrow A[p]$\\
 $i \leftarrow p - 1$\\
 $j \leftarrow r + 1$\\
@@ -245,8 +245,45 @@ we have the same conclusion. Thus the statement of question (d) is proved.
 \qed
 
 
-\problem{7-4}
+\problem{7-4 Stack depth for quicksort}
+The \textsc{Quicksort} algorithm of Section 7.1 contains two recursive calls to itself.
+After the call to \textsc{Partition}, the left subarray is recursively sorted and then the right subarray
+is recursively sorted. The second recursive call in \textsc{Quicksort} is not really necessary; it can be
+avoided by using an iterative control structure. This technique, called \emph{tail recursion},
+is provided automatically by good compilers. Consider the following version of quicksort, which simulates tail recursion.
+
+\begin{algorithm}[H]
+  \caption{\textsc{Quicksort'$(A, p, r)$}}
+  \While {$p<r$}{
+    $q\leftarrow $\textsc{Partition}$(A, p, r)$\\
+    \textsc{Quicksort'}$(A, p, q-1)$\\
+    $p\leftarrow q+1$\\
+  }
+\end{algorithm}
+
+\begin{description}
+\item[a. \hspace{9pt}] Argue that \textsc{Quicksort'}$(A, 1, length[A])$ correctly sorts the array A.
+
+Compilers usually execute recursive procedures by using a \emph{stack} that contains pertinent information, including
+the parameter values, for each recursive call. The information for the most recent call is at the top of the stack,
+and the information for the initial call is at the bottom. When a procedure is invoked, its information is \emph{pushed}
+ onto the stack; when it terminates, its information is \emph{popped}. Since we assume that array parameters are
+ represented by pointers, the information for each procedure call on the stack requires $O(1)$ stack space.
+ The \emph{stack depth} is the maximum amount of stack space used at any time during a computation.
+
+\item[b. \hspace{9pt}] Describe a scenario in which the stack depth of \textsc{Quicksort'} is $\Omega(n)$ on an 
+$n$-element input array.
+
+\item[c. \hspace{9pt}] Modify the code for \textsc{Quicksort'} so that the worst-case stack depth is $\Omega(\lg n)$.
+Maintain the $O(n\lg n)$ expected running time of the algorithm.
+
+\end{description}
+
+\answer
+
+This shall be done!
 \todo
+\qed
 
 \problem{8.2-4}
 Describe an algorithm that, given $n$ intergers in the range 0 to $k$, preprocesses its input and then answers
@@ -286,8 +323,32 @@ Create array $C$ with size $k + 1$, index starts at $0$\\
 
 
 
-\problem{8-6}
+\problem{8-6 Lower bound on merging sorted lists}
+
+The problem of merging two sorted lists aries frequently. It is used as a subroutine of \textsc{Merge-Sort},
+and the procedure to merge two sorted lsits is given as \textsc{Merge} in Section 2.3.1. In this problem,
+we will show that there is a lower bound of $2n-1$ on the worst-case number of comparisons required to 
+merge two sorted lists, each containing $n$ items.
+
+First we will show a lower bound of $2n-o(n)$ comparisons by using a decision tree.
+
+\begin{description}
+\item[a. \hspace{9pt}] Show that, given $2n$ numbers, there are ${2n}\choose{n}$ possible ways to divide them into
+two sorted lists, each with $n$ numbers.
+
+\item[b. \hspace{9pt}] Using a decision tree, show that any algorithm that correctly merges two sorted lists uses at
+least $2n-o(n)$ comparisons.
+
+\item[c. \hspace{9pt}]  Show that if two elements are consecutive in the sorted order and from opposite lists,
+then they must be compared.
+
+\item[d. \hspace{9pt}] Use your answer to the previous part to show a lower bound of $2n-1$ comparisons for merging
+two sorted lists.
+
+\end{description}
+
 \todo
+\qed
 
 
 
