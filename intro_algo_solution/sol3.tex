@@ -1,0 +1,340 @@
+\documentclass[a4paper,10pt]{article}
+
+%A Few Useful Packages
+\usepackage{marvosym}
+\usepackage{fontspec} 					%for loading fonts
+\usepackage{xunicode,xltxtra,url,parskip} 	%other packages for formatting
+\RequirePackage{color,graphicx}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[big]{layaureo} 				%better formatting of the A4 page
+% an alternative to Layaureo can be ** \usepackage{fullpage} **
+\usepackage{longtable} 				%for experience
+\usepackage{titlesec}					%custom \section
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[vlined,linesnumbered,ruled]{algorithm2e}
+
+%Setup hyperref package, and colours for links
+\usepackage{hyperref}
+\definecolor{linkcolour}{rgb}{0,0.2,0.6}
+\hypersetup{colorlinks,breaklinks,urlcolor=linkcolour, linkcolor=linkcolour}
+
+%FONTS
+\defaultfontfeatures{Mapping=tex-text}
+\setmainfont[SmallCapsFont = Fontin SmallCaps]{Fontin}
+
+%CV Sections inspired by: 
+%http://stefano.italians.nl/archives/26
+\titleformat{\section}{\Large\scshape\raggedright}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{3pt}{3pt}
+
+%tweak page height
+\addtolength{\topmargin}{-.125in}
+\addtolength{\textheight}{0.25in}
+
+%-------------WATERMARK TEST [**not part of a CV**]---------------
+\usepackage[absolute]{textpos}
+
+\setlength{\TPHorizModule}{30mm}
+\setlength{\TPVertModule}{\TPHorizModule}
+\textblockorigin{2mm}{0.65\paperheight}
+\setlength{\parindent}{0pt}
+
+\newcommand{\problem}[1]{\section*{Problem #1}}
+\newcommand{\answer}{\paragraph{Answer:}}
+\newcommand{\proof}{\paragraph{Proof:}}
+\newcommand{\qed}{\hfill \ensuremath{\Box}}
+\newcommand{\todo}{\textcolor{red}{TODO}{} }
+
+% TODO
+\newcommand{\nless}{\textcolor{red}{TODO!!!}{} }
+
+%--------------------BEGIN DOCUMENT----------------------
+\begin{document}
+
+%WATERMARK TEST [**not part of a CV**]---------------
+\font\wm=''Baskerville:color=787878'' at 8pt
+\font\wmtoday=''Baskerville:color=FF1493'' at 8pt
+{\wm 
+	\begin{textblock}{1}(0,0)
+		\rotatebox{-90}{\parbox{500mm}{
+			Typeset by Yang Zhang with \XeTeX\ on {\wmtoday \today}
+		}
+	}
+	\end{textblock}
+}
+
+\pagestyle{empty} % non-numbered pages
+
+\font\fb=''[cmr10]'' %for use with \LaTeX command
+
+%--------------------TITLE-------------
+\par{\centering
+  {\Large Algorithms and Complexity Analysis}
+  \\
+  { Instructed by Yin ZHAO, Spring 2011}
+  \\
+		{\Huge Solution for homework 3
+	}\bigskip\par}
+
+%--------------------SECTIONS-----------------------------------
+
+\problem{6.3-2}
+Why do we want the loop index $i$ in line 2 of \textsc{Build-Max-Heap} to decrease from 
+$\left\lfloor \frac{length[A]}{2}\right\rfloor$ to 1 rather than increase from 1
+to $\left\lfloor \frac{length[A]}{2}\right\rfloor$?
+
+\begin{algorithm}[H]
+\caption{\textsc{Build-Max-Heap}$(A)$}
+$heap$-$size[A]\leftarrow length[A]$\\
+\For{$i \leftarrow \left\lfloor\frac{length[A]}{2}\right\rfloor$ \textnormal{\textbf{downto}} $1$} {
+  \textsc{Max-Heapify}$(A, i)$
+}
+\end{algorithm}
+
+\answer
+
+This is because we must make sure that the smaller subtrees are changed to heaps first, so that the
+algorithm could build bigger subtrees correctly. If we increase the index $i$ from 1 to
+$\left\lfloor\frac{length[A]}{2}\right\rfloor$, the heap property cannot be correctly preserved.
+\qed
+
+\problem{7-1 Hoare partition correctness}
+The version of \textsc{Partition} given in this chapter is not the original partitioning algorithm. 
+Here is the original parition algorithm, which is due to T.Hoare:
+
+\begin{algorithm}[H]
+\caption{\textsc{Hoare-Partition}(A, p, r)}
+$x \leftarrow A[p]$\\
+$i \leftarrow p - 1$\\
+$j \leftarrow r + 1$\\
+\While{$true$}{
+  \Repeat{$A[j] \leq x$}{
+    $j \leftarrow j - 1$\\
+  }
+  \Repeat{$A[i] \geq x$}{
+    $i \leftarrow i + 1$\\
+  }
+  \If{$i < j$}{
+    exchange $A[i] \leftrightarrow A[j]$
+  }\Else{
+    \Return $j$
+  }
+}
+\end{algorithm}
+
+\begin{description}
+\item[a. \hspace{9pt}] Demonstrate the operation of \textsc{Hoare-Partition} on the array 
+$A=\langle13, 19, 9, 5, 12, 8, 7, 4, 11,\\ 2, 6, 21\rangle$, showing the values of
+the array and auxiliary values after each iteration of the \textbf{while} loop in lines 4\textasciitilde 11.\\
+
+\end{description}
+The next three questions ask you to give a careful argument that the procedure \textsc{Hoare-Partition} is correct.
+Prove the following:
+
+\begin{description}
+\item[b. \hspace{9pt}] The indices $i$ and $j$ are such that we never access an element of $A$ outside
+the subarray $A[p\ldots r]$.
+
+\item[c. \hspace{9pt}] When \textsc{Hoare-Partition} terminates, it returns a value $j$ such that $p\leq j < r$.
+
+\item[d. \hspace{9pt}] Every element of $A[p\ldots j]$ is less than or equal to every element of
+$A[j + 1\ldots r]$ when \textsc{Hoare-Partition} terminates.
+\end{description}
+
+The \textsc{Partition} procedure shown below separates the pivot value (originally in $A[r]$) from the
+two partitions it forms. The \textsc{Hoare-Partition} procedure,
+on the other hand, always places the pivot value (originally in $A[p]$) into one of the two paritions
+$A[p\ldots j]$ and $A[j + 1\ldots r]$. Since $p\leq j < r$, this
+split is always nontrivial.
+
+\begin{algorithm}[H]
+\caption{\textsc{Partition}(A, p, r)}
+$x\leftarrow A[r]$\\
+$i \leftarrow p - 1$\\
+\For{$j \leftarrow p$ \KwTo $r-1$}{
+  \If{$A[j] \leq x$} {
+    $i \leftarrow i + 1$\\
+    exchange $A[i] \leftrightarrow A[j]$\\
+  }
+}
+exchange $A[i + 1]\leftrightarrow A[r]$\\
+\Return {$i + 1$}
+\end{algorithm}
+
+\begin{description}
+\item[e. \hspace{9pt}] Rewrite the \textsc{Quicksort} procedure to use \textsc{Hoare-Partition}.
+\end{description}
+
+\answer
+
+\begin{description}
+\item[a. \hspace{9pt}] The iteration is shown in the following table:
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+Loop No. & $A$ & $i$ & $j$\\\hline
+1 & $\langle 6, 19, 9, 5, 12, 8, 7, 4, 11, 2, 13, 21\rangle$ & 1 & 11\\\hline
+2 & $\langle 6, 2, 9, 5, 12, 8, 7, 4, 11, 19, 13, 21\rangle$ & 2 & 10\\\hline
+3 & $\langle 6, 2, 9, 5, 12, 8, 7, 4, 11, 19, 13, 21\rangle$ & 10 & 9\\\hline
+\end{tabular}
+\end{center}
+
+\item[b. \hspace{9pt}] First of all, $j$ was given initial value $r + 1$, and it is decreased before
+the access of $A[j]$, so $j\leq r$ when $j$ is used as an index to $A$.
+Similarly we have $i \geq p$.
+
+Suppose that when the procedure \textbf{return}s, there is a $k$ such that $j < k < i$.
+Since the \textbf{repeat} statement of lines $5 \sim 7$ halts only when $A[j] \leq x$, 
+we know that $A[k] > x$. Similarly, the \textbf{repeat} statement of lines 8\textasciitilde 10
+halts only when $A[j] \geq x$, which requires $A[k] < x$. From this contradiction we knows
+that the $k$ does not exist, which means $j \geq i - 1$.
+
+On each round of the \textbf{while} loop, line 6 and line 9 are both executed at least once.
+If the \textbf{while} loop is executed more than once, we have $j \leq r - 1$ and
+$i \geq p + 1$. With the fact that $j \geq i -1$, it is trivial to prove that 
+$p \leq i \leq r$ and $p \leq j \leq r$.
+
+
+Now we consider the case when the \textbf{while} loop is executed only once. The
+\textbf{repeat} statement of lines 5\textasciitilde 7 halts when $A[j] \leq x$. With the fact that $A[p] = x$,
+we have $j \geq p$. And the \textbf{repeat} statement of lines 8\textasciitilde 10 will halt with $i = p$.
+Now we have proved that under all cases, $p \leq i \leq r$ and $p \leq j \leq r$, 
+so we never access an element of $A$ outside $A[p\ldots r]$.
+
+\item[c. \hspace{9pt}] The original question should add another requirement that $p < r$. We have
+already proved that $p \leq j \leq r$. Suppose the procedure returned $j = r$, then
+we know that the \textbf{while} loop is executed only once (in each \textbf{while} loop, $j$ is
+decreased at least by 1). And we know that on the first round of the \textbf{while}
+loop, the \textbf{repeat} statement of lines $8 \sim 10$ will halt with $i = p$. The \textbf{return}
+statement will be reached only when $i \geq j$, that is, $p \geq r $. Now we have
+a contradiction here, which means $j \neq r$, so the procedure returns $p \leq j < r$.
+
+\item[d. \hspace{9pt}] We prove the invariant that ``after line 10, every element in $A[p \ldots i - 1]$
+is less than or equal to $x$, and every element in $A[j + 1 \ldots r]$ is greater than
+or equal to $x$''.
+
+Before the first round of the \textbf{while} loop, this invariant is true, since there is no element in the
+subarrays. Suppose the invariant is true before the $k$th round, then in the $k$th
+round, the \textbf{repeat} statement in lines $5 \sim 7$ decrease $j$ until $A[j] \leq x$, so it is still
+true that any element in $A[j + 1 \ldots r]$ is greater than or equal to $x$.
+Similarly we know that any element in $A[p \ldots i - 1]$ is less than or equal to $x$. Lines 11\textasciitilde 14
+ does not change the value of $i$ and $j$, so $i$ and $j$ remains unchanged until
+the $(k + 1)$th loop. By mathematical induction we know that the invariant is true.
+
+The procedure returns only when $i \geq j$, and we have proved $j \geq i - 1$ in question (c), so we
+have either $i = j$ or $i = j + 1$. If $i = j$, since $A[i] \geq x$ and $A[j] \leq x$, 
+we have $A[i] = A[j] = x$, so every element in $A[p \ldots j]$ is less than or equal to $x$,
+and every element in $A[j + 1 \ldots r]$ is greater than or equal to $x$. If $i = j + 1$,
+we have the same conclusion. Thus the statement of question (d) is proved.
+
+\item[e. \hspace{9pt}] The algoritm is given below.
+
+\end{description}
+\begin{algorithm}[H]
+\caption{\textsc{Hoare-Quicksort}(A, p, r)}
+\If{$p \leq r$}{
+  \Return
+}\Else{
+  $j \leftarrow$\textsc{Hoare-Partition}$(A, p, r)$\\
+  \textsc{Hoare-Quicksort}$(A, p, j)$\\
+  \textsc{Hoare-Quicksort}$(A, j + 1, r)$
+}
+\end{algorithm}
+\qed
+
+
+\problem{7-4}
+\todo
+
+\problem{8.2-4}
+Describe an algorithm that, given $n$ intergers in the range 0 to $k$, preprocesses its input and then answers
+any query about how many of the $n$ integers fall into a range
+$[a\ldots b]$ in $O(1)$ time. Your algorithm should use $\Theta(n + k)$ preprocessing time.
+\answer
+
+The algorithm is given below. The \textsc{Preprocess} returns an array, which will be used by \textsc{Count-Interval}.
+
+\begin{algorithm}[H]
+\caption{\textsc{Preprocess}$(A, n, k)$}
+Create array $C$ with size $k + 1$, index starts at $0$\\
+\For{$i = 0$ to $k$}{
+  $C[i] \leftarrow 0$
+}
+\For{$i = 1$ to $n$}{
+  $C[A[i]] \leftarrow C[A[i]] + 1$
+}
+\tcp{Now $C[j]$ contains number of elements with value $j$}
+\For{$i = 1$ to $k$}{
+  $C[A[i]] \leftarrow C[A[i]] + C[A[i - 1]]$
+}
+\tcp{Now $C[j]$ contains number of elements in the range $[0, j]$}
+\Return $C$
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{\textsc{Count-Interval}$(C, a, b)$}
+\tcp{Array $C$ is returned by \textsc{Preprocess}$(A, n)$}
+\If{$a \neq 0$}{
+  \Return $C[b] - C[a - 1]$
+}\Else{
+  \Return $C[b]$
+}
+\end{algorithm}
+\qed
+
+
+
+\problem{8-6}
+\todo
+
+
+
+\problem{9.3-1}
+In the algorithm \textsc{Select}, the input elements are divided into groups of 5.
+Will the algorithm work in linear time if they are divided into groups of 7? Argue that
+\textsc{Select} does not run in linear time if groups of 3 are used.
+\answer
+
+By similar analyze, we know that the smaller part has at least
+
+$$ 4\left(\left\lceil\frac{1}{2}\left\lceil\frac{n}{7}\right\rceil\right\rceil-2\right)\geq \frac{2n}{7} - 8.$$
+
+So, in worst case, \textsc{Select} is recursively running on $\frac{5n}{7} + 8$ elements. Now we obtain the recurrence:
+
+\begin{equation*}
+T(n) \leq \left\{
+  \begin{array}{ll}
+    \Theta(1)     & \text{if $n \leq 140$,}\\
+    T\left(\left\lceil\frac{n}{7}\right\rceil\right) + T\left(\frac{5n}{7} + 8\right) + O(n) & \text{if $n > 140$.}
+  \end{array}
+\right.
+\end{equation*}
+
+By substitution we have:
+
+\begin{eqnarray*}
+T(n)  &\leq& c\left(\left\lceil\frac{n}{7}\right\rceil\right) + c\left(\frac{5n}{7} + 8\right) + bn\\
+&\leq& \frac{cn}{7} + \frac{5cn}{7} + 8c + bn\\
+&=&cn + \left(8c + bn - \frac{cn}{7}\right)
+\end{eqnarray*}
+
+Now we only need $8c + \left(b - \frac{c}{7}\right)n \leq 0$, which could be satisfied by choosing $c > 21b$.
+
+If groups of 3 is chosen, then we would smaller part with at least
+
+$$2\left(\left\lceil\frac{1}{2}\left\lceil\frac{n}{3}\right\rceil\right\rceil -2\right) \geq \frac{n}{3} - 4.$$
+
+So in worst case, the algorithm will run on $\frac{2n}{3} + 4$ elements recursively. And we will have the recurrence:
+
+\begin{eqnarray*}
+T(n) &=& T\left(\left\lceil\frac{n}{3}\right\rceil\right) + T\left(\frac{2n}{3} + 4\right) + O(n)\\
+&\geq& T\left(\frac{n}{3}\right) + T\left(\frac{2n}{3} + 4\right) + O(n)\\
+\end{eqnarray*}
+
+Since $\frac{1}{3} + \frac{2}{3} = 1 \nless 1$,  we cannot prove that the algorithm runs in linear time.
+\qed
+\end{document}
+
+\todo the nless
