@@ -71,10 +71,10 @@
 %--------------------TITLE-------------
 \par{\centering
   {\Large Algorithms and Complexity Analysis}
-  \\
-  { Instructed by Yin ZHAO, Spring 2011}
-  \\
-		{\Huge Solution for homework 3
+  \\\vspace{0.5em}
+  { Instructed by Yin ZHAO, Spring 2011, Tsinghua University}
+  \\\vspace{1.5em}
+	{\Huge Solutions for homework 3\vspace{1em}
 	}\bigskip\par}
 
 %--------------------SECTIONS-----------------------------------
@@ -96,7 +96,23 @@ $heap$-$size[A]\leftarrow length[A]$\\
 
 This is because we must make sure that the smaller subtrees are changed to heaps first, so that the
 algorithm could build bigger subtrees correctly. If we increase the index $i$ from 1 to
-$\left\lfloor\frac{length[A]}{2}\right\rfloor$, the heap property cannot be correctly preserved.
+$\left\lfloor\frac{length[A]}{2}\right\rfloor$, the heap property cannot be correctly preserved.\\
+
+For example, consider the input array $\langle 3, 1, 2, 4\rangle$. The correct algorithm will
+runs like this,
+
+\begin{center}
+  \includegraphics[width=300pt]{sol3-fig1.pdf}
+\end{center}
+
+while \textbf{Algorithm 1} runs like this,
+
+\begin{center}
+  \includegraphics[width=300pt]{sol3-fig2.pdf}
+\end{center}
+
+and the result is obviously not a max heap.
+
 \qed
 
 \problem{7-1 Hoare partition correctness}
@@ -125,7 +141,7 @@ $j \leftarrow r + 1$\\
 
 \begin{description}
 \item[a. \hspace{9pt}] Demonstrate the operation of \textsc{Hoare-Partition} on the array 
-$A=\langle13, 19, 9, 5, 12, 8, 7, 4, 11,\\ 2, 6, 21\rangle$, showing the values of
+$A=\langle13, 19, 9, 5, 12, 8, 7, 4,\\ 11, 2, 6, 21\rangle$, showing the values of
 the array and auxiliary values after each iteration of the \textbf{while} loop in lines 4\textasciitilde 11.\\
 
 \end{description}
@@ -186,7 +202,7 @@ the access of $A[j]$, so $j\leq r$ when $j$ is used as an index to $A$.
 Similarly we have $i \geq p$.
 
 Suppose that when the procedure \textbf{return}s, there is a $k$ such that $j < k < i$.
-Since the \textbf{repeat} statement of lines $5 \sim 7$ halts only when $A[j] \leq x$, 
+Since the \textbf{repeat} statement of lines 5\textasciitilde  7 halts only when $A[j] \leq x$, 
 we know that $A[k] > x$. Similarly, the \textbf{repeat} statement of lines 8\textasciitilde 10
 halts only when $A[j] \geq x$, which requires $A[k] < x$. From this contradiction we knows
 that the $k$ does not exist, which means $j \geq i - 1$.
@@ -203,11 +219,12 @@ we have $j \geq p$. And the \textbf{repeat} statement of lines 8\textasciitilde 
 Now we have proved that under all cases, $p \leq i \leq r$ and $p \leq j \leq r$, 
 so we never access an element of $A$ outside $A[p\ldots r]$.
 
+
 \item[c. \hspace{9pt}] The original question should add another requirement that $p < r$. We have
 already proved that $p \leq j \leq r$. Suppose the procedure returned $j = r$, then
 we know that the \textbf{while} loop is executed only once (in each \textbf{while} loop, $j$ is
 decreased at least by 1). And we know that on the first round of the \textbf{while}
-loop, the \textbf{repeat} statement of lines $8 \sim 10$ will halt with $i = p$. The \textbf{return}
+loop, the \textbf{repeat} statement of lines 8\textasciitilde 10 will halt with $i = p$. The \textbf{return}
 statement will be reached only when $i \geq j$, that is, $p \geq r $. Now we have
 a contradiction here, which means $j \neq r$, so the procedure returns $p \leq j < r$.
 
@@ -217,7 +234,7 @@ or equal to $x$''.
 
 Before the first round of the \textbf{while} loop, this invariant is true, since there is no element in the
 subarrays. Suppose the invariant is true before the $k$th round, then in the $k$th
-round, the \textbf{repeat} statement in lines $5 \sim 7$ decrease $j$ until $A[j] \leq x$, so it is still
+round, the \textbf{repeat} statement in lines 5\textasciitilde 7 decrease $j$ until $A[j] \leq x$, so it is still
 true that any element in $A[j + 1 \ldots r]$ is greater than or equal to $x$.
 Similarly we know that any element in $A[p \ldots i - 1]$ is less than or equal to $x$. Lines 11\textasciitilde 14
  does not change the value of $i$ and $j$, so $i$ and $j$ remains unchanged until
@@ -233,7 +250,7 @@ we have the same conclusion. Thus the statement of question (d) is proved.
 
 \end{description}
 \begin{algorithm}[H]
-\caption{\textsc{Hoare-Quicksort}(A, p, r)}
+\caption{\textsc{Hoare-Quicksort}$(A, p, r)$}
 \If{$p \leq r$}{
   \Return
 }\Else{
@@ -347,7 +364,34 @@ two sorted lists.
 
 \end{description}
 
-\todo
+\answer
+
+\begin{description}
+\item[a. \hspace{9pt}] There are $2n \choose n$ ways to divide $2n$ numbers into two groups. When all the elements in a group
+is chosen, the sorted arrays will be defined, too. So there are exactly $2n \choose n$ ways in total.
+
+\item[b. \hspace{9pt}] The minimum worst case decision tree height is:
+\begin{eqnarray*}
+\lg{2n \choose n} &=&\lg\left(\frac{(2n)!}{n!\times n!}\right) \\
+    &=&\lg\left((2n)!\right) - 2\lg\left(n!\right) \\
+    &=& \lg\left(\sqrt{2\pi\times 2n}\left(\frac{2n}{e}\right)^{2n}\left(1 +O\left(\frac{1}{2n}\right)\right)\right) 
+        - 2\times\lg\left(\sqrt{2\pi n}\left(\frac{n}{e}\right)^{n}\left(1 +O\left(\frac{1}{n}\right)\right)\right)\\
+    &=& \frac{1}{2}\lg{n} + 2n\lg\left(\frac{2n}{e}\right) 
+        - 2\times\left(   \frac{1}{2}\lg{n} + n\lg\left(\frac{n}{e}\right)   \right) + O(1)\\
+    &=& 2n - \frac{1}{2}\lg{n} + O(1)\\
+    &=& 2n - o(n)
+\end{eqnarray*}
+
+\item[c. \hspace{9pt}]  \todo
+
+\item[d. \hspace{9pt}]  The following input needs exactly $2n-1$ comparisons:
+
+$$a_1 < b_1 < a_2 < b_2 < \cdots < a_{i} < b{i} < a_{i+1} < \cdots < a_n < b_n.$$
+
+There are $2n-1$ consecutive pairs, and they are from different lists.
+
+\end{description}
+
 \qed
 
 
@@ -377,11 +421,11 @@ By substitution we have:
 
 \begin{eqnarray*}
 T(n)  &\leq& c\left(\left\lceil\frac{n}{7}\right\rceil\right) + c\left(\frac{5n}{7} + 8\right) + bn\\
-&\leq& \frac{cn}{7} + \frac{5cn}{7} + 8c + bn\\
-&=&cn + \left(8c + bn - \frac{cn}{7}\right)
+&\leq& c\times\frac{n + 1}{7} + \frac{5cn}{7} + 8c + bn\\
+&=&cn + \left(\frac{57}{7} c + bn - \frac{cn}{7}\right)
 \end{eqnarray*}
 
-Now we only need $8c + \left(b - \frac{c}{7}\right)n \leq 0$, which could be satisfied by choosing $c > 21b$.
+Now we only need $\frac{57}{7} c + \left(b - \frac{c}{7}\right)n \leq 0$, which could be satisfied by choosing $c > 10000b$.
 
 If groups of 3 is chosen, then we would smaller part with at least
 
