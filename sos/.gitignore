@@ -1,4 +1,2 @@
-a.img
-boot.img
 boot
-
+*.img

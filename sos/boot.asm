@@ -16,6 +16,4 @@ DispStr:
   ret
 
 BootMessage:      db  "Hello, OS world!"
-times 510-($-$$)  db  0
-dw  0xaa55
 
