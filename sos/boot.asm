@@ -7,24 +7,50 @@
 ; into memory at 0x7c00, and starts executing in real mode,
 ; with %cs = 0 %ip=7c00
 
-; usage SEG base, limit, attr
-;   base:   dd
-;   limit:  dd (low 20 bits available)
-;   attr:   dw (lower 4 bits of higher byte are always 0)
-%macro segdesc 3
-  dw      %2 & 0ffffh
-  dw      %1 & 0ffffh
-  db      (%1 >> 16) & 0ffh
-  dw      ((%2 >> 8) & 0f00h) | (%3 & 0f0ffh)
-  db      (%1 >> 24) & 0ffh
+DA_32		EQU	4000h
+DA_DRW		EQU	92h
+DA_DRWA		EQU	93h
+DA_C		EQU	98h
+
+; usage: Descriptor Base, Limit, Attr
+;        Base:  dd
+;        Limit: dd (low 20 bits available)
+;        Attr:  dw (lower 4 bits of higher byte are always 0)
+%macro Descriptor 3
+	dw	%2 & 0FFFFh
+	dw	%1 & 0FFFFh
+	db	(%1 >> 16) & 0FFh
+	dw	((%2 >> 8) & 0F00h) | (%3 & 0F0FFh)
+	db	(%1 >> 24) & 0FFh
 %endmacro
+
+
+
+org	07c00h
+  jmp	start
+
+[SECTION .gdt]
+  LABEL_GDT:	        Descriptor  0,        0,                  0
+  LABEL_DESC_CODE32:  Descriptor  0,        SegCode32Len - 1,   DA_C + DA_32
+  LABEL_DESC_VIDEO:   Descriptor  0B8000h,  0ffffh,             DA_DRW
+  LABEL_DESC_DATA:    Descriptor  0,        DataLen - 1,        DA_DRW
+  LABEL_DESC_STACK:   Descriptor  0,        TopOfStack,         DA_DRWA + DA_32
+
+  GdtLen		equ	$ - LABEL_GDT
+  GdtPtr		dw	GdtLen - 1
+            dd	0
+
+  SelectorCode32	equ	LABEL_DESC_CODE32	- LABEL_GDT
+  SelectorVideo		equ	LABEL_DESC_VIDEO	- LABEL_GDT
+  SelectorData		equ	LABEL_DESC_DATA		- LABEL_GDT
+  SelectorStack		equ	LABEL_DESC_STACK	- LABEL_GDT
+; END of [SECTION .gdt]
+
 
 ; boot loader start, 16-bit mode
 [section .s16]
 [bits 16]
 start:
-  org     07c00h
-
   cli         ; disable interrupts
   cld         ; string operations increment
 
@@ -34,6 +60,7 @@ start:
   mov     es, ax    ; extra segment
   mov     ss, ax    ; stack segment
   mov     sp, 0100h ; init stack
+  
   call    cls16
   call    hello16
   call    hello16direct
@@ -59,31 +86,47 @@ seta20.2:
   ; and segmetn translation that makes virtual addr equal to physical
   ; addr, so that the effective memory map does not change during the
   ; switch
-  ; TODO
 
-  xor     eax, eax
-  mov     ax, cs
-  shl     eax, 4
-  add     eax, segdesc_code32
-  mov     word [segdesc_code32 + 2], ax
-  shr     eax, 16
-  mov     byte [segdesc_code32 + 4], al
-  mov     byte [segdesc_code32 + 7], ah
+	xor	eax, eax
+	mov	ax, cs
+	shl	eax, 4
+	add	eax, LABEL_SEG_CODE32
+	mov	word [LABEL_DESC_CODE32 + 2], ax
+	shr	eax, 16
+	mov	byte [LABEL_DESC_CODE32 + 4], al
+	mov	byte [LABEL_DESC_CODE32 + 7], ah
+	
+	xor	eax, eax
+	mov	ax, ds
+	shl	eax, 4
+	add	eax, LABEL_DATA
+	mov	word [LABEL_DESC_DATA + 2], ax
+	shr	eax, 16
+	mov	byte [LABEL_DESC_DATA + 4], al
+	mov	byte [LABEL_DESC_DATA + 7], ah
+	
+	xor	eax, eax
+	mov	ax, ds
+	shl	eax, 4
+	add	eax, LABEL_STACK
+	mov	word [LABEL_DESC_STACK + 2], ax
+	shr	eax, 16
+	mov	byte [LABEL_DESC_STACK + 4], al
+	mov	byte [LABEL_DESC_STACK + 7], ah
+	
+	xor	eax, eax
+	mov	ax, ds
+	shl	eax, 4
+	add	eax, LABEL_GDT
+	mov	dword [GdtPtr + 2], eax
 
-  xor     eax, eax
-  mov     ax, ds
-  shl     eax, 4
-  add     eax, label_gdt
-  mov     dword [gdtdesc + 2], eax
- 
-  lgdt    [gdtdesc]
+	lgdt	[GdtPtr]
+
   mov     eax, cr0
   or      eax, 1
   mov     cr0, eax
 
-  ; FIXME just can't jump into protect mode
-  jmp     $
-;  jmp     dword selector_code32:0
+	jmp	dword SelectorCode32:0
 
 ; clear screen, in 16-bit mode
 cls16:
@@ -104,14 +147,14 @@ cls16:
 ; greetings using bios function call, in 16-bit mode
 hello16:
   mov     ax, greeting16
-  push    bp        ; XXddX: find out what is boot time bp
-  mov     bp, ax    ; es:bp = offset of string
-  mov     ah, 13h   ; write strings function
-  mov     bh, 0     ; page 0
-  mov     bl, 0ch   ; color
-  mov     cx, 27    ; string length
-  mov     dh, 0     ; row 0
-  mov     dl, 0     ; col 0
+  push    bp                    ; XXX: find out what is boot time bp
+  mov     bp, ax                ; es:bp = offset of string
+  mov     ah, 13h               ; write strings function
+  mov     bh, 0                 ; page 0
+  mov     bl, 0ch               ; color
+  mov     cx, greeting16len     ; string length
+  mov     dh, 0                 ; row 0
+  mov     dl, 0                 ; col 0
   int     10h
   pop     bp
   ret
@@ -119,12 +162,12 @@ hello16:
 ; greetings using direct vmem io, in 16-bit mode
 hello16direct:
   mov     ax, greeting16
-  mov     si, ax      ; source index
-  mov     ax, 0b800h  ; vmem
-  mov     gs, ax      ; use gs for output
-  mov     di, 80 * 2  ; dest index, start from second row
-  mov     cx, 27      ; string length
-  mov     ah, 02      ; text color
+  mov     si, ax                  ; source index
+  mov     ax, 0b800h              ; vmem
+  mov     gs, ax                  ; use gs for output
+  mov     di, 80 * 2              ; dest index, start from second row
+  mov     cx, greeting16len       ; string length
+  mov     ah, 02                  ; text color
 hello16direct.1:
   mov     al, [ds:si]
   mov     [gs:di], ax
@@ -132,37 +175,59 @@ hello16direct.1:
   add     di, 2
   loop hello16direct.1
   ret
+; end of code 16
 
+[SECTION .data16]
 greeting16:
-  db  "Greetings from 16-bit mode!"
+  db  "Greetings from 16-bit real mode!"
+  greeting16len equ $ - greeting16
+; end of data 16
 
-; 32 bit code
-[section .s32]
-[bits 32]
-label_seg_code32:
-  mov ax, segdesc_video
-  mov gs, ax
-  mov edi, (80 * 11) * 2
-  mov ah, 0ch
-  mov al, 'p'
-  mov [gs:edi], ax
+[SECTION .data32]
+ALIGN	32
+[BITS	32]
+LABEL_DATA:
+  PMMessage:		db	"Greetings from 32-bit protected mode!"
+  OffsetPMMessage		equ	PMMessage - $$
+  DataLen			equ	$ - LABEL_DATA
+; endof data 32
 
-  jmp $
+[SECTION .s32]
+[BITS	32]
+LABEL_SEG_CODE32:
+  mov	ax, SelectorData
+  mov	ds, ax
+  mov	ax, SelectorVideo
+  mov	gs, ax
 
-; bootstrap gdt
-[section .gdt]
-label_gdt:
-  segdesc   0,    0,          0
-segdesc_code32:
-  segdesc   0,    0xffffffff, 98h + 4000h ; 0~0xffffffff, code & 32-bit
-segdesc_data32:
-  segdesc   0,    0xffffffff, 92h         ; 0~0xffffffff, data read/write
-segdesc_video:
-  segdesc   0b8000h,  0ffffh, 92h         ; data read/write, for output
+  mov	ax, SelectorStack
+  mov	ss, ax
 
-selector_code32 equ segdesc_code32 - label_gdt
+  mov	esp, TopOfStack
 
-gdtdesc:
-  dw      $ - label_gdt - 1   ; gdt limit: sizeof(gdt) - 1
-  dd      label_gdt; gdt base: address of gdt
+  mov	ah, 09h
+  xor	esi, esi
+  xor	edi, edi
+  mov	esi, OffsetPMMessage
+  mov	edi, (80 * 2 + 0) * 2
+
+  mov ecx, DataLen
+.1:
+  lodsb
+  mov	[gs:edi], ax
+	add	edi, 2
+	loop .1
+
+  jmp	$
+
+SegCode32Len	equ	$ - LABEL_SEG_CODE32
+; end of code 32
+
+[SECTION .gs]
+ALIGN	32
+[BITS	32]
+LABEL_STACK:
+  times 16 db 0
+
+TopOfStack	equ	$ - LABEL_STACK - 1
 
