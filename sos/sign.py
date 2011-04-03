@@ -12,6 +12,7 @@ b = f.read()
 if len(b) > 510:
   print "ERROR: boot block too large! %d bytes (max 510)" % len(b)
   exit()
+print "INFO: boot block size = %d" % len(b)
 b += "\0" * (510 - len(b))
 b += "\x55\xAA"
 f.seek(0)
