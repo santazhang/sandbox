@@ -1,18 +1,21 @@
 # Makefile for SantaOS
 
-all: sos.img
+OBJDIR=obj
+
+all: $(OBJDIR)/sos.img
 
 # disk size = dd_count * 512 (bytes)
+$(OBJDIR)/sos.img: $(OBJDIR)/boot
+	mkdir -p $(OBJDIR)
+	dd if=/dev/zero of=$(OBJDIR)/sos.img~ count=20480 2>/dev/null
+	dd if=$(OBJDIR)/boot of=$(OBJDIR)/sos.img~ conv=notrunc 2>/dev/null
+	mv $(OBJDIR)/sos.img~ $(OBJDIR)/sos.img
 
-sos.img: boot
-	dd if=/dev/zero of=sos.img~ count=20480 2>/dev/null
-	dd if=boot of=sos.img~ conv=notrunc 2>/dev/null
-	mv sos.img~ sos.img
-
-boot: boot.asm
-	nasm boot.asm -o boot
-	python sign.py boot
+$(OBJDIR)/boot: boot.asm
+	mkdir -p $(OBJDIR)
+	nasm boot.asm -o $(OBJDIR)/boot
+	python sign.py $(OBJDIR)/boot
 
 clean:
-	rm -f sos.img sos.img~
-	rm -f boot *.o
+	rm -rf $(OBJDIR)
+
