@@ -11,7 +11,9 @@ megs: 32
 
 # filename of ROM images
 romimage: file=$BXSHARE/BIOS-bochs-latest
-vgaromimage: file=$BXSHARE/VGABIOS-elpin-2.40
+
+#vgaromimage: file=$BXSHARE/VGABIOS-elpin-2.40
+vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
 
 vga: extension=none
 
