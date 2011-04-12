@@ -1,0 +1,126 @@
+\documentclass[a4paper,10pt]{article}
+
+%A Few Useful Packages
+\usepackage{marvosym}
+\usepackage{fontspec} 					%for loading fonts
+\usepackage{xunicode,xltxtra,url,parskip} 	%other packages for formatting
+\RequirePackage{color,graphicx}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[big]{layaureo} 				%better formatting of the A4 page
+% an alternative to Layaureo can be ** \usepackage{fullpage} **
+\usepackage{longtable} 				%for experience
+\usepackage{titlesec}					%custom \section
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[vlined,linesnumbered,ruled]{algorithm2e}
+
+%Setup hyperref package, and colours for links
+\usepackage{hyperref}
+\definecolor{linkcolour}{rgb}{0,0.2,0.6}
+\hypersetup{colorlinks,breaklinks,urlcolor=linkcolour, linkcolor=linkcolour}
+
+%FONTS
+\defaultfontfeatures{Mapping=tex-text}
+\setmainfont[SmallCapsFont = Fontin SmallCaps]{Fontin}
+
+%CV Sections inspired by: 
+%http://stefano.italians.nl/archives/26
+\titleformat{\section}{\Large\scshape\raggedright}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{3pt}{3pt}
+
+%tweak page height
+%\addtolength{\topmargin}{-.125in}
+%\addtolength{\textheight}{0.25in}
+
+%-------------WATERMARK TEST [**not part of a CV**]---------------
+\usepackage[absolute]{textpos}
+
+\setlength{\TPHorizModule}{30mm}
+\setlength{\TPVertModule}{\TPHorizModule}
+\textblockorigin{2mm}{0.65\paperheight}
+\setlength{\parindent}{0pt}
+
+\newcommand{\problem}[1]{\section*{Problem #1}}
+\newcommand{\answer}{\paragraph{Answer:}}
+\newcommand{\proof}{\paragraph{Proof:}}
+\newcommand{\qed}{\hfill \ensuremath{\Box}}
+\newcommand{\todo}{\textcolor{red}{TODO}{} }
+
+% TODO
+\newcommand{\nless}{\textcolor{red}{TODO!!!}{} }
+
+%--------------------BEGIN DOCUMENT----------------------
+\begin{document}
+
+%WATERMARK TEST [**not part of a CV**]---------------
+\font\wm=''Baskerville:color=787878'' at 8pt
+\font\wmtoday=''Baskerville:color=FF1493'' at 8pt
+{\wm 
+	\begin{textblock}{1}(0,0)
+		\rotatebox{-90}{\parbox{500mm}{
+			Typeset by Yang ZHANG with \XeTeX\ on {\wmtoday \today}
+		}
+	}
+	\end{textblock}
+}
+
+\pagestyle{empty} % non-numbered pages
+
+\font\fb=''[cmr10]'' %for use with \LaTeX command
+
+%--------------------TITLE-------------
+\par{\centering
+  {\Large Algorithms and Complexity Analysis}
+  \\\vspace{0.5em}
+  { Instructed by Yin ZHAO, Spring 2011, Tsinghua University}
+  \\\vspace{1.5em}
+	{\Huge Solutions for homework 6\vspace{1em}
+	}\bigskip\par}
+
+%--------------------SECTIONS-----------------------------------
+
+\problem{17.1-1}
+
+\answer
+
+\todo
+
+\qed
+
+\problem{17.2-2}
+
+\answer
+
+\todo
+
+\qed
+
+
+\problem{17.3-2}
+
+\answer
+
+\todo
+
+\qed
+
+\problem{17.3-6}
+
+\answer
+
+\todo
+
+\qed
+
+\problem{19.2-2}
+
+\answer
+
+\todo
+
+\qed
+
+
+\end{document}
+
+
