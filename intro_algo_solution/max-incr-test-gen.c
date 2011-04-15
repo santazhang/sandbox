@@ -48,9 +48,9 @@ int main(int argc, char* argv[]) {
     exit(0);
   }
   sscanf(argv[1], "%d", &n);
-  if (n > 1000) {
-    n = 1000;
-  }
+  //if (n > 1000) {
+  //  n = 1000;
+  //}
   printf("%d\n", n);
   arr = gen(n);
   for (i = 0; i < n; i++) {
