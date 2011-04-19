@@ -32,7 +32,7 @@ task :push do
       my_exec "cd #{File.dirname __FILE__}/#{prj} && git commit -a -m \"auto commit by my Workspace Rakefile\""
       p.each_line do |remote|
         remote = remote.strip
-        my_exec "cd #{File.dirname __FILE__}/#{prj} && git push #{remote} --all"
+        my_exec "cd #{File.dirname __FILE__}/#{prj} && git push #{remote} --all && git push #{remote} --tags"
       end
     end
   end
