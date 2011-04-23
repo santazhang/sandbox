@@ -6,9 +6,11 @@
 
 \usepackage{fancyhdr} 
 
-\setmainfont{Microsoft YaHei}
-\setsansfont{Microsoft YaHei}
-\setmonofont{Microsoft YaHei}
+\setmainfont[BoldFont={SimHei},ItalicFont={KaiTi_GB2312}]
+  {YouYuan}
+\setsansfont{SimHei}
+\setmonofont{FangSong} % Could be Microsoft YaHei
+
 
 
 \newcommand{\assignment}{张扬 1}
@@ -23,13 +25,30 @@
 \newfontfamily\MyTitle[Ligatures=TeX]{Eras Light ITC}
 \newfontfamily\FooBar[Numbers=OldStyle]{Baskerville}
 
+\newfontfamily\YaHei{Microsoft YaHei}
+\newfontfamily\YouYuan{YouYuan}
+\newfontfamily\KaiTi{KaiTi_GB2312}
+\newfontfamily\Hei{SimHei}
+\newfontfamily\FangSong{FangSong}
+\newfontfamily\SimSun{SimSun}
+\newfontfamily\LiShu{LiSu}
 
 \XeTeXlinebreaklocale "zh"
 \XeTeXlinebreakskip = 0pt plus 1pt
 
 \begin{document}
 
-{ 中文！}This is awesome!
+{\YouYuan 幼圆}
+{\YaHei 雅黑}
+{\FangSong 仿宋}
+{\SimSun 宋体}
+{\KaiTi 楷体}
+{\Hei 黑体}
+{\LiShu 隶书}
+
+\section{正文测试}
+
+{\YouYuan 中文！}This is awesome!
 
 {\MyTitle some text} {\FooBar other text 1 2 3} 
 
@@ -43,7 +62,7 @@ T(n) = \left\{
 \right.
 \end{equation*}
 
-最终幻想9（Final Fantasy IX）是Square公司著名RPG“最终幻想”系列的第9部作品，日版于2000年7月7日发售。该作以“回归”为主题，在剧情，人物塑造和音乐等各方面都保持了FF系列一贯的高水准，受到了玩家们的欢迎和喜爱。
+{\YaHei 最终幻想9}（Final Fantasy IX）是Square公司著名RPG“最终幻想”系列的第9部作品，日版于2000年7月7日发售。该作以“回归”为主题，在剧情，人物塑造和音乐等各方面都保持了FF系列一贯的高水准，受到了玩家们的欢迎和喜爱。
 
 本次汉化作为FF9汉化史上第四次的冲击，将日版FF9除部分地名图片以外的所有近60万日文全部汉化，从2005年8月起，60多人历经3轮校对，4轮润色，4轮测试，历时29个月，汉化工作终于宣告完成。
 
