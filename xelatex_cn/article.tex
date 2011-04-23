@@ -1,5 +1,5 @@
 \documentclass[12pt,a4paper]{article}
- \usepackage{amsmath}
+\usepackage{amsmath}
 \usepackage[cm-default]{fontspec}
 \usepackage{xunicode}
 \usepackage{xltxtra}
@@ -10,6 +10,7 @@
 \setsansfont{Microsoft YaHei}
 \setmonofont{Microsoft YaHei}
 
+
 \newcommand{\assignment}{张扬 1}
 \newcommand{\course}{Algorithms and Complexity}
 \newcommand{\instructor}{WU Yongwei}
@@ -19,12 +20,18 @@
 \renewcommand{\footrulewidth}{0.5pt} % Insert a line above the footer
 \pagestyle{fancy}
 
+\newfontfamily\MyTitle[Ligatures=TeX]{Eras Light ITC}
+\newfontfamily\FooBar[Numbers=OldStyle]{Baskerville}
+
 
 \XeTeXlinebreaklocale "zh"
 \XeTeXlinebreakskip = 0pt plus 1pt
 
 \begin{document}
-中文！This is awesome!
+
+{ 中文！}This is awesome!
+
+{\MyTitle some text} {\FooBar other text 1 2 3} 
 
 
 \begin{equation*}
