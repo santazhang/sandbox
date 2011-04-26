@@ -1,0 +1,120 @@
+\documentclass[adobefonts,UTF8,a4paper,fancyhdr,fntef]{ctexart}
+
+\usepackage[xetex]{graphicx}
+\usepackage{float}
+\usepackage[xetex]{hyperref}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage[margin=3cm]{geometry}
+\usepackage{color}
+\definecolor{kwdclr}{rgb}{0.0, 0.0, 0.7}
+\newcommand{\kwdsty}{\color{kwdclr}\bfseries}
+\usepackage{fontspec,xunicode}
+\setCJKmainfont[BoldFont={SimHei}, ItalicFont={KaiTi_GB2312}]{SimSun}
+\setCJKsansfont{SimHei}
+\setCJKmonofont{KaiTi_GB2312}
+\setmainfont{Baskerville}
+\setsansfont{Arial}
+\setmonofont{Courier New}
+
+\makeatletter
+\def\maketitle{  
+\thispagestyle{empty}  
+\begin{center}
+	\normalfont  
+	\vspace*{3cm}
+     	{\LARGE\bf \@title\par}
+    	 \vskip 2mm  
+     	{\large \@author\par}
+     	\vskip 1mm  
+     	{\large \@date\par}
+\end{center}
+}  
+\renewcommand{\section}{\@startsection{section}{1}{-1em}{-\baselineskip}{0.5\baselineskip}{\Large\bf\leftline}}
+\renewcommand{\thesection}{}
+
+\renewcommand{\subsection}{\@startsection{subsection}{2}{-1em}{-0.5\baselineskip}{0.3\baselineskip}{\large\bf\leftline}}
+\renewcommand{\thesubsection}{}
+
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{1em}{-0.2\baselineskip}{0.1\baselineskip}{\bf\leftline}}
+\renewcommand{\thesubsubsection}{}
+\makeatother
+
+\begin{document}
+
+\title{算法第七次作业}
+\author{2010210798 叶丰}
+\maketitle
+
+\section{15.1-1}
+代码如下：
+
+
+\section{15.1-4}
+可以看到，FASTEST-WAY函数中的$f_i[j]$表格在计算的时候，$f_i[j]$的值只依赖于$f_{i-1}[j]$，且计算过程是一直向前的。这意味着$f_i[j]$的空间可以从$2n$变为$4$，即每次只存储正在计算的$f_i[j]$和它的上一步$f_{i-1}[j]$。这样$f_i[j]$和$l_i[j]$的空间就从$4n-2$变成了$2n+2$。
+
+\section{15.2-1}
+计算结果如图：
+\begin{figure}[H]
+\centering
+
+\end{figure}
+\begin{figure}[H]
+\centering
+
+\end{figure}
+
+最少的乘法次数为$2010$，方案是$(1\ 2)((3\ 4)(5\ 6))$。
+
+\section{15.3-3}
+具有最优子结构。对给定的矩阵序列，按照其最优的加括号方案，用最外层括号将序列分成两段，则这两段内部的加括号方案一定是最优的。否则，可以用更优的方案来替换原有方案，到达更优的解。
+
+\section{15.3-4}
+在计算$f_1[j]$时，会用到$f_1[j-1]$和$f_2[j-1]$，同时在计算$f_2[j]$时，又会再次用到$f_1[j-1]$和$f_2[j-1]$。因此出现了一个子问题需要计算两次的情况，即重叠子问题。
+
+\section{15.5-2}
+计算结果如图：
+\begin{figure}[H]
+\centering
+
+\end{figure}
+\begin{figure}[H]
+\centering
+
+\end{figure}
+\begin{figure}[H]
+\centering
+
+\end{figure}
+
+最优二叉查找树的代价为$3.12$，结构为：
+\begin{figure}[H]
+\centering
+
+\end{figure}
+
+\section{15.4}
+算法伪代码如下：
+
+
+上面算法中，使用了每个结点的$rating$值，它需要满足约喜欢聚会的人$rating$越高，这可以从排名的倒数乘以某个常数来得到。
+
+上面的算法的基本思想是：对树进行深度优先搜索，并且当某个节点的所有子结点都被搜索完成后（即所有子结点变黑和本结点变黑之间），根据其子结点的最优值得到本结点的最优值。最优值有两种情况：1) 本结点不参加聚会的最优值$not\mbox{-}chosen[x]$是以各个子结点为根的子树的最优值$optimal$之和，2) 本结点参加聚会的最优值$chosen[x]$是以各个子结点为根的子树的$not\mbox{-}chosen$值之和加上本结点的$rating$值。最后得到以某个结点为根的子树的最优值是$not\mbox{-}chosen$和$chosen$值的较大值，存在结点的$optimal$中。
+
+经过上述计算后，就可以输出最优解，即参加聚会的名单了。伪代码如下：
+
+
+直接对根结点调用PRINT-LIST，并且将$chooseable$置为TRUE即可以打印出聚会名单。
+
+因为每个结点至多被调用OPTIMAL-PARTY一次，并且每次调用中，repeat-until中的循环只会对结点的所有子结点进行一次访问，故算法的执行时间是$O(n)$，$n$是结点个数。
+
+\section{15.7}
+首先对$a_1,a_2,\cdots,a_n$按照$d[i]$的递增顺序排序。方便起见，不妨设排序后的顺序就是原顺序，即有$d[i-1]\leq d[i]$。算法的伪代码如下：
+
+
+输出最优调度的伪代码：
+
+
+下面考虑算法的复杂度。注意到每个作业的运行时间不超过$n$，则可以认为作业的$d[i]$均不超过$n^2$。否则，如果存在某个$d[i]>n^2$，可以将$d[i]$变为$n^2$而不影响计算结果。故算法复杂度为$O(n^3)$。
+
+\end{document}
