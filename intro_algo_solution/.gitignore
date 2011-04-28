@@ -11,4 +11,5 @@ max-incr-test-gen
 *.out
 *.snm
 max-incr-test-data
+*.synctex.gz
 
