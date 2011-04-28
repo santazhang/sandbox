@@ -8,7 +8,7 @@ def my_exec(cmd):
   print "[cmd] %s" % cmd
   os.system(cmd)
 
-my_exec("rm -f *.log *.swp *.toc *.idx *.nav *.out *.snm *.dvi *.aux")
+my_exec("rm -f *.log *.swp *.toc *.idx *.nav *.out *.snm *.dvi *.aux *.synctex.gz")
 
 for f in os.listdir("."):
   if f.endswith(".pdf"):
