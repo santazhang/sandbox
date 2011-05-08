@@ -1,15 +1,18 @@
-all: sol3.pdf sol6.pdf max-incr max-incr-test-gen
+CRUFT_EXT=.log .swp .toc .idx .nav .out .snm .dvi .aux .thm .blg .bbl .synctex.gz
+
+all: max-incr max-incr-test-gen $(patsubst %.tex,%.pdf,$(wildcard *.tex))
 
 clean:
-	python clean.py
+	$(foreach f,$(wildcard *.tex),$(foreach n,$(CRUFT_EXT),rm -f $(patsubst %.tex,%$n,$f);))
+	$(foreach n,$(wildcard *.tex),rm -f $(patsubst %.tex,%.pdf,$n);)
 	rm -f max-incr
 	rm -f max-incr-test-gen
 
-sol3.pdf: sol3.tex
-	xelatex sol3.tex
 
-sol6.pdf: sol6.tex
-	xelatex sol6.tex
+%.pdf: %.tex
+	xelatex $<
+	$(foreach n,$(CRUFT_EXT),rm -f $(patsubst %.tex,%$n,$<);)
+
 
 max-incr: max-incr.c
 	gcc -O3 max-incr.c -o max-incr
