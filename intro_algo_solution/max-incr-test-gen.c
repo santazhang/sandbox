@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 static int solve(int* a, int len) {
   int m, i, j;
@@ -28,7 +29,7 @@ static int solve(int* a, int len) {
 static int* gen(int n) {
   int* arr = (int *) malloc(n * sizeof(int));
   int i;
-  srand(time(NULL));
+  srand(time(NULL) + getpid());
   for (i = 0; i < n; i++) {
     arr[i] = rand() % 10000;
     if (rand() % 2) {
