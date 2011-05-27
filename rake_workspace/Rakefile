@@ -186,5 +186,24 @@ task :mirror do
   end
 end
 
+desc "Update reference projects"
+task :up do
+  REFERENCE_DIR = File::join(File.dirname(__FILE__), "references")
+  Dir.foreach(REFERENCE_DIR) do |e|
+    next if e.start_with? "."
+    if File.exists?(File.join REFERENCE_DIR, e, ".svn")
+      puts "svn update: " + e
+      my_exec "cd '#{File.join REFERENCE_DIR, e}' ; svn up"
+    elsif File.exists?(File.join REFERENCE_DIR, e, ".git")
+      puts "git pull: " + e
+      my_exec "cd '#{File.join REFERENCE_DIR, e}' ; git pull"
+    end
+  end
+end
+
+
+desc "Maintenance work, will do 'up', 'push' and 'gc'"
+task :maint => [:up, :push, :gc]
+
 task :default => :list
 
