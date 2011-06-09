@@ -5,7 +5,7 @@ import csv
 
 def sel_score(splt):  
   # programming assignment
-  col_prog = 8
+  col_prog = 11
 
   # number of choices
   n_sel = 6
