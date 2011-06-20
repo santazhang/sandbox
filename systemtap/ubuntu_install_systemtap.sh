@@ -29,19 +29,16 @@ echo
 read -p "Press ENTER to start installation, or press Ctrl+C to quit..."
 clear
 
-# randomized installation ticket
-ticket=$RANDOM
+# working dir
+working_dir=ubuntu_install_systemtap.files
 
-# temp working dir
-tmp_dir=/tmp/ubuntu_install_systemtap.${ticket}
-
-mkdir -p ${tmp_dir}
-pushd ${tmp_dir} > /dev/null
+mkdir -p ${working_dir}
+pushd ${working_dir} > /dev/null
 
 # exit handler, removes dirty files
 function exit_script() {
   popd > /dev/null
-  rm -rf ${tmp_dir}
+  rm -rf ${working_dir}
   exit $1
 }
 
