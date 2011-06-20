@@ -1,4 +1,4 @@
-probe syscall.open
+probe kernel.function("sys_open")
 {
   printf("%s(%d) open (%s)\n", execname(), pid(), argstr)
 }
