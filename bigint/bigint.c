@@ -1265,7 +1265,7 @@ bigint_errno bigint_divmod(bigint* a, bigint* b, bigint* q, bigint* r) {
   }
 
   // from now on, b could only be positive number
-  
+
   if (b->data_len == 1) {
     // deal with small divisor
     int r_int;
