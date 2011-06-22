@@ -164,7 +164,6 @@ def resolve_folders_mirror mirror_set
         new_mirror_set = mirror_set.collect {|m| File.join m, ent}
         resolve_files_mirror new_mirror_set
       end
-      
     end
   end
 end
