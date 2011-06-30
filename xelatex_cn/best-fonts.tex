@@ -11,7 +11,8 @@
 \XeTeXlinebreakskip = 0pt plus 1pt
 
 % set default fonts, you have to use font names here, without alias
-\setmainfont[BoldFont={Microsoft YaHei},ItalicFont={KaiTi_GB2312}]{SimSun}
+\setmainfont{Optima}
+%\setmainfont[BoldFont={Microsoft YaHei},ItalicFont={KaiTi_GB2312}]{SimSun}
 %\setsansfont{SimHei}
 %\setmonofont{FangSong}
 
@@ -45,7 +46,7 @@
 \pagestyle{empty}
 
 \begin{document}
-\begin{Large}
+
 
 % Chinese only
 \begin{verse}
@@ -65,10 +66,7 @@
 % for Chinese + English
 \begin{verse}
 {\YouYuan 幼圆} {\Eras Eras Light ITC, 1234567890}\\
-{\YouYuan 幼圆} {\Optima Optima, 1234567890 \tiny{\Monaco \textbackslash{}usepackage[math]\{anttor\}
-    or \textbackslash{}usepackage[math]\{kurier\}}}\\
-    
-    {\tiny\YouYuan 如果 {\Optima XeTeX{}} 报错说无法编译，请将数学字体的 {\Optima usepackage} 命令放到导言区最前方}\\
+{\YouYuan 幼圆} {\Optima Optima, 1234567890}\\
 {\YouYuan 幼圆} {\HelveticaNeueUL Helvetica Neue UltraLight, 1234567890}\\
 {\SimSun 宋体} {\Palatino Palatino Linotype, 1234567890}\\
 {\SimSun 宋体} {\Baskerville Baskerville, 1234567890}\\
@@ -89,5 +87,27 @@
 {\Monaco Monaco, 1234567890}\\
 \end{verse}
 
-\end{Large}
+% for math
+\begin{center}
+\begin{figure*}[h]
+\caption{\textbackslash{}usepackage\{anttor\}}
+\vspace{4pt}
+\setlength\fboxsep{0pt}
+\setlength\fboxrule{0.5pt}
+\fbox{
+	\includegraphics[height=170pt]{best-fonts-math-anttor}
+}
+\end{figure*}
+
+\begin{figure*}[h]
+\caption{\textbackslash{}usepackage\{kurier\}}
+\vspace{4pt}
+\setlength\fboxsep{0pt}
+\setlength\fboxrule{0.5pt}
+\fbox{
+	\includegraphics[height=170pt]{best-fonts-math-kurier}
+}
+\end{figure*}
+\end{center}
+
 \end{document}
