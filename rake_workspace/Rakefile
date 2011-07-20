@@ -196,6 +196,9 @@ task :up do
     elsif File.exists?(File.join REFERENCE_DIR, e, ".git")
       puts "git pull: " + e
       my_exec "cd '#{File.join REFERENCE_DIR, e}' ; git pull"
+    elsif File.exists?(File.join REFERENCE_DIR, e, ".hg")
+      puts "hg pull: " + e
+      my_exec "cd '#{File.join REFERENCE_DIR, e}' ; hg pull"
     end
   end
 end
