@@ -18,7 +18,7 @@ end
 desc "List all my projects"
 task :list do
   space = (PROJECT_LIST.keys.collect {|k| k.length}).max + 4
-  PROJECT_LIST.each do |prj, description|
+  PROJECT_LIST.sort.each do |prj, description|
     print prj
     print " " * (space - prj.length) + "# "
     puts description
