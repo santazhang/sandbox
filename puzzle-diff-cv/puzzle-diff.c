@@ -97,6 +97,15 @@ int parse_opts(Opts * const opts, PuzzleContext * context,
     return 0;
 }
 
+void print_cvec(PuzzleCvec* cvec) {
+    printf("cvec: (%d bytes)", cvec->sizeof_vec);
+    int i;
+    for (i = 0; i < cvec->sizeof_vec; i++) {
+        printf(" %d", (int) cvec->vec[i]);
+    }
+    printf("\n");
+}
+
 int main(int argc, char *argv[])
 {
     Opts opts;
@@ -112,10 +121,15 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Unable to read [%s]\n", opts.file1);
         return 1;
     }
+    printf("cvec of %s\n", opts.file1);
+    print_cvec(&cvec1);
     if (puzzle_fill_cvec_from_file(&context, &cvec2, opts.file2) != 0) {
         fprintf(stderr, "Unable to read [%s]\n", opts.file2);
         return 1;
     }
+    printf("cvec of %s\n", opts.file2);
+    print_cvec(&cvec2);
+
     d = puzzle_vector_normalized_distance(&context, &cvec1, &cvec2,
                                           opts.fix_for_texts);
     puzzle_free_cvec(&context, &cvec1);

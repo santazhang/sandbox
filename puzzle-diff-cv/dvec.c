@@ -246,6 +246,7 @@ static int puzzle_getview_from_cvimage(PuzzleContext * const context,
     if ((view->map = malloc(view->sizeof_map * sizeof(unsigned char))) == NULL) {
         return -1;
     }
+    memset(view->map, 0, view->sizeof_map * sizeof(unsigned char));
     if (x1 > INT_MAX || y1 > INT_MAX) { // GD uses "int" for coordinates
         puzzle_err_bug(__FILE__, __LINE__);
     }
