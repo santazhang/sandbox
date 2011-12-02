@@ -586,8 +586,8 @@ int puzzle_fill_dvec_from_file(PuzzleContext * const context,
     puzzle_init_dvec(context, dvec);
 
     cvimage = cvLoadImage(file);
-    printf("cvimage = %p\n", cvimage);
-    printf("width = %d\n", cvimage->width);
+    //printf("cvimage = %p\n", cvimage);
+    //printf("width = %d\n", cvimage->width);
     if (cvimage == NULL) {
         return -1;
     }
