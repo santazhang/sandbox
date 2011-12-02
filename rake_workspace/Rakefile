@@ -207,7 +207,7 @@ end
 
 
 desc "Maintenance work, will do 'up', 'push' and 'gc'"
-task :maint => [:up, :push, :gc]
+task :maint => [:up, :push, :gc] 
 
 task :default => :list
 
