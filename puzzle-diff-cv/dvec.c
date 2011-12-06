@@ -261,7 +261,7 @@ static int puzzle_getview_from_cvimage(PuzzleContext * const context,
             *maptr++ = (unsigned char)
                 ((scalar.val[0] * 77 +
                   scalar.val[1] * 151 +
-                  scalar.val[2] * 28 + 128) / 256);
+                  scalar.val[2] * 28) / 256);
         } while (y-- != y0);
     } while (x-- != x0);
     
