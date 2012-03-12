@@ -42,11 +42,16 @@ desc "Git gc all my projects, including git backup repositories"
 task :gc do
   if defined? GIT_BACKUP_ROOT
     bkup_root = "#{File.dirname __FILE__}/#{GIT_BACKUP_ROOT}"
-    Dir.foreach bkup_root do |entry|
-      next if entry.start_with? "."
-      full_path = "#{bkup_root}/#{entry}"
-      next unless File::directory? full_path
-      my_exec "cd #{full_path} && git gc --aggressive --prune"
+    begin
+      Dir.foreach bkup_root do |entry|
+        next if entry.start_with? "."
+        full_path = "#{bkup_root}/#{entry}"
+        next unless File::directory? full_path
+        my_exec "cd #{full_path} && git gc --aggressive --prune"
+      end
+    rescue Exception => e
+      puts e
+      puts e.backtrace
     end
   end
   PROJECT_LIST.keys.each do |prj|
@@ -190,18 +195,23 @@ end
 desc "Update reference projects"
 task :up do
   REFERENCE_DIR = File::join(File.dirname(__FILE__), "references")
-  Dir.foreach(REFERENCE_DIR) do |e|
-    next if e.start_with? "."
-    if File.exists?(File.join REFERENCE_DIR, e, ".svn")
-      puts "svn update: " + e
-      my_exec "cd '#{File.join REFERENCE_DIR, e}' ; svn up"
-    elsif File.exists?(File.join REFERENCE_DIR, e, ".git")
-      puts "git pull: " + e
-      my_exec "cd '#{File.join REFERENCE_DIR, e}' ; git pull ; git gc"
-    elsif File.exists?(File.join REFERENCE_DIR, e, ".hg")
-      puts "hg pull: " + e
-      my_exec "cd '#{File.join REFERENCE_DIR, e}' ; hg pull ; hg update"
+  begin
+    Dir.foreach(REFERENCE_DIR) do |e|
+      next if e.start_with? "."
+      if File.exists?(File.join REFERENCE_DIR, e, ".svn")
+        puts "svn update: " + e
+        my_exec "cd '#{File.join REFERENCE_DIR, e}' ; svn up"
+      elsif File.exists?(File.join REFERENCE_DIR, e, ".git")
+        puts "git pull: " + e
+        my_exec "cd '#{File.join REFERENCE_DIR, e}' ; git pull ; git gc"
+      elsif File.exists?(File.join REFERENCE_DIR, e, ".hg")
+        puts "hg pull: " + e
+        my_exec "cd '#{File.join REFERENCE_DIR, e}' ; hg pull ; hg update"
+      end
     end
+  rescue Exception => e
+    puts e
+    puts e.backtrace
   end
 end
 
