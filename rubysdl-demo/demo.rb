@@ -7,6 +7,7 @@ SDL.init( SDL::INIT_VIDEO )
 screen = SDL::Screen.open( 640, 480, 16, SDL::SWSURFACE ) 
 
 loop do
+  sleep 0.001
   while event = SDL::Event2.poll # (1)
 	puts event
     case event # (2)
