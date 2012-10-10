@@ -4,18 +4,22 @@
 #include <map>
 #include <iostream>
 
-using namespace std;
-
 namespace rpc {
-
-
 
 typedef int32_t i32;
 typedef int64_t i64;
 typedef char byte;
-typedef i32 protocol;
 
-struct marshall {
+typedef i32 err_code;
+typedef i32 svc_id_t;
+
+const err_code NOERR = 0;
+
+class bytebuffer {
+	
+};
+
+struct marshall: private bytebuffer {
     byte buf[1024];
     int put_idx;
     int get_idx;
@@ -31,7 +35,7 @@ inline marshall& operator<<(marshall& m, const i32& i) {
     return m;
 }
 
-struct unmarshall {
+struct unmarshall: private bytebuffer  {
     byte buf[1024];
     int get_idx;
     int put_idx;
@@ -59,38 +63,60 @@ inline marshall& operator>>(marshall& u, i32& i) {
     u.get_idx += sizeof(i32);
     return u;
 }
-class server {
-    class handler {
-    public:
-        virtual void fn(marshall& m, unmarshall& u) = 0;
+
+class server_endpoint {
+    
+    struct handler {
+        virtual err_code handle(marshall& m, unmarshall& u) = 0;
     };
-    std::map<protocol, handler*> handlers;
+    
+    std::map<svc_id_t, handler*> handlers;
+
 public:
 
-    void invoke(marshall& m, unmarshall& u);
+    err_code invoke(marshall& m, unmarshall& u);
 
     template<class S, class R, class T1, class T2>
-    bool reg(protocol p, S* s, R (S::*_func)(const T1&, const T2&)) {
-        cout << "reged" << endl;
+    err_code reg(svc_id_t svc_id, S* svc, err_code (S::*svc_func)(const T1&, const T2&, R&)) {
         class h: public handler {
             S* s;
-            R (S::*func)(const T1&, const T2&);
+            err_code (S::*f)(const T1&, const T2&, R&);
         public:
-            h(S* s, R (S::*_f)(const T1&, const T2&)): s(s), func(_f) {}
-            void fn(marshall& m, unmarshall& u) {
-                cout << "calling" << endl;
+            h(S* s, err_code (S::*f)(const T1&, const T2&, R&)): s(s), f(f) {}
+            err_code handle(marshall& m, unmarshall& u) {
                 T1 a;
                 T2 b;
-                m >> a;
-                m >> b;
-                cout << "fn: " << a << " " << b << endl;
+                m >> a >> b;
                 R r;
-                r = (s->*func)(a, b);
+                err_code ret = (s->*f)(a, b, r);
                 u << r;
+				return ret;
             }
         };
-        this->handlers[p] = new h(s, _func);
-        return true;
+        this->handlers[svc_id] = new h(svc, svc_func);
+        return NOERR;
+    }
+
+    template<class S, class R, class T1, class T2, class T3>
+    err_code reg(svc_id_t svc_id, S* svc, err_code (S::*svc_func)(const T1&, const T2&, const T3&, R&)) {
+        class h: public handler {
+            S* s;
+            err_code (S::*f)(const T1&, const T2&, const T3&, R&);
+        public:
+            h(S* s, err_code (S::*f)(const T1&, const T2&, const T3&, R&)): s(s), f(f) {}
+            err_code handle(marshall& m, unmarshall& u) {
+                T1 a;
+                T2 b;
+                T3 c;
+                m >> a >> b >> c;
+                R r;
+                err_code ret = (s->*f)(a, b, c, r);
+                u << r;
+    			return ret;
+            }
+        };
+        this->handlers[svc_id] = new h(svc, svc_func);
+        return NOERR;
     }
 
 };
