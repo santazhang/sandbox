@@ -1,13 +1,13 @@
 all: bench-svr bench-clnt
 
 bench-svr: rpc.o bench-svr.o
-	g++ rpc.o bench-svr.o -o bench-svr
+	g++ -O3 rpc.o bench-svr.o -o bench-svr
 
 bench-clnt: rpc.o bench-clnt.o
-	g++ rpc.o bench-clnt.o -o bench-clnt
+	g++ -O3 rpc.o bench-clnt.o -o bench-clnt
 
 rpc.o: rpc.cc rpc.h
-	g++ rpc.cc -c -o rpc.o
+	g++ -O3 rpc.cc -c -o rpc.o
 
 clean:
 	rm -f *.o bench-clnt bench-svr
