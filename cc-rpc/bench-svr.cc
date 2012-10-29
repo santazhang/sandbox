@@ -34,12 +34,14 @@ int main() {
     s.reg(my_protocol::add32, &my_add, &my_add_service::add32);
     s.reg(my_protocol::sub32, &my_sub, &my_sub_service::sub32);
     s.reg(my_protocol::mul32, &my_mul, &my_mul_service::mul32);
-    marshall m;
-    unmarshall u;
-    m << (i32) my_protocol::mul32 << (i32) 3 << (i32) 4 << (i32) 8;
-    err_code ecode = s.invoke(m, u);
     i32 v;
-    u >> v;
+    for (int i = 0; i < 10000000; i++) {
+        marshall m;
+        unmarshall u;
+        m << (i32) my_protocol::mul32 << (i32) 3 << (i32) 4 << (i32) 8;
+        err_code ecode = s.invoke(m, u);
+        u >> v;
+    }
     cout << "result = " << v << endl;
     return 0;
 }
