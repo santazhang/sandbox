@@ -19,7 +19,7 @@ int main(int argc, const char * argv[])
         
         NSError *error = NULL;
         NSRegularExpression *phoneRegex = [NSRegularExpression regularExpressionWithPattern:
-            @"(^\\+86 [0-9]{3}-[0-9]{4}-[0-9]{4}$)|(^\\+1 \\([0-9]{3}\\) [0-9]{3}-[0-9]{4}$)|(^12520 [0-9]{3}-[0-9]{4}-[0-9]{4}$)"
+            @"(^\\+86 [0-9]{3}-[0-9]{4}-[0-9]{4}$)|(^\\+86 \\([0-9]\\) [0-9]{2,3}-[0-9]{7,8}$)|(^\\+1 \\([0-9]{3}\\) [0-9]{3}-[0-9]{4}$)|(^12520 [0-9]{3}-[0-9]{4}-[0-9]{4}$)|(^\\+92 [0-9]{3} [0-9]{7}$)|(^\\+852 [0-9]{4} [0-9]{4}$)|(12520[0-9]{9,11})"
             options:NSRegularExpressionCaseInsensitive error:&error];
         
         for (ABPerson* p in [addressBook people]) {
