@@ -47,7 +47,7 @@ task :gc do
         next if entry.start_with? "."
         full_path = "#{bkup_root}/#{entry}"
         next unless File::directory? full_path
-        my_exec "cd #{full_path} && git gc --aggressive --prune"
+        my_exec "cd #{full_path} && git gc --aggressive --prune && git prune"
       end
     rescue Exception => e
       puts e
@@ -55,7 +55,7 @@ task :gc do
     end
   end
   PROJECT_LIST.keys.each do |prj|
-    my_exec "cd #{File.dirname __FILE__}/#{prj} && git gc --aggressive --prune"
+    my_exec "cd #{File.dirname __FILE__}/#{prj} && git gc --aggressive --prune && git prune"
   end
 end
 
@@ -203,7 +203,7 @@ task :up do
         my_exec "cd '#{File.join REFERENCE_DIR, e}' ; svn up"
       elsif File.exists?(File.join REFERENCE_DIR, e, ".git")
         puts "git pull: " + e
-        my_exec "cd '#{File.join REFERENCE_DIR, e}' ; git pull ; git gc"
+        my_exec "cd '#{File.join REFERENCE_DIR, e}' ; git pull ; git gc ; git prune"
       elsif File.exists?(File.join REFERENCE_DIR, e, ".hg")
         puts "hg pull: " + e
         my_exec "cd '#{File.join REFERENCE_DIR, e}' ; hg pull ; hg update"
