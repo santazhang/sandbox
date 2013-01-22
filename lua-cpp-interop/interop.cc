@@ -5,19 +5,16 @@
 
 using namespace std;
 
-// function to be called from lua
-int my_function(lua_State* L) {
+int my_sum(lua_State* L) {
     int argc = lua_gettop(L);
 
-//    printf("-- my_function() called with %d args\n", argc);
-
-
+    lua_Number sum = 0;
     for (int i = 1; i <= argc; i++) {
-//        printf("-- arg %d: %s\n", i, lua_tostring(L, i));
+        sum += lua_tonumber(L, i);
     }
 
     // return value
-    lua_pushnumber(L, 123);
+    lua_pushnumber(L, sum);
 
     // number of return value
     return 1;
@@ -30,18 +27,24 @@ static void report_errors(lua_State* L, int status) {
     }
 }
 
-void raw_cpp_call() {}
+void raw_cpp_call() {
+    int arr[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int sum = 0;
+    for (int i = 0; i < 10; i++) {
+        sum += arr[i];
+    }
+}
 
 int main() {
     lua_State* L = luaL_newstate();
 
-    lua_register(L, "my_function", my_function);
+    lua_register(L, "my_sum", my_sum);
     int s;
     const int n = 100000;
     struct timeval start, stop;
     gettimeofday(&start, NULL);
     for (int i = 0; i < n; i++) {
-        s = luaL_dostring(L, "my_function(5)");
+        s = luaL_dostring(L, "my_sum(1, 2, 3, 4, 5)");
         report_errors(L, s);
     }
     gettimeofday(&stop, NULL);
@@ -51,11 +54,13 @@ int main() {
 
     gettimeofday(&start, NULL);
     for (int i = 0; i < n; i++) {
-        lua_getglobal(L, "my_function");
-        lua_pushstring(L, "x");
+        lua_getglobal(L, "my_sum");
+        for (int j = i; j < i + 10; j++) {
+            lua_pushnumber(L, j);
+        }
 
-        // call with 1 arguments, 1 return value
-        lua_call(L, 1, 1);
+        // call with 10 arguments, 1 return value
+        lua_call(L, 10, 1);
 
         // get return value
         int r = (int) lua_tointeger(L, -1);

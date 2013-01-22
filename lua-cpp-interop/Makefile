@@ -1,4 +1,4 @@
-LUA_SRC_DIR=/Users/santa/Downloads/lua-5.2.1/src
+LUA_SRC_DIR=/home/santa/Downloads/lua-5.2.1/src
 
 all: interop
 
