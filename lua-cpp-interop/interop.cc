@@ -72,8 +72,8 @@ int main() {
         raw_cpp_call();
     }
     gettimeofday(&stop, NULL);
-    sec = stop.tv_sec - start.tv_sec + (stop.tv_usec - start.tv_usec) / 1000000.0;
-    printf("raw cpp: call per sec=%lf (%.2lf x)\n", n / sec, base / sec);
+    double sec2 = stop.tv_sec - start.tv_sec + (stop.tv_usec - start.tv_usec) / 1000000.0;
+    printf("raw cpp: call per sec=%lf (%.2lf x) (%.2lf x)\n", n / sec, base / sec2, sec / sec2);
 
     lua_close(L);
     return 0;
