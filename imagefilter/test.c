@@ -10,11 +10,11 @@
 int main(int argc, char* argv[]) {
     char* in = "t.png";
     char* out = "t-out.png";
-    
+
     int width, height;
     png_structp png_ptr;
     png_infop info_ptr;
-    
+
     // read png
     char header[8];
     FILE *fp = fopen(in, "rb");
@@ -35,15 +35,15 @@ int main(int argc, char* argv[]) {
     png_read_image(png_ptr, im->data);
     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
     fclose(fp);
-    
+
     // process filter
     struct timeval begin, end;
     gettimeofday(&begin, NULL);
-    im_watercolor_bright(im, im, 3);
+    im_halftone_ostromoukov(im, im);
     gettimeofday(&end, NULL);
     double sec = end.tv_sec - begin.tv_sec + (end.tv_usec - begin.tv_usec) / 1000000.0;
     printf("%.2lf M pixels per second\n", im->width * im->height / sec / 1000000);
-    
+
     // write png
     fp = fopen(out, "wb");
     assert(fp);

@@ -19,7 +19,7 @@ typedef struct {
 
 typedef u8* pixel;
 
-#define px_r(px) (*px)
+#define px_r(px) (*(px))
 #define px_g(px) (*(px + 1))
 #define px_b(px) (*(px + 2))
 
@@ -58,3 +58,14 @@ image im_pencil_sketch(image in, image out, double strength, double brightness);
 image im_edge_detect(image in, image out, int dx, int dy, u8 bias);
 
 image im_edge_enhance(image in, image out, double strength);
+
+image im_oil_paint(image in, image out, int radius, int details);
+
+image im_halftone_error_diffusion(image in, image out, int n, int* xoff, int* yoff, double* w);
+
+image im_halftone_shiaufan(image in, image out);
+
+image im_halftone_floyd_steinberg(image in, image out);
+
+image im_halftone_ostromoukov(image in, image out);
+
