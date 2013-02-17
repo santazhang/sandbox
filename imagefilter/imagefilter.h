@@ -29,9 +29,11 @@ image im_new(int width, int height);
 
 void im_free(image im);
 
-image im_inv(image in, image out);
+image im_inverse(image in, image out);
 
 image im_gray(image in, image out, double r_weight, double g_weight, double b_weight);
+
+image im_intensity(image in, image out);
 
 image im_tile(image in, image out, int tile_size);
 
@@ -63,9 +65,9 @@ image im_oil_paint(image in, image out, int radius, int details);
 
 image im_halftone_error_diffusion(image in, image out, int n, int* xoff, int* yoff, double* w);
 
-image im_halftone_shiaufan(image in, image out);
+image im_halftone_shiau_fan(image in, image out);
 
 image im_halftone_floyd_steinberg(image in, image out);
 
-image im_halftone_ostromoukov(image in, image out);
+image im_halftone_ostromoukhov(image in, image out);
 

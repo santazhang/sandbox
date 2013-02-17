@@ -25,11 +25,7 @@ void im_free(image im) {
     free(im->data);
 }
 
-image im_inv(image in, image out) {
-    int inplace = (in == out);
-    if (out == NULL || inplace) {
-        out = im_new(in->width, in->height);
-    }
+image im_inverse(image in, image out) {
     int x, y;
     for (y = 0; y < in->height; y++) {
         for (x= 0; x < in->width; x++) {
@@ -40,22 +36,9 @@ image im_inv(image in, image out) {
             px_b(px_out) = 255 - px_b(px);
         }
     }
-    if (inplace) {
-        int y;
-        for (y = 0; y < in->height; y++) {
-            memcpy(in->data[y], out->data[y], in->width * 3);
-        }
-        im_free(out);
-        out = in;
-    }
-    return out;
 }
 
 image im_gray(image in, image out, double r_weight, double g_weight, double b_weight) {
-    int inplace = (in == out);
-    if (out == NULL || inplace) {
-        out = im_new(in->width, in->height);
-    }
     int x, y;
     for (y = 0; y < in->height; y++) {
         for (x= 0; x < in->width; x++) {
@@ -68,22 +51,13 @@ image im_gray(image in, image out, double r_weight, double g_weight, double b_we
             px_b(px) = g;
         }
     }
-    if (inplace) {
-        int y;
-        for (y = 0; y < in->height; y++) {
-            memcpy(in->data[y], out->data[y], in->width * 3);
-        }
-        im_free(out);
-        out = in;
-    }
-    return out;
+}
+
+image im_intensity(image in, image out) {
+    return im_gray(in, out, 7471.0 / 65536.0, 38469.0 / 65536.0, 19595.0 / 65536.0);
 }
 
 image im_contrast(image in, image out, double slope) {
-    int inplace = (in == out);
-    if (out == NULL || inplace) {
-        out = im_new(in->width, in->height);
-    }
     int x, y;
     for (y = 0; y < in->height; y++) {
         for (x= 0; x < in->width; x++) {
@@ -97,23 +71,10 @@ image im_contrast(image in, image out, double slope) {
             px_b(px_out) = (u8) _limit(vb);
         }
     }
-    if (inplace) {
-        int y;
-        for (y = 0; y < in->height; y++) {
-            memcpy(in->data[y], out->data[y], in->width * 3);
-        }
-        im_free(out);
-        out = in;
-    }
     return out;
 }
 
 image im_tile(image in, image out, int tile_size) {
-    int inplace = (in == out);
-    if (out == NULL || inplace) {
-        out = im_new(in->width, in->height);
-    }
-
     int tile_x, tile_y, x, y;
     for (tile_y = 0; tile_y * tile_size < in->height; tile_y++) {
         for (tile_x = 0; tile_x * tile_size < in->width; tile_x++) {
@@ -141,15 +102,6 @@ image im_tile(image in, image out, int tile_size) {
             }
         }
     }
-
-    if (inplace) {
-        int y;
-        for (y = 0; y < in->height; y++) {
-            memcpy(in->data[y], out->data[y], in->width * 3);
-        }
-        im_free(out);
-        out = in;
-    }
     return out;
 }
 
@@ -161,6 +113,8 @@ image im_avg_blur(image in, image out, double radius) {
     }
 
     // TODO diff based O(n^2) algorithm
+    // hint: as in im_oil_color, use the north, south, west, and east edge of the brush (this could be precalculated)
+    // the sum in the brush area could be precalculated
     int x, y, dx, dy;
     double radius2 = radius * radius;
     for (y = 0; y < in->height; y++) {
@@ -205,6 +159,8 @@ image im_dilate(image in, image out, double radius) {
     }
 
     // TODO diff based O(n^2) algorithm
+    // hint: as in im_oil_color, use the north, south, west, and east edge of the brush (this could be precalculated)
+    // the value in the brush area could be precaculated, and efficiently stored in a Segment Tree (log128, const time update for each op)
     int x, y, dx, dy;
     double radius2 = radius * radius;
     for (y = 0; y < in->height; y++) {
@@ -247,6 +203,8 @@ image im_erode(image in, image out, double radius) {
     }
 
     // TODO diff based O(n^2) algorithm
+    // hint: as in im_oil_color, use the north, south, west, and east edge of the brush (this could be precalculated)
+    // the value in the brush area could be precaculated, and efficiently stored in a Segment Tree (log128, const time update for each op)
     int x, y, dx, dy;
     double radius2 = radius * radius;
     for (y = 0; y < in->height; y++) {
@@ -300,6 +258,7 @@ image im_closing(image in, image out, double radius) {
 
 image im_watercolor_dark(image in, image out, double radius) {
     // opening -> closing
+    // TODO avoid creating too many images
     image tmp = im_new(in->width, in->height);
     im_opening(in, tmp, radius);
     im_closing(tmp, out, radius);
@@ -309,6 +268,7 @@ image im_watercolor_dark(image in, image out, double radius) {
 
 image im_watercolor_bright(image in, image out, double radius) {
     // closing -> opening
+    // TODO avoid creating too many images
     image tmp = im_new(in->width, in->height);
     im_closing(in, tmp, radius);
     im_opening(tmp, out, radius);
@@ -386,7 +346,7 @@ image im_edge_detect(image in, image out, int dx, int dy, u8 bias) {
     image tmp = im_new(in->width, in->height);
     im_gray(in, tmp, 1/3.0, 1/3.0, 1/3.0);
     im_matrix_op(tmp, tmp, n, dxy, w, b, def_r, def_g, def_b);
-    im_inv(tmp, out);
+    im_inverse(tmp, out);
     im_free(tmp);
     return out;
 }
@@ -592,7 +552,7 @@ image im_halftone_error_diffusion(image in, image out, int n, int* xoff, int* yo
     return out;
 }
 
-image im_halftone_shiaufan(image in, image out) {
+image im_halftone_shiau_fan(image in, image out) {
     int n = 5;
     int xoff[] = {-3, -2, -1, 0, 1};
     int yoff[] = {1, 1, 1, 1, 0};
@@ -608,83 +568,83 @@ image im_halftone_floyd_steinberg(image in, image out) {
     im_halftone_error_diffusion(in, out, n, xoff, yoff, w);
 }
 
-image im_halftone_ostromoukov(image in, image out) {
+image im_halftone_ostromoukhov(image in, image out) {
     int n = 3;
     int xoff[] = {1, -1, 0};
     int yoff[] = {0, 1, 1};
 
-    double ostromoukov_w[256][3];
+    double ostromoukhov_w[256][3];
 
-#define ostromoukov_weight(idx, v0, v1, v2) {ostromoukov_w[idx][0] = v0, ostromoukov_w[idx][1] = v1, ostromoukov_w[idx][2] = v2;}
+#define ostromoukhov_weight(idx, v0, v1, v2) {ostromoukhov_w[idx][0] = v0, ostromoukhov_w[idx][1] = v1, ostromoukhov_w[idx][2] = v2;}
 
-    ostromoukov_weight(0, 13.0 / 18.0, 0, 5.0 / 18.0);
-    ostromoukov_weight(1, 13.0 / 18.0, 0, 5.0 / 18.0);
-    ostromoukov_weight(2, 21.0 / 31.0, 0, 10.0 / 31.0);
-    ostromoukov_weight(3, 7.0 / 11.0, 0, 4.0 / 11.0);
-    ostromoukov_weight(4, 8.0 / 13.0, 0, 5.0 / 13.0);
-    ostromoukov_weight(10, 7.0 / 13.0, 3.0 / 13.0, 3.0 / 13.0);
+    ostromoukhov_weight(0, 13.0 / 18.0, 0, 5.0 / 18.0);
+    ostromoukhov_weight(1, 13.0 / 18.0, 0, 5.0 / 18.0);
+    ostromoukhov_weight(2, 21.0 / 31.0, 0, 10.0 / 31.0);
+    ostromoukhov_weight(3, 7.0 / 11.0, 0, 4.0 / 11.0);
+    ostromoukhov_weight(4, 8.0 / 13.0, 0, 5.0 / 13.0);
+    ostromoukhov_weight(10, 7.0 / 13.0, 3.0 / 13.0, 3.0 / 13.0);
 
-#define ostromoukov_interpolate(start, stop) { \
+#define ostromoukhov_interpolate(start, stop) { \
         double step[3] = { \
-            (ostromoukov_w[stop][0] - ostromoukov_w[start][0]) / (stop - start), \
-            (ostromoukov_w[stop][1] - ostromoukov_w[start][1]) / (stop - start), \
-            (ostromoukov_w[stop][2] - ostromoukov_w[start][2]) / (stop - start) \
+            (ostromoukhov_w[stop][0] - ostromoukhov_w[start][0]) / (stop - start), \
+            (ostromoukhov_w[stop][1] - ostromoukhov_w[start][1]) / (stop - start), \
+            (ostromoukhov_w[stop][2] - ostromoukhov_w[start][2]) / (stop - start) \
         }; \
         int i; \
         for (i = start + 1; i < stop; i++) { \
-            ostromoukov_w[i][0] = ostromoukov_w[start][0] + (i - start) * step[0]; \
-            ostromoukov_w[i][1] = ostromoukov_w[start][1] + (i - start) * step[1]; \
-            ostromoukov_w[i][2] = ostromoukov_w[start][2] + (i - start) * step[2]; \
+            ostromoukhov_w[i][0] = ostromoukhov_w[start][0] + (i - start) * step[0]; \
+            ostromoukhov_w[i][1] = ostromoukhov_w[start][1] + (i - start) * step[1]; \
+            ostromoukhov_w[i][2] = ostromoukhov_w[start][2] + (i - start) * step[2]; \
         } \
     }
 
-    ostromoukov_interpolate(4, 10);
+    ostromoukhov_interpolate(4, 10);
 
-    ostromoukov_weight(22, 0.5, 1.0 / 3.0, 1.0 / 6.0);
+    ostromoukhov_weight(22, 0.5, 1.0 / 3.0, 1.0 / 6.0);
 
-    ostromoukov_interpolate(10, 22);
+    ostromoukhov_interpolate(10, 22);
 
-    ostromoukov_weight(32, 20.0 / 49.0, 10.0 / 49.0, 19.0 / 49.0);
+    ostromoukhov_weight(32, 20.0 / 49.0, 10.0 / 49.0, 19.0 / 49.0);
 
-    ostromoukov_interpolate(22, 32);
+    ostromoukhov_interpolate(22, 32);
 
-    ostromoukov_weight(64, 11.0 / 21.0, 10.0 / 21.0, 0);
+    ostromoukhov_weight(64, 11.0 / 21.0, 10.0 / 21.0, 0);
 
-    ostromoukov_interpolate(32, 64);
+    ostromoukhov_interpolate(32, 64);
 
-    ostromoukov_weight(72, 5.0 / 13.0, 5.0 / 13.0, 1.0 / 13.0);
+    ostromoukhov_weight(72, 5.0 / 13.0, 5.0 / 13.0, 1.0 / 13.0);
 
-    ostromoukov_interpolate(64, 72);
+    ostromoukhov_interpolate(64, 72);
 
-    ostromoukov_weight(77, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
+    ostromoukhov_weight(77, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
 
-    ostromoukov_interpolate(72, 77);
+    ostromoukhov_interpolate(72, 77);
 
-    ostromoukov_weight(85, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
+    ostromoukhov_weight(85, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
 
-    ostromoukov_interpolate(77, 85);
+    ostromoukhov_interpolate(77, 85);
 
-    ostromoukov_weight(95, 0.5, 0.3, 0.2);
+    ostromoukhov_weight(95, 0.5, 0.3, 0.2);
 
-    ostromoukov_interpolate(85, 95);
+    ostromoukhov_interpolate(85, 95);
 
-    ostromoukov_weight(107, 0.5, 0.3, 0.2);
+    ostromoukhov_weight(107, 0.5, 0.3, 0.2);
 
-    ostromoukov_interpolate(95, 107);
+    ostromoukhov_interpolate(95, 107);
 
-    ostromoukov_weight(127, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
+    ostromoukhov_weight(127, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
 
-    ostromoukov_interpolate(107, 127);
+    ostromoukhov_interpolate(107, 127);
 
     int i;
     for (i = 0; i < 128; i++) {
-        ostromoukov_w[255 - i][0] = ostromoukov_w[i][0];
-        ostromoukov_w[255 - i][1] = ostromoukov_w[i][1];
-        ostromoukov_w[255 - i][2] = ostromoukov_w[i][2];
+        ostromoukhov_w[255 - i][0] = ostromoukhov_w[i][0];
+        ostromoukhov_w[255 - i][1] = ostromoukhov_w[i][1];
+        ostromoukhov_w[255 - i][2] = ostromoukhov_w[i][2];
     }
 
-#undef ostromoukov_weight
-#undef ostromoukov_interpolate
+#undef ostromoukhov_weight
+#undef ostromoukhov_interpolate
 
     int x, y;
     int** error = (int **) malloc(sizeof(int *) * in->height);
@@ -725,7 +685,7 @@ image im_halftone_ostromoukov(image in, image out) {
                 int nx = x + xoff[i];
                 int ny = y + yoff[i];
                 if (0 <= nx && nx < in->width && 0 <= ny && ny < in->height) {
-                    error[ny][nx] += e * ostromoukov_w[g][i];
+                    error[ny][nx] += e * ostromoukhov_w[g][i];
                 }
             }
         }
