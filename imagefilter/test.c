@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     // process filter
     struct timeval begin, end;
     gettimeofday(&begin, NULL);
-    im_halftone_ostromoukhov(im, im);
+    im_halftone(im, im, IM_HALFTONE_OSTROMOUKHOV);
     gettimeofday(&end, NULL);
     double sec = end.tv_sec - begin.tv_sec + (end.tv_usec - begin.tv_usec) / 1000000.0;
     printf("%.2lf M pixels per second\n", im->width * im->height / sec / 1000000);

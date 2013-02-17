@@ -368,7 +368,7 @@ image im_edge_enhance(image in, image out, double strength) {
     return im_matrix_op(in, out, n, dxy, w, b, def_r, def_g, def_b);
 }
 
-pixel _im_pixel_safe(image im, int x, int y) {
+static pixel _im_pixel_safe(image im, int x, int y) {
     x = _limit2(x, 0, im->width - 1);
     y = _limit2(y, 0, im->height - 1);
     return im_pixel(im, x, y);
@@ -376,7 +376,7 @@ pixel _im_pixel_safe(image im, int x, int y) {
 
 #define _intensity(px) ((px_r(px) * 7471 + px_g(px) * 38469 + px_b(px) * 19595) / 65536)
 
-int _level_scaling(int v, int levels) {
+static int _level_scaling(int v, int levels) {
     int r = v * levels + 128;
     r = ((r >> 8) + r) >> 8;
     return r;
@@ -552,23 +552,7 @@ image im_halftone_error_diffusion(image in, image out, int n, int* xoff, int* yo
     return out;
 }
 
-image im_halftone_shiau_fan(image in, image out) {
-    int n = 5;
-    int xoff[] = {-3, -2, -1, 0, 1};
-    int yoff[] = {1, 1, 1, 1, 0};
-    double w[] = {0.0625, 0.0625, 0.125, 0.25, 0.5};
-    im_halftone_error_diffusion(in, out, n, xoff, yoff, w);
-}
-
-image im_halftone_floyd_steinberg(image in, image out) {
-    int n = 4;
-    int xoff[] = {-1, 0, 1, 1};
-    int yoff[] = {1, 1, 1, 0};
-    double w[] = {0.1875, 0.3125, 0.0625, 0.4375};
-    im_halftone_error_diffusion(in, out, n, xoff, yoff, w);
-}
-
-image im_halftone_ostromoukhov(image in, image out) {
+image _halftone_ostromoukhov(image in, image out) {
     int n = 3;
     int xoff[] = {1, -1, 0};
     int yoff[] = {0, 1, 1};
@@ -695,5 +679,32 @@ image im_halftone_ostromoukhov(image in, image out) {
         free(error[y]);
     }
     free(error);
+    return out;
+}
+
+image im_halftone(image in, image out, int method) {
+    switch (method) {
+    case IM_HALFTONE_SHIAU_FAN:
+		{
+			int n = 5;
+		    int xoff[] = {-3, -2, -1, 0, 1};
+		    int yoff[] = {1, 1, 1, 1, 0};
+		    double w[] = {0.0625, 0.0625, 0.125, 0.25, 0.5};
+		    im_halftone_error_diffusion(in, out, n, xoff, yoff, w);
+		}
+		break;
+	case IM_HALFTONE_FLOYD_STEINBERG:
+		{
+			int n = 4;
+		    int xoff[] = {-1, 0, 1, 1};
+		    int yoff[] = {1, 1, 1, 0};
+		    double w[] = {0.1875, 0.3125, 0.0625, 0.4375};
+		    im_halftone_error_diffusion(in, out, n, xoff, yoff, w);
+		}
+		break;
+	case IM_HALFTONE_OSTROMOUKHOV:
+		_halftone_ostromoukhov(in, out);
+		break;
+	}
     return out;
 }

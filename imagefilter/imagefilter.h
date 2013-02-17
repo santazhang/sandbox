@@ -65,9 +65,10 @@ image im_oil_paint(image in, image out, int radius, int details);
 
 image im_halftone_error_diffusion(image in, image out, int n, int* xoff, int* yoff, double* w);
 
-image im_halftone_shiau_fan(image in, image out);
+#define IM_HALFTONE_SHIAU_FAN 0
+#define IM_HALFTONE_FLOYD_STEINBERG 1
+#define IM_HALFTONE_OSTROMOUKHOV 2
 
-image im_halftone_floyd_steinberg(image in, image out);
+image im_halftone(image in, image out, int method);
 
-image im_halftone_ostromoukhov(image in, image out);
 
