@@ -257,22 +257,52 @@ image im_closing(image in, image out, double radius) {
 }
 
 image im_watercolor_dark(image in, image out, double radius) {
-    // opening -> closing
-    // TODO avoid creating too many images
+    int inplace = (in == out);
     image tmp = im_new(in->width, in->height);
-    im_opening(in, tmp, radius);
-    im_closing(tmp, out, radius);
+    image tmp2;
+    if (inplace) {
+        tmp2 = out;
+    } else {
+        tmp2 = im_new(in->width, in->height);
+    }
+
+    // opening
+    im_erode(in, tmp, radius);
+    im_dilate(tmp, tmp2, radius);
+
+    // closing
+    im_dilate(tmp2, tmp, radius);
+    im_erode(tmp, out, radius);
+
     im_free(tmp);
+    if (!inplace) {
+        im_free(tmp2);
+    }
     return out;
 }
 
 image im_watercolor_bright(image in, image out, double radius) {
-    // closing -> opening
-    // TODO avoid creating too many images
+    int inplace = (in == out);
     image tmp = im_new(in->width, in->height);
-    im_closing(in, tmp, radius);
-    im_opening(tmp, out, radius);
+    image tmp2;
+    if (inplace) {
+        tmp2 = out;
+    } else {
+        tmp2 = im_new(in->width, in->height);
+    }
+
+    // closing
+    im_dilate(tmp2, tmp, radius);
+    im_erode(tmp, out, radius);
+
+    // opening
+    im_erode(in, tmp, radius);
+    im_dilate(tmp, tmp2, radius);
+
     im_free(tmp);
+    if (!inplace) {
+        im_free(tmp2);
+    }
     return out;
 }
 
@@ -557,17 +587,11 @@ image _halftone_ostromoukhov(image in, image out) {
     int xoff[] = {1, -1, 0};
     int yoff[] = {0, 1, 1};
 
-    double ostromoukhov_w[256][3];
+    static double ostromoukhov_w[256][3];
+    static int init_done = 0;
 
-#define ostromoukhov_weight(idx, v0, v1, v2) {ostromoukhov_w[idx][0] = v0, ostromoukhov_w[idx][1] = v1, ostromoukhov_w[idx][2] = v2;}
-
-    ostromoukhov_weight(0, 13.0 / 18.0, 0, 5.0 / 18.0);
-    ostromoukhov_weight(1, 13.0 / 18.0, 0, 5.0 / 18.0);
-    ostromoukhov_weight(2, 21.0 / 31.0, 0, 10.0 / 31.0);
-    ostromoukhov_weight(3, 7.0 / 11.0, 0, 4.0 / 11.0);
-    ostromoukhov_weight(4, 8.0 / 13.0, 0, 5.0 / 13.0);
-    ostromoukhov_weight(10, 7.0 / 13.0, 3.0 / 13.0, 3.0 / 13.0);
-
+    if (!init_done) {
+#define ostromoukhov_weight(idx, v0, v1, v2) ostromoukhov_w[idx][0] = v0, ostromoukhov_w[idx][1] = v1, ostromoukhov_w[idx][2] = v2;
 #define ostromoukhov_interpolate(start, stop) { \
         double step[3] = { \
             (ostromoukhov_w[stop][0] - ostromoukhov_w[start][0]) / (stop - start), \
@@ -582,55 +606,46 @@ image _halftone_ostromoukhov(image in, image out) {
         } \
     }
 
-    ostromoukhov_interpolate(4, 10);
+        ostromoukhov_weight(0, 13.0 / 18.0, 0, 5.0 / 18.0);
+        ostromoukhov_weight(1, 13.0 / 18.0, 0, 5.0 / 18.0);
+        ostromoukhov_weight(2, 21.0 / 31.0, 0, 10.0 / 31.0);
+        ostromoukhov_weight(3, 7.0 / 11.0, 0, 4.0 / 11.0);
+        ostromoukhov_weight(4, 8.0 / 13.0, 0, 5.0 / 13.0);
+        ostromoukhov_weight(10, 7.0 / 13.0, 3.0 / 13.0, 3.0 / 13.0);
+        ostromoukhov_interpolate(4, 10);
+        ostromoukhov_weight(22, 0.5, 1.0 / 3.0, 1.0 / 6.0);
+        ostromoukhov_interpolate(10, 22);
+        ostromoukhov_weight(32, 20.0 / 49.0, 10.0 / 49.0, 19.0 / 49.0);
+        ostromoukhov_interpolate(22, 32);
+        ostromoukhov_weight(64, 11.0 / 21.0, 10.0 / 21.0, 0);
+        ostromoukhov_interpolate(32, 64);
+        ostromoukhov_weight(72, 5.0 / 13.0, 5.0 / 13.0, 1.0 / 13.0);
+        ostromoukhov_interpolate(64, 72);
+        ostromoukhov_weight(77, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
+        ostromoukhov_interpolate(72, 77);
+        ostromoukhov_weight(85, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
+        ostromoukhov_interpolate(77, 85);
+        ostromoukhov_weight(95, 0.5, 0.3, 0.2);
+        ostromoukhov_interpolate(85, 95);
+        ostromoukhov_weight(107, 0.5, 0.3, 0.2);
+        ostromoukhov_interpolate(95, 107);
+        ostromoukhov_weight(127, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
+        ostromoukhov_interpolate(107, 127);
 
-    ostromoukhov_weight(22, 0.5, 1.0 / 3.0, 1.0 / 6.0);
+        int i;
+        for (i = 0; i < 128; i++) {
+            ostromoukhov_w[255 - i][0] = ostromoukhov_w[i][0];
+            ostromoukhov_w[255 - i][1] = ostromoukhov_w[i][1];
+            ostromoukhov_w[255 - i][2] = ostromoukhov_w[i][2];
+        }
 
-    ostromoukhov_interpolate(10, 22);
-
-    ostromoukhov_weight(32, 20.0 / 49.0, 10.0 / 49.0, 19.0 / 49.0);
-
-    ostromoukhov_interpolate(22, 32);
-
-    ostromoukhov_weight(64, 11.0 / 21.0, 10.0 / 21.0, 0);
-
-    ostromoukhov_interpolate(32, 64);
-
-    ostromoukhov_weight(72, 5.0 / 13.0, 5.0 / 13.0, 1.0 / 13.0);
-
-    ostromoukhov_interpolate(64, 72);
-
-    ostromoukhov_weight(77, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
-
-    ostromoukhov_interpolate(72, 77);
-
-    ostromoukhov_weight(85, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
-
-    ostromoukhov_interpolate(77, 85);
-
-    ostromoukhov_weight(95, 0.5, 0.3, 0.2);
-
-    ostromoukhov_interpolate(85, 95);
-
-    ostromoukhov_weight(107, 0.5, 0.3, 0.2);
-
-    ostromoukhov_interpolate(95, 107);
-
-    ostromoukhov_weight(127, 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0);
-
-    ostromoukhov_interpolate(107, 127);
-
-    int i;
-    for (i = 0; i < 128; i++) {
-        ostromoukhov_w[255 - i][0] = ostromoukhov_w[i][0];
-        ostromoukhov_w[255 - i][1] = ostromoukhov_w[i][1];
-        ostromoukhov_w[255 - i][2] = ostromoukhov_w[i][2];
-    }
+        init_done = 1;
 
 #undef ostromoukhov_weight
 #undef ostromoukhov_interpolate
+    }
 
-    int x, y;
+    int x, y, i;
     int** error = (int **) malloc(sizeof(int *) * in->height);
     for (y = 0; y < in->height; y++) {
         error[y] = (int *) malloc(sizeof(int) * in->width);
@@ -685,26 +700,26 @@ image _halftone_ostromoukhov(image in, image out) {
 image im_halftone(image in, image out, int method) {
     switch (method) {
     case IM_HALFTONE_SHIAU_FAN:
-		{
-			int n = 5;
-		    int xoff[] = {-3, -2, -1, 0, 1};
-		    int yoff[] = {1, 1, 1, 1, 0};
-		    double w[] = {0.0625, 0.0625, 0.125, 0.25, 0.5};
-		    im_halftone_error_diffusion(in, out, n, xoff, yoff, w);
-		}
-		break;
-	case IM_HALFTONE_FLOYD_STEINBERG:
-		{
-			int n = 4;
-		    int xoff[] = {-1, 0, 1, 1};
-		    int yoff[] = {1, 1, 1, 0};
-		    double w[] = {0.1875, 0.3125, 0.0625, 0.4375};
-		    im_halftone_error_diffusion(in, out, n, xoff, yoff, w);
-		}
-		break;
-	case IM_HALFTONE_OSTROMOUKHOV:
-		_halftone_ostromoukhov(in, out);
-		break;
-	}
+        {
+            int n = 5;
+            int xoff[] = {-3, -2, -1, 0, 1};
+            int yoff[] = {1, 1, 1, 1, 0};
+            double w[] = {0.0625, 0.0625, 0.125, 0.25, 0.5};
+            im_halftone_error_diffusion(in, out, n, xoff, yoff, w);
+        }
+        break;
+    case IM_HALFTONE_FLOYD_STEINBERG:
+        {
+            int n = 4;
+            int xoff[] = {-1, 0, 1, 1};
+            int yoff[] = {1, 1, 1, 0};
+            double w[] = {0.1875, 0.3125, 0.0625, 0.4375};
+            im_halftone_error_diffusion(in, out, n, xoff, yoff, w);
+        }
+        break;
+    case IM_HALFTONE_OSTROMOUKHOV:
+        _halftone_ostromoukhov(in, out);
+        break;
+    }
     return out;
 }
