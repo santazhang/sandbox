@@ -1,7 +1,0 @@
-[critical]
-
-[planning]
-* use binary format to save internal data
-* use FFT to do multiplication
-* support NaN and Inf
-
