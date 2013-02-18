@@ -20,8 +20,8 @@ int main(int argc, const char * argv[])
     if (KillAccel(CFSTR(kIOHIDMouseAccelerationType))) {
         NSLog(@"killed mouse accel");
     }
-    if (KillAccel(CFSTR(kIOHIDTrackpadAccelerationType))) {
-        NSLog(@"killed trackpad accel");
-    }
+//    if (KillAccel(CFSTR(kIOHIDTrackpadAccelerationType))) {
+//        NSLog(@"killed trackpad accel");
+//    }
     return 0;
 }
