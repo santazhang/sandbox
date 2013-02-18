@@ -1,0 +1,10 @@
+Simple image processing routines in C.
+
+Currently only 8-bit RGB PNG supported. Requires libpng to build.
+
+TODO:
+
+Blur, dilate, erode could use a circle brush. This requires calculating the
+north, south, east, west arcs of the circle. A fast algorithm is given here:
+
+    http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
