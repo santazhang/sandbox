@@ -1024,6 +1024,8 @@ class RainmeterScreenlet (Screenlet):
   __version__ = "0.2"
   __author__ = "Santa Zhang (santa1987@gmail.com)"
   __desc__ = __doc__
+  
+  config_filename = os.getenv("HOME") + "/.screenlets/Rainmeter/rainmeter_screenlet.conf"
 
   # set default theme for this Screenlet
   # it will be overridden by the stored settings or by on_init function
@@ -1045,6 +1047,32 @@ class RainmeterScreenlet (Screenlet):
     
     # the default time out, 1sec
     self.timer = gobject.timeout_add(self._update_interval, self.update)
+    
+    if os.path.exists(self.config_filename):
+      self.read_config_file() # read user's config data
+    else:
+      self.write_config_file() # write default config data
+
+  def read_config_file(self):
+    print "Reading config file :)"
+    config_file = open(self.config_filename, "r")
+    config_lines = config_file.readlines()
+    for config_line in config_lines:
+      config_line = config_line.strip()
+      if config_line.startswith("theme_name="):
+        self.theme_name = config_line[11:]
+        print "Got config: theme_name=%s" % self.theme_name
+    config_file.close()
+
+  def write_config_file(self):
+    config_file = open(self.config_filename, "w")
+    config_file.write("theme_name=%s\n" % self.theme_name)
+    config_file.close()
+
+  def on_after_set_atribute(self, name, value):
+#    print "after set attribute: " + str(name) + " = " + str(value)
+    if (name.startswith("wallpaper_")):
+      self.write_config_file()
 
   
   def on_init (self):

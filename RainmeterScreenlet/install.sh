@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -rf ~/.screenlets/RainmeterScreenlet
-mkdir -p ~/.screenlets/RainmeterScreenlet
-cp -r RainmeterScreenlet.py icon.png themes ~/.screenlets/RainmeterScreenlet
+rm -rf ~/.screenlets/Rainmeter
+mkdir -p ~/.screenlets/Rainmeter
+cp -r rainmeter_screenlet.conf RainmeterScreenlet.py icon.png themes ~/.screenlets/Rainmeter
 
