@@ -6,6 +6,7 @@
 
 #include "imfilter.h"
 #include "impng.h"
+#include "imbmp.h"
 
 static struct timeval t_start, t_stop;
 
@@ -28,7 +29,7 @@ int main(int argc, char* argv[]) {
     image test = imfilter_ident(src, NULL);
     sec = timer_stop();
     printf("ident: %.2lf million pixels per second\n", pixels / sec / 1000000.0);
-    impng_save(test, "t-ident.png");
+    imbmp_save(test, "t-ident.bmp");
 
     timer_start();
     imfilter_inv(src, test);
