@@ -12,6 +12,8 @@
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>com.nintendo.rom.ds</string>
+				<string>public.iso-image</string>
+				<string>public.iso-diskimage</string>
 			</array>
 		</dict>
 	</array>

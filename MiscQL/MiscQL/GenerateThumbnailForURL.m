@@ -1,7 +1,9 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreServices/CoreServices.h>
 #include <QuickLook/QuickLook.h>
-#import <Cocoa/Cocoa.h>
+#include <Cocoa/Cocoa.h>
+
+#include "cdio/iso9660.h"
 
 OSStatus GenerateThumbnailForURL(void *thisInterface, QLThumbnailRequestRef thumbnail, CFURLRef url, CFStringRef contentTypeUTI, CFDictionaryRef options, CGSize maxSize);
 void CancelThumbnailGeneration(void *thisInterface, QLThumbnailRequestRef thumbnail);
@@ -82,6 +84,42 @@ char * MYCFStringCopyUTF8String(CFStringRef aString) {
                            kCFStringEncodingUTF8)) {
         return buffer;
     }
+    return NULL;
+}
+
+// http://www.gnu.org/software/libcdio/libcdio.html#Example-4
+CGImageRef pspIsoThumbnail(CFStringRef fpath) {
+    char* fpath_cstr = MYCFStringCopyUTF8String(fpath);
+    iso9660_stat_t *p_statbuf;
+
+    iso9660_t *p_iso = iso9660_open(fpath_cstr);
+    free(fpath_cstr);
+    if (p_iso == NULL) {
+        // TODO ERROR
+    }
+    
+    p_statbuf = iso9660_ifs_stat_translate(p_iso, "PSP_GAME/ICON0.PNG");
+    
+    if (p_statbuf == NULL) {
+        // TODO ERROR, return
+        iso9660_close(p_iso);
+    } else {
+        NSLog(@"GOT %p, %d", p_statbuf, p_statbuf->size);
+    }
+    
+    // copy content
+    int i;
+    for (i = 0; i < p_statbuf->size; i += ISO_BLOCKSIZE) {
+        char buf[ISO_BLOCKSIZE];
+        memset(buf, 0, ISO_BLOCKSIZE);
+        if (iso9660_iso_seek_read(p_iso, buf, p_statbuf->lsn + (i / ISO_BLOCKSIZE), 1) != ISO_BLOCKSIZE) {
+            // TODO ERROR
+        }
+        
+    }
+    
+    // need to truncate fetched data to p_statbuf->size
+    
     return NULL;
 }
 
@@ -298,6 +336,8 @@ OSStatus GenerateThumbnailForURL(void *thisInterface, QLThumbnailRequestRef thum
         image = ndsThumbnail(fpath);
     } else if (CFStringHasSuffix(fpath, CFSTR(".pbp")) || CFStringHasSuffix(fpath, CFSTR(".PBP"))) {
         image = pbpThumbnail(fpath);
+    } else if (CFStringHasSuffix(fpath, CFSTR(".iso")) || CFStringHasSuffix(fpath, CFSTR(".ISO"))) {
+        image = pspIsoThumbnail(fpath);
     }
 
     if (image == NULL) {
