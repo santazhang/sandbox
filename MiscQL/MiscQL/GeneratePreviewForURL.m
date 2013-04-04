@@ -95,6 +95,8 @@ CGImageRef PBPPreview(CFStringRef fpath) {
         return image;
     }
     
+    fclose(fp);
+    
     return NULL;
 }
 

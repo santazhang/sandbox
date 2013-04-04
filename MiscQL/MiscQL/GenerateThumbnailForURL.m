@@ -161,6 +161,8 @@ CGImageRef PBPThumbnail(CFStringRef fpath) {
         
         return image;
     }
+    
+    fclose(fp);
 
     return NULL;
 }
