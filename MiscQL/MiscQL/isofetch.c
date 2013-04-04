@@ -1,6 +1,7 @@
 //
 //  isofetch.c
 //  MiscQL
+//  code retrieved from libcdio, ugly as hell
 //
 //  Created by Santa Zhang on 4/3/13.
 //  Copyright (c) 2013 Santa Zhang. All rights reserved.
@@ -1449,14 +1450,6 @@ iso9660_ifs_stat_translate (iso9660_t *p_iso, const char psz_path[])
 
 
 
-// iso9660_ifs_stat_translate
-// iso9660_iso_seek_read
-// iso9660_iso_seek_read(p_iso, buf, p_statbuf->lsn + (i / ISO_BLOCKSIZE), 1) != ISO_BLOCKSIZE)
-
-
-
-
-
 char* isofetch(char* iso_fpath, char* entry_name, int* size) {
     
     iso9660_t* p_iso = iso9660_open(iso_fpath);
@@ -1465,7 +1458,7 @@ char* isofetch(char* iso_fpath, char* entry_name, int* size) {
         return NULL;
     }
     
-    iso9660_stat_t* p_statbuf = iso9660_ifs_stat_translate(p_iso, "PSP_GAME/ICON0.PNG");
+    iso9660_stat_t* p_statbuf = iso9660_ifs_stat_translate(p_iso, entry_name);
     if (p_statbuf == NULL) {
         iso9660_close(p_iso);
         return NULL;
@@ -1493,3 +1486,4 @@ char* isofetch(char* iso_fpath, char* entry_name, int* size) {
     iso9660_close(p_iso);
     return data;
 }
+

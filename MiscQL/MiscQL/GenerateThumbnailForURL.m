@@ -99,7 +99,9 @@ CGImageRef PSPISOThumbnail(CFStringRef fpath) {
     
 //    NSLog(@"GOT %p %p %p", nsdata, imgdata_provider, image);
     
-    free(pngdata);
+    
+    // dont free
+//    free(pngdata);
     return image;
 }
 
@@ -303,7 +305,7 @@ OSStatus GenerateThumbnailForURL(void *thisInterface, QLThumbnailRequestRef thum
     if (QLThumbnailRequestIsCancelled(thumbnail)) {
         return noErr;
     }
-    @autoreleasepool {
+    
     CGImageRef image = NULL;
 
     if (CFStringHasSuffix(fpath, CFSTR(".nds")) || CFStringHasSuffix(fpath, CFSTR(".NDS"))) {
@@ -321,7 +323,7 @@ OSStatus GenerateThumbnailForURL(void *thisInterface, QLThumbnailRequestRef thum
     size_t w = CGImageGetWidth(image);
     size_t h = CGImageGetHeight(image);
 
-
+    @autoreleasepool {
         CGSize size = CGSizeMake(w, h);
         CGRect rect = {{0, 0}, {size.width, size.height}};
 
