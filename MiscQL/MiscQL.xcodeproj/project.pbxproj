@@ -21,9 +21,8 @@
 		AF51255A170B65C900947E19 /* types.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512549170B65C900947E19 /* types.h */; };
 		AF51255B170B65C900947E19 /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = AF51254A170B65C900947E19 /* version.h */; };
 		AF51255C170B65C900947E19 /* xa.h in Headers */ = {isa = PBXBuildFile; fileRef = AF51254B170B65C900947E19 /* xa.h */; };
-		AF51255E170B65C900947E19 /* libiso9660.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AF51254E170B65C900947E19 /* libiso9660.a */; };
 		AF51256B170B69B500947E19 /* libiconv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AF51256A170B69B500947E19 /* libiconv.a */; };
-		AF512573170B6E5400947E19 /* libcdio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AF51254D170B65C900947E19 /* libcdio.a */; };
+		AF805157170D0DB400C7C5F9 /* isofetch.c in Sources */ = {isa = PBXBuildFile; fileRef = AF805156170D0DB400C7C5F9 /* isofetch.c */; };
 		AFF1C74716E0405D00C2FC65 /* QuickLook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AFF1C74616E0405D00C2FC65 /* QuickLook.framework */; };
 		AFF1C74916E0405D00C2FC65 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AFF1C74816E0405D00C2FC65 /* ApplicationServices.framework */; };
 		AFF1C74B16E0405D00C2FC65 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AFF1C74A16E0405D00C2FC65 /* CoreServices.framework */; };
@@ -64,9 +63,8 @@
 		AF512549170B65C900947E19 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		AF51254A170B65C900947E19 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
 		AF51254B170B65C900947E19 /* xa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xa.h; sourceTree = "<group>"; };
-		AF51254D170B65C900947E19 /* libcdio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcdio.a; sourceTree = "<group>"; };
-		AF51254E170B65C900947E19 /* libiso9660.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libiso9660.a; sourceTree = "<group>"; };
 		AF51256A170B69B500947E19 /* libiconv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libiconv.a; sourceTree = "<group>"; };
+		AF805156170D0DB400C7C5F9 /* isofetch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = isofetch.c; sourceTree = "<group>"; };
 		AFF1C74316E0405D00C2FC65 /* MiscQL.qlgenerator */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MiscQL.qlgenerator; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFF1C74616E0405D00C2FC65 /* QuickLook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLook.framework; path = System/Library/Frameworks/QuickLook.framework; sourceTree = SDKROOT; };
 		AFF1C74816E0405D00C2FC65 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
@@ -91,9 +89,7 @@
 				AFF1C76316E062BE00C2FC65 /* Cocoa.framework in Frameworks */,
 				AFF1C74B16E0405D00C2FC65 /* CoreServices.framework in Frameworks */,
 				AFF1C74D16E0405D00C2FC65 /* CoreFoundation.framework in Frameworks */,
-				AF512573170B6E5400947E19 /* libcdio.a in Frameworks */,
 				AF51256B170B69B500947E19 /* libiconv.a in Frameworks */,
-				AF51255E170B65C900947E19 /* libiso9660.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,8 +129,6 @@
 			isa = PBXGroup;
 			children = (
 				AF51256A170B69B500947E19 /* libiconv.a */,
-				AF51254D170B65C900947E19 /* libcdio.a */,
-				AF51254E170B65C900947E19 /* libiso9660.a */,
 			);
 			path = lib;
 			sourceTree = "<group>";
@@ -175,6 +169,7 @@
 				AF51254C170B65C900947E19 /* lib */,
 				AFF1C75416E0405D00C2FC65 /* GenerateThumbnailForURL.m */,
 				AFF1C75616E0405D00C2FC65 /* GeneratePreviewForURL.m */,
+				AF805156170D0DB400C7C5F9 /* isofetch.c */,
 				AFF1C75816E0405D00C2FC65 /* main.c */,
 				AFF1C74F16E0405D00C2FC65 /* Supporting Files */,
 			);
@@ -293,6 +288,7 @@
 				AFF1C75516E0405D00C2FC65 /* GenerateThumbnailForURL.m in Sources */,
 				AFF1C75716E0405D00C2FC65 /* GeneratePreviewForURL.m in Sources */,
 				AFF1C75916E0405D00C2FC65 /* main.c in Sources */,
+				AF805157170D0DB400C7C5F9 /* isofetch.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -372,7 +368,12 @@
 		AFF1C75E16E0405D00C2FC65 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MiscQL/MiscQL-Prefix.pch";
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/$(PROJECT_NAME)/include";
@@ -392,7 +393,12 @@
 		AFF1C75F16E0405D00C2FC65 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MiscQL/MiscQL-Prefix.pch";
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/$(PROJECT_NAME)/include";
