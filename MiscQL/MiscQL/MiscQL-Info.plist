@@ -4,6 +4,26 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
+    <key>UTImportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>yzhang.quicklook.pbp</string>
+            <key>UTTypeDescription</key>
+            <string>PBP binary for PSP</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.data</string>
+            </array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>pbp</string>
+                </array>
+            </dict>
+        </dict>
+    </array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -14,6 +34,7 @@
 				<string>com.nintendo.rom.ds</string>
 				<string>public.iso-image</string>
 				<string>public.iso-diskimage</string>
+                <string>yzhang.quicklook.pbp</string>
 			</array>
 		</dict>
 	</array>

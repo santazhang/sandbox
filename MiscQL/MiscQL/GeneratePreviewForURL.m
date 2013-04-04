@@ -37,6 +37,67 @@ CGImageRef PSPISOPreview(CFStringRef fpath) {
     return image;
 }
 
+
+
+CGImageRef PBPPreview(CFStringRef fpath) {
+    char* fpath_cstr = MYCFStringCopyUTF8String(fpath);
+    FILE* fp = fopen(fpath_cstr, "rb");
+    free(fpath_cstr);
+    
+    char magic[4];
+    fread(magic, 1, 4, fp);
+//    printf("magic: 0x%02x 0x%02x 0x%02x 0x%02x ('\\%d%c%c%c')\n",
+//           magic[0], magic[1], magic[2], magic[3],
+//           magic[0], magic[1], magic[2], magic[3]);
+    
+    int32_t offst;
+    fseek(fp, 8, SEEK_SET);
+    fread(&offst, sizeof(int32_t), 1, fp);
+//    printf("offset of param.sfo: 0x%04x\n", offst);
+    
+    
+    fseek(fp, 12, SEEK_SET);
+    fread(&offst, sizeof(int32_t), 1, fp);
+//    printf("offset of icon0.png: 0x%04x\n", offst);
+    
+    fseek(fp, 16, SEEK_SET);
+    fread(&offst, sizeof(int32_t), 1, fp);
+//    printf("offset of icon1.pmf: 0x%04x\n", offst);
+    
+    fseek(fp, 24, SEEK_SET);
+    fread(&offst, sizeof(int32_t), 1, fp);
+//    printf("offset of pic1.png: 0x%04x\n", offst);
+    int pic1_offst = offst;
+    
+    fseek(fp, 28, SEEK_SET);
+    fread(&offst, sizeof(int32_t), 1, fp);
+//    printf("offset of snd0.at3: 0x%04x\n", offst);
+    int snd0_offst = offst;
+    
+    fseek(fp, 32, SEEK_SET);
+    fread(&offst, sizeof(int32_t), 1, fp);
+//    printf("offset of PSP data: 0x%04x\n", offst);
+    
+    fseek(fp, 36, SEEK_SET);
+    fread(&offst, sizeof(int32_t), 1, fp);
+//    printf("offset of PSAR data: 0x%04x\n", offst);
+
+    if (snd0_offst - pic1_offst > 0) {
+        int size = snd0_offst - pic1_offst;
+        fseek(fp, pic1_offst, SEEK_SET);
+        char* pngdata = (char*) malloc(size);
+        fread(pngdata, size, 1, fp);
+
+        NSData * nsdata = [NSData dataWithBytesNoCopy:pngdata length:size freeWhenDone:YES];
+        CGDataProviderRef imgdata_provider = CGDataProviderCreateWithCFData((__bridge CFDataRef) nsdata);
+        CGImageRef image = CGImageCreateWithPNGDataProvider(imgdata_provider, NULL, true, kCGRenderingIntentDefault);
+        
+        return image;
+    }
+    
+    return NULL;
+}
+
 /* -----------------------------------------------------------------------------
    Generate a preview for file
 
@@ -55,6 +116,8 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
     
     if (CFStringHasSuffix(fpath, CFSTR(".iso")) || CFStringHasSuffix(fpath, CFSTR(".ISO"))) {
         image = PSPISOPreview(fpath);
+    } else if (CFStringHasSuffix(fpath, CFSTR(".pbp")) || CFStringHasSuffix(fpath, CFSTR(".PBP"))) {
+        image = PBPPreview(fpath);
     }
     
     if (image == NULL || QLPreviewRequestIsCancelled(preview)) {

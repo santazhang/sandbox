@@ -113,40 +113,55 @@ CGImageRef PBPThumbnail(CFStringRef fpath) {
 
     char magic[4];
     fread(magic, 1, 4, fp);
-    printf("magic: 0x%02x 0x%02x 0x%02x 0x%02x ('\\%d%c%c%c')\n",
-           magic[0], magic[1], magic[2], magic[3],
-           magic[0], magic[1], magic[2], magic[3]);
+//    printf("magic: 0x%02x 0x%02x 0x%02x 0x%02x ('\\%d%c%c%c')\n",
+//           magic[0], magic[1], magic[2], magic[3],
+//           magic[0], magic[1], magic[2], magic[3]);
 
     int32_t offst;
     fseek(fp, 8, SEEK_SET);
     fread(&offst, sizeof(int32_t), 1, fp);
-    printf("offset of param.sfo: 0x%04x\n", offst);
+//    printf("offset of param.sfo: 0x%04x\n", offst);
 
+    
     fseek(fp, 12, SEEK_SET);
     fread(&offst, sizeof(int32_t), 1, fp);
-    printf("offset of icon0.png: 0x%04x\n", offst);
+//    printf("offset of icon0.png: 0x%04x\n", offst);
+    int icon0_offst = offst;
 
     fseek(fp, 16, SEEK_SET);
     fread(&offst, sizeof(int32_t), 1, fp);
-    printf("offset of icon1.pmf: 0x%04x\n", offst);
+//    printf("offset of icon1.pmf: 0x%04x\n", offst);
+    int icon1_offst = offst;
 
     fseek(fp, 24, SEEK_SET);
     fread(&offst, sizeof(int32_t), 1, fp);
-    printf("offset of pic1.png: 0x%04x\n", offst);
+//    printf("offset of pic1.png: 0x%04x\n", offst);
 
     fseek(fp, 28, SEEK_SET);
     fread(&offst, sizeof(int32_t), 1, fp);
-    printf("offset of snd0.at3: 0x%04x\n", offst);
+//    printf("offset of snd0.at3: 0x%04x\n", offst);
 
     fseek(fp, 32, SEEK_SET);
     fread(&offst, sizeof(int32_t), 1, fp);
-    printf("offset of PSP data: 0x%04x\n", offst);
+//    printf("offset of PSP data: 0x%04x\n", offst);
 
     fseek(fp, 36, SEEK_SET);
     fread(&offst, sizeof(int32_t), 1, fp);
-    printf("offset of PSAR data: 0x%04x\n", offst);
+//    printf("offset of PSAR data: 0x%04x\n", offst);
+    
+    if (icon1_offst - icon0_offst > 0) {
+        int size = icon1_offst - icon0_offst;
+        fseek(fp, icon0_offst, SEEK_SET);
+        char* pngdata = (char*) malloc(size);
+        fread(pngdata, size, 1, fp);
+        
+        NSData * nsdata = [NSData dataWithBytesNoCopy:pngdata length:size freeWhenDone:YES];
+        CGDataProviderRef imgdata_provider = CGDataProviderCreateWithCFData((__bridge CFDataRef) nsdata);
+        CGImageRef image = CGImageCreateWithPNGDataProvider(imgdata_provider, NULL, true, kCGRenderingIntentDefault);
+        
+        return image;
+    }
 
-    // TODO: get the image
     return NULL;
 }
 
