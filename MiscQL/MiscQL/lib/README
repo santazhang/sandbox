@@ -1,6 +1,2 @@
-libcdio-0.90
-    modify lib/driver/utf8.c, rename iconv* functions to libiconv*
-    ./configure --without-libiconv-prefix
-
 libiconv-1.14
     ./configure --enable-static
