@@ -7,21 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AF51254F170B65C900947E19 /* cdio.h in Headers */ = {isa = PBXBuildFile; fileRef = AF51253E170B65C900947E19 /* cdio.h */; };
-		AF512550170B65C900947E19 /* cdtext.h in Headers */ = {isa = PBXBuildFile; fileRef = AF51253F170B65C900947E19 /* cdtext.h */; };
-		AF512551170B65C900947E19 /* device.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512540170B65C900947E19 /* device.h */; };
-		AF512552170B65C900947E19 /* disc.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512541170B65C900947E19 /* disc.h */; };
-		AF512553170B65C900947E19 /* ds.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512542170B65C900947E19 /* ds.h */; };
-		AF512554170B65C900947E19 /* iso9660.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512543170B65C900947E19 /* iso9660.h */; };
-		AF512555170B65C900947E19 /* posix.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512544170B65C900947E19 /* posix.h */; };
-		AF512556170B65C900947E19 /* read.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512545170B65C900947E19 /* read.h */; };
-		AF512557170B65C900947E19 /* rock.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512546170B65C900947E19 /* rock.h */; };
-		AF512558170B65C900947E19 /* sector.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512547170B65C900947E19 /* sector.h */; };
-		AF512559170B65C900947E19 /* track.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512548170B65C900947E19 /* track.h */; };
-		AF51255A170B65C900947E19 /* types.h in Headers */ = {isa = PBXBuildFile; fileRef = AF512549170B65C900947E19 /* types.h */; };
-		AF51255B170B65C900947E19 /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = AF51254A170B65C900947E19 /* version.h */; };
-		AF51255C170B65C900947E19 /* xa.h in Headers */ = {isa = PBXBuildFile; fileRef = AF51254B170B65C900947E19 /* xa.h */; };
-		AF51256B170B69B500947E19 /* libiconv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AF51256A170B69B500947E19 /* libiconv.a */; };
+		AF6BD6B3176E52A10077609B /* common.h in Headers */ = {isa = PBXBuildFile; fileRef = AF6BD6B2176E52A10077609B /* common.h */; };
+		AF6BD6B5176E52E10077609B /* common.m in Sources */ = {isa = PBXBuildFile; fileRef = AF6BD6B4176E52E10077609B /* common.m */; };
 		AF805157170D0DB400C7C5F9 /* isofetch.c in Sources */ = {isa = PBXBuildFile; fileRef = AF805156170D0DB400C7C5F9 /* isofetch.c */; };
 		AFF1C74716E0405D00C2FC65 /* QuickLook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AFF1C74616E0405D00C2FC65 /* QuickLook.framework */; };
 		AFF1C74916E0405D00C2FC65 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AFF1C74816E0405D00C2FC65 /* ApplicationServices.framework */; };
@@ -49,21 +36,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		AF51253E170B65C900947E19 /* cdio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cdio.h; sourceTree = "<group>"; };
-		AF51253F170B65C900947E19 /* cdtext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cdtext.h; sourceTree = "<group>"; };
-		AF512540170B65C900947E19 /* device.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = device.h; sourceTree = "<group>"; };
-		AF512541170B65C900947E19 /* disc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = disc.h; sourceTree = "<group>"; };
-		AF512542170B65C900947E19 /* ds.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ds.h; sourceTree = "<group>"; };
-		AF512543170B65C900947E19 /* iso9660.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iso9660.h; sourceTree = "<group>"; };
-		AF512544170B65C900947E19 /* posix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = posix.h; sourceTree = "<group>"; };
-		AF512545170B65C900947E19 /* read.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = read.h; sourceTree = "<group>"; };
-		AF512546170B65C900947E19 /* rock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rock.h; sourceTree = "<group>"; };
-		AF512547170B65C900947E19 /* sector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sector.h; sourceTree = "<group>"; };
-		AF512548170B65C900947E19 /* track.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = track.h; sourceTree = "<group>"; };
-		AF512549170B65C900947E19 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
-		AF51254A170B65C900947E19 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
-		AF51254B170B65C900947E19 /* xa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xa.h; sourceTree = "<group>"; };
-		AF51256A170B69B500947E19 /* libiconv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libiconv.a; sourceTree = "<group>"; };
+		AF6BD6B2176E52A10077609B /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
+		AF6BD6B4176E52E10077609B /* common.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = common.m; sourceTree = "<group>"; };
 		AF805156170D0DB400C7C5F9 /* isofetch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = isofetch.c; sourceTree = "<group>"; };
 		AFF1C74316E0405D00C2FC65 /* MiscQL.qlgenerator */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MiscQL.qlgenerator; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFF1C74616E0405D00C2FC65 /* QuickLook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLook.framework; path = System/Library/Frameworks/QuickLook.framework; sourceTree = SDKROOT; };
@@ -89,50 +63,12 @@
 				AFF1C76316E062BE00C2FC65 /* Cocoa.framework in Frameworks */,
 				AFF1C74B16E0405D00C2FC65 /* CoreServices.framework in Frameworks */,
 				AFF1C74D16E0405D00C2FC65 /* CoreFoundation.framework in Frameworks */,
-				AF51256B170B69B500947E19 /* libiconv.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		AF51253C170B65C900947E19 /* include */ = {
-			isa = PBXGroup;
-			children = (
-				AF51253D170B65C900947E19 /* cdio */,
-			);
-			path = include;
-			sourceTree = "<group>";
-		};
-		AF51253D170B65C900947E19 /* cdio */ = {
-			isa = PBXGroup;
-			children = (
-				AF51253E170B65C900947E19 /* cdio.h */,
-				AF51253F170B65C900947E19 /* cdtext.h */,
-				AF512540170B65C900947E19 /* device.h */,
-				AF512541170B65C900947E19 /* disc.h */,
-				AF512542170B65C900947E19 /* ds.h */,
-				AF512543170B65C900947E19 /* iso9660.h */,
-				AF512544170B65C900947E19 /* posix.h */,
-				AF512545170B65C900947E19 /* read.h */,
-				AF512546170B65C900947E19 /* rock.h */,
-				AF512547170B65C900947E19 /* sector.h */,
-				AF512548170B65C900947E19 /* track.h */,
-				AF512549170B65C900947E19 /* types.h */,
-				AF51254A170B65C900947E19 /* version.h */,
-				AF51254B170B65C900947E19 /* xa.h */,
-			);
-			path = cdio;
-			sourceTree = "<group>";
-		};
-		AF51254C170B65C900947E19 /* lib */ = {
-			isa = PBXGroup;
-			children = (
-				AF51256A170B69B500947E19 /* libiconv.a */,
-			);
-			path = lib;
-			sourceTree = "<group>";
-		};
 		AFF1C73816E0405D00C2FC65 = {
 			isa = PBXGroup;
 			children = (
@@ -165,12 +101,12 @@
 		AFF1C74E16E0405D00C2FC65 /* MiscQL */ = {
 			isa = PBXGroup;
 			children = (
-				AF51253C170B65C900947E19 /* include */,
-				AF51254C170B65C900947E19 /* lib */,
 				AFF1C75416E0405D00C2FC65 /* GenerateThumbnailForURL.m */,
 				AFF1C75616E0405D00C2FC65 /* GeneratePreviewForURL.m */,
 				AF805156170D0DB400C7C5F9 /* isofetch.c */,
 				AFF1C75816E0405D00C2FC65 /* main.c */,
+				AF6BD6B2176E52A10077609B /* common.h */,
+				AF6BD6B4176E52E10077609B /* common.m */,
 				AFF1C74F16E0405D00C2FC65 /* Supporting Files */,
 			);
 			path = MiscQL;
@@ -193,20 +129,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AF51254F170B65C900947E19 /* cdio.h in Headers */,
-				AF512550170B65C900947E19 /* cdtext.h in Headers */,
-				AF512551170B65C900947E19 /* device.h in Headers */,
-				AF512552170B65C900947E19 /* disc.h in Headers */,
-				AF512553170B65C900947E19 /* ds.h in Headers */,
-				AF512554170B65C900947E19 /* iso9660.h in Headers */,
-				AF512555170B65C900947E19 /* posix.h in Headers */,
-				AF512556170B65C900947E19 /* read.h in Headers */,
-				AF512557170B65C900947E19 /* rock.h in Headers */,
-				AF512558170B65C900947E19 /* sector.h in Headers */,
-				AF512559170B65C900947E19 /* track.h in Headers */,
-				AF51255A170B65C900947E19 /* types.h in Headers */,
-				AF51255B170B65C900947E19 /* version.h in Headers */,
-				AF51255C170B65C900947E19 /* xa.h in Headers */,
+				AF6BD6B3176E52A10077609B /* common.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -289,6 +212,7 @@
 				AFF1C75716E0405D00C2FC65 /* GeneratePreviewForURL.m in Sources */,
 				AFF1C75916E0405D00C2FC65 /* main.c in Sources */,
 				AF805157170D0DB400C7C5F9 /* isofetch.c in Sources */,
+				AF6BD6B5176E52E10077609B /* common.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
