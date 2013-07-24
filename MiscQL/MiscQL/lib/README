@@ -1,2 +1,0 @@
-libiconv-1.14
-    ./configure --enable-static

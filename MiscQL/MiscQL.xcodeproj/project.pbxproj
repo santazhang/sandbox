@@ -303,10 +303,7 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/$(PROJECT_NAME)/include";
 				INFOPLIST_FILE = "MiscQL/MiscQL-Info.plist";
 				INSTALL_PATH = /Library/QuickLook;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/MiscQL/lib\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_CFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "";
@@ -328,10 +325,7 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/$(PROJECT_NAME)/include";
 				INFOPLIST_FILE = "MiscQL/MiscQL-Info.plist";
 				INSTALL_PATH = /Library/QuickLook;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/MiscQL/lib\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_CFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "";
