@@ -25,8 +25,6 @@ static PyMethodDef TinyMathMethods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-extern "C" {
-
 PyMODINIT_FUNC inittinymathpy(void) {
     PyObject* m;
     m = Py_InitModule("tinymathpy", TinyMathMethods);
@@ -34,4 +32,3 @@ PyMODINIT_FUNC inittinymathpy(void) {
         return;
 }
 
-}
