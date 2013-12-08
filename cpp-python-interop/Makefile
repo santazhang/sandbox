@@ -1,7 +1,7 @@
 all: tinymathpy.so cctest
 
 tinymath.o: tinymath.cc tinymath.h
-	g++ -c tinymath.cc
+	g++ -c tinymath.cc -pthread -lpthread
 
 tinymath-py.o: tinymath-py.cc
 	g++ -fPIC -c $(shell python-config --includes) tinymath-py.cc
