@@ -28,7 +28,7 @@ static void* mt_callback(void* arg) {
     std::string s = "from C";
     PyObject* params = Py_BuildValue("(s)", &s[0]);
     PyObject_CallObject(func, params);
-    //Py_XDECREF(func);
+    Py_XDECREF(func);
 
     pthread_exit(NULL);
     return NULL;
