@@ -34,15 +34,16 @@ static PyObject* tinymath_gcd(PyObject* self, PyObject* args) {
 }
 
 static void* mt_callback(void* arg) {
-    GILHelper gil_helper;
-    PyObject* func = (PyObject *) arg;
+    {
+        GILHelper gil_helper;
+        PyObject* func = (PyObject *) arg;
 
-    Py_XINCREF(func);
-    std::string s = "from C";
-    PyObject* params = Py_BuildValue("(s)", &s[0]);
-    PyObject_CallObject(func, params);
-    Py_XDECREF(func);
-
+        Py_XINCREF(func);
+        std::string s = "from C";
+        PyObject* params = Py_BuildValue("(s)", &s[0]);
+        PyObject_CallObject(func, params);
+        Py_XDECREF(func);
+    }
     pthread_exit(NULL);
     return NULL;
 }
