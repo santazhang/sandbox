@@ -7,7 +7,19 @@
 
 using namespace tinymath;
 
+struct GILHelper {
+  PyGILState_STATE gstate;
+  GILHelper() {
+    gstate = PyGILState_Ensure();
+  }
+
+  ~GILHelper() {
+    PyGILState_Release(gstate);
+  }
+};
+
 static PyObject* tinymath_gcd(PyObject* self, PyObject* args) {
+    GILHelper gil_helper;
     int a;
     int b;
     int result;
@@ -22,6 +34,7 @@ static PyObject* tinymath_gcd(PyObject* self, PyObject* args) {
 }
 
 static void* mt_callback(void* arg) {
+    GILHelper gil_helper;
     PyObject* func = (PyObject *) arg;
 
     Py_XINCREF(func);
@@ -35,6 +48,8 @@ static void* mt_callback(void* arg) {
 }
 
 static PyObject* tinymath_mt_callback(PyObject* self, PyObject* args) {
+    GILHelper gil_helper;
+
     PyObject* func;
     if (!PyArg_ParseTuple(args, "O", &func))
         return NULL;
@@ -56,6 +71,8 @@ static PyMethodDef TinyMathMethods[] = {
 };
 
 PyMODINIT_FUNC inittinymathpy(void) {
+    GILHelper gil_helper;
+
     PyObject* m;
     m = Py_InitModule("tinymathpy", TinyMathMethods);
     if (m == NULL)
