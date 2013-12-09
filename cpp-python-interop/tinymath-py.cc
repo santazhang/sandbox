@@ -55,12 +55,12 @@ static PyObject* tinymath_mt_callback(PyObject* self, PyObject* args) {
     if (!PyArg_ParseTuple(args, "O", &func))
         return NULL;
 
+    Py_XINCREF(func);
+
     for (int i = 0; i < 100; i++) {
         pthread_t th;
         pthread_create(&th, NULL, mt_callback, func);
     }
-
-    mt_callback(func);
 
     Py_RETURN_NONE;
 }
