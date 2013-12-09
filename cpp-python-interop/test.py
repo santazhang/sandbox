@@ -12,5 +12,6 @@ def f(v):
 
 print tinymathpy.mt_callback(f)
 
-for i in range(100):
+for i in range(5):
     time.sleep(1)
+    print i
