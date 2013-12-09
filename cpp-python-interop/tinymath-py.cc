@@ -72,6 +72,7 @@ static PyMethodDef TinyMathMethods[] = {
 };
 
 PyMODINIT_FUNC inittinymathpy(void) {
+    PyEval_InitThreads();
     GILHelper gil_helper;
 
     PyObject* m;
