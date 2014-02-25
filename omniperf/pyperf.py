@@ -48,7 +48,7 @@ while True:
     if now - start > 1.0:
         break
     for i in range(10000):
-        d[ctr]
+        d[0]
     ctr += 10000
 
 print "dict[key] (int-int) lookup {:,.0f}/s".format(ctr / (now - start))
