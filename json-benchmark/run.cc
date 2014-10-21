@@ -7,6 +7,8 @@
 #include "picojson.h"
 #include "yajl/yajl_tree.h"
 #include "rapidjson/document.h"
+#include "json/json.h"
+#include "jansson.h"
 
 using namespace std;
 
@@ -70,6 +72,42 @@ int main() {
             printf("round %d\n", i);
             rapidjson::Document d;
             d.Parse(superbig_json.data());
+        }
+        gettimeofday(&finish, nullptr);
+        double elapsed = finish.tv_sec - start.tv_sec + (finish.tv_usec - start.tv_usec) / 1000.0 / 1000.0;
+        printf("per round: %lf sec\n", elapsed / n_rounds);
+        printf("---\n\n");
+    }
+
+    {
+        // jsoncpp
+        printf("*** jsoncpp ***\n");
+        int n_rounds = 3;
+        struct timeval start, finish;
+        gettimeofday(&start, nullptr);
+        for (int i = 0; i < n_rounds; i++) {
+            printf("round %d\n", i);
+            Json::Reader reader;
+            Json::Value root;
+            reader.parse(superbig_json, root);
+        }
+        gettimeofday(&finish, nullptr);
+        double elapsed = finish.tv_sec - start.tv_sec + (finish.tv_usec - start.tv_usec) / 1000.0 / 1000.0;
+        printf("per round: %lf sec\n", elapsed / n_rounds);
+        printf("---\n\n");
+    }
+    
+    {
+        // jansson
+        printf("*** jansson ***\n");
+        int n_rounds = 3;
+        struct timeval start, finish;
+        gettimeofday(&start, nullptr);
+        for (int i = 0; i < n_rounds; i++) {
+            printf("round %d\n", i);
+            json_t *root;
+            json_error_t error;
+            root = json_loads(superbig_json.data(), 0, &error);
         }
         gettimeofday(&finish, nullptr);
         double elapsed = finish.tv_sec - start.tv_sec + (finish.tv_usec - start.tv_usec) / 1000.0 / 1000.0;
