@@ -8,7 +8,7 @@ run: run.cc
 		-Lyajl-2.1.0/build/yajl-2.1.0/lib -lyajl_s \
 		-L jsoncpp-7bd75b0/build/lib -ljsoncpp \
 		-L jansson-2.7/build/lib -ljansson \
-		-o run
+		-O3 -o run
 
 clean:
 	rm -f run
