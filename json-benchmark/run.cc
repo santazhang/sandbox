@@ -61,7 +61,7 @@ int main() {
         printf("per round: %lf sec\n", elapsed / n_rounds);
         printf("---\n\n");
     }
-    
+
     {
         // rapidjson
         printf("*** rapidjson ***\n");
@@ -71,7 +71,25 @@ int main() {
         for (int i = 0; i < n_rounds; i++) {
             printf("round %d\n", i);
             rapidjson::Document d;
-            d.Parse(superbig_json.data());
+            d.Parse(&superbig_json[0]);
+        }
+        gettimeofday(&finish, NULL);
+        double elapsed = finish.tv_sec - start.tv_sec + (finish.tv_usec - start.tv_usec) / 1000.0 / 1000.0;
+        printf("per round: %lf sec\n", elapsed / n_rounds);
+        printf("---\n\n");
+    }
+
+    {
+        // rapidjson
+        printf("*** rapidjson(insitu) ***\n");
+        int n_rounds = 3;
+        struct timeval start, finish;
+        gettimeofday(&start, NULL);
+        for (int i = 0; i < n_rounds; i++) {
+            printf("round %d\n", i);
+            rapidjson::Document d;
+            std::string json_copy(superbig_json);
+            d.ParseInsitu(&json_copy[0]);
         }
         gettimeofday(&finish, NULL);
         double elapsed = finish.tv_sec - start.tv_sec + (finish.tv_usec - start.tv_usec) / 1000.0 / 1000.0;
