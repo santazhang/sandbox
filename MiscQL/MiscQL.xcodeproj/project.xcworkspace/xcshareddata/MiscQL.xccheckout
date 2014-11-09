@@ -11,17 +11,17 @@
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>0B9598A33085EC7D751F47DCAE1DB9D94AFF2EED</key>
-		<string>ssh://github.com/santazhang/sandbox.git</string>
+		<string>github.com:santazhang/sandbox.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>MiscQL/MiscQL.xcodeproj/project.xcworkspace</string>
+	<string>MiscQL/MiscQL.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>0B9598A33085EC7D751F47DCAE1DB9D94AFF2EED</key>
 		<string>../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>ssh://github.com/santazhang/sandbox.git</string>
+	<string>github.com:santazhang/sandbox.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
