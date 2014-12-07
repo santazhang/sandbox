@@ -9,7 +9,6 @@ func main() {
 	const loop_n = 1000 * 1000
 	counter := 0
 	start := time.Now()
-	crap_sum := 0
 	for counter < loop_n {
 		counter++
 	}
