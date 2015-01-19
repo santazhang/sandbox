@@ -13,7 +13,7 @@ class varint(object):
 
     def __init__(self, value=0):
         """Constructor"""
-        assert -2**63 <= value and value < 2**63
+#        assert -2**63 <= value and value < 2**63
         self.v = value
 
     def value(self):
