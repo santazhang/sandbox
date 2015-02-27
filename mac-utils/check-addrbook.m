@@ -1,6 +1,5 @@
 //
-//  main.m
-//  addressbookkeeper
+//  check-addrbook.m
 //
 //  Created by Santa Zhang on 11/11/12.
 //  Copyright (c) 2012 Santa Zhang. All rights reserved.
