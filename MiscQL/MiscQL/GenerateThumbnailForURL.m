@@ -36,7 +36,7 @@ CGImageRef PSPISOThumbnail(CFStringRef fpath) {
                                          NULL,
                                          true,
                                          kCGRenderingIntentDefault);
-
+    CGDataProviderRelease(imgdata_provider);
     return image;
 }
 
@@ -75,7 +75,7 @@ CGImageRef PBPThumbnail(CFStringRef fpath) {
                                              NULL,
                                              true,
                                              kCGRenderingIntentDefault);
-
+        CGDataProviderRelease(imgdata_provider);
         return image;
     }
     fclose(fp);
@@ -167,6 +167,7 @@ OSStatus GenerateThumbnailForURL(void *thisInterface,
     CFStringRef fpath = CFURLCopyFileSystemPath(url, kCFURLPOSIXPathStyle);
 
     if (QLThumbnailRequestIsCancelled(thumbnail)) {
+        CFRelease(fpath);
         return noErr;
     }
 
@@ -175,6 +176,7 @@ OSStatus GenerateThumbnailForURL(void *thisInterface,
     if (CFStringHasSuffix(fpath, CFSTR(".nds")) ||
         CFStringHasSuffix(fpath, CFSTR(".NDS"))) {
         image = NDSThumbnail(fpath);
+        CGImageRetain(image);
     } else if (CFStringHasSuffix(fpath, CFSTR(".pbp")) ||
                CFStringHasSuffix(fpath, CFSTR(".PBP"))) {
         image = PBPThumbnail(fpath);
@@ -183,7 +185,13 @@ OSStatus GenerateThumbnailForURL(void *thisInterface,
         image = PSPISOThumbnail(fpath);
     }
 
-    if (image == NULL || QLThumbnailRequestIsCancelled(thumbnail)) {
+    if (image == NULL) {
+        CFRelease(fpath);
+        return noErr;
+    }
+    if (QLThumbnailRequestIsCancelled(thumbnail)) {
+        CGImageRelease(image);
+        CFRelease(fpath);
         return noErr;
     }
 
@@ -200,6 +208,8 @@ OSStatus GenerateThumbnailForURL(void *thisInterface,
 
     QLThumbnailRequestSetImage(thumbnail, new_image, NULL);
     CGImageRelease(new_image);
+    CGImageRelease(image);
+    CFRelease(fpath);
 
     return noErr;
 }

@@ -33,7 +33,7 @@ CGImageRef PSPISOPreview(CFStringRef fpath) {
                                          NULL,
                                          true,
                                          kCGRenderingIntentDefault);
-
+    CGDataProviderRelease(imgdata_provider);
     return image;
 }
 
@@ -77,7 +77,7 @@ CGImageRef PBPPreview(CFStringRef fpath) {
                                              NULL,
                                              true,
                                              kCGRenderingIntentDefault);
-
+        CGDataProviderRelease(imgdata_provider);
         return image;
     }
     fclose(fp);
@@ -94,6 +94,7 @@ OSStatus GeneratePreviewForURL(void *thisInterface,
     CFStringRef fpath = CFURLCopyFileSystemPath(url, kCFURLPOSIXPathStyle);
 
     if (QLPreviewRequestIsCancelled(preview)) {
+        CFRelease(fpath);
         return noErr;
     }
 
@@ -107,7 +108,13 @@ OSStatus GeneratePreviewForURL(void *thisInterface,
         image = PBPPreview(fpath);
     }
 
-    if (image == NULL || QLPreviewRequestIsCancelled(preview)) {
+    if (image == NULL) {
+        CFRelease(fpath);
+        return noErr;
+    }
+    if (QLPreviewRequestIsCancelled(preview)) {
+        CGImageRelease(image);
+        CFRelease(fpath);
         return noErr;
     }
 
@@ -131,6 +138,8 @@ OSStatus GeneratePreviewForURL(void *thisInterface,
     }
 
     CGImageRelease(new_image);
+    CGImageRelease(image);
+    CFRelease(fpath);
 
     return noErr;
 }
