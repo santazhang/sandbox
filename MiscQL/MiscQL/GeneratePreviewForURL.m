@@ -5,11 +5,16 @@
 
 #include "common.h"
 
-OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview, CFURLRef url, CFStringRef contentTypeUTI, CFDictionaryRef options);
+OSStatus GeneratePreviewForURL(void *thisInterface,
+                               QLPreviewRequestRef preview,
+                               CFURLRef url,
+                               CFStringRef contentTypeUTI,
+                               CFDictionaryRef options);
 void CancelPreviewGeneration(void *thisInterface, QLPreviewRequestRef preview);
 
+
 CGImageRef PSPISOPreview(CFStringRef fpath) {
-    char * fpath_cstr = MYCFStringCopyUTF8String(fpath);
+    char* fpath_cstr = MYCFStringCopyUTF8String(fpath);
     int datalen = -1;
     char* pngdata = isofetch(fpath_cstr, "PSP_GAME/PIC1.PNG", &datalen);
     free(fpath_cstr);
@@ -18,13 +23,19 @@ CGImageRef PSPISOPreview(CFStringRef fpath) {
         return NULL;
     }
 
-    NSData * nsdata = [NSData dataWithBytesNoCopy:pngdata length:datalen freeWhenDone:YES];
-    CGDataProviderRef imgdata_provider = CGDataProviderCreateWithCFData((__bridge CFDataRef) nsdata);
-    CGImageRef image = CGImageCreateWithPNGDataProvider(imgdata_provider, NULL, true, kCGRenderingIntentDefault);
+    NSData* nsdata = [NSData dataWithBytesNoCopy:pngdata
+                                          length:datalen
+                                    freeWhenDone:YES];
+    CGDataProviderRef imgdata_provider =
+        CGDataProviderCreateWithCFData((__bridge CFDataRef) nsdata);
+    CGImageRef image =
+        CGImageCreateWithPNGDataProvider(imgdata_provider,
+                                         NULL,
+                                         true,
+                                         kCGRenderingIntentDefault);
 
     return image;
 }
-
 
 
 CGImageRef PBPPreview(CFStringRef fpath) {
@@ -56,26 +67,30 @@ CGImageRef PBPPreview(CFStringRef fpath) {
         char* pngdata = (char*) malloc(size);
         fread(pngdata, size, 1, fp);
 
-        NSData * nsdata = [NSData dataWithBytesNoCopy:pngdata length:size freeWhenDone:YES];
-        CGDataProviderRef imgdata_provider = CGDataProviderCreateWithCFData((__bridge CFDataRef) nsdata);
-        CGImageRef image = CGImageCreateWithPNGDataProvider(imgdata_provider, NULL, true, kCGRenderingIntentDefault);
+        NSData* nsdata = [NSData dataWithBytesNoCopy:pngdata
+                                              length:size
+                                        freeWhenDone:YES];
+        CGDataProviderRef imgdata_provider =
+            CGDataProviderCreateWithCFData((__bridge CFDataRef) nsdata);
+        CGImageRef image =
+            CGImageCreateWithPNGDataProvider(imgdata_provider,
+                                             NULL,
+                                             true,
+                                             kCGRenderingIntentDefault);
 
         return image;
     }
-
     fclose(fp);
 
     return NULL;
 }
 
-/* -----------------------------------------------------------------------------
-   Generate a preview for file
 
-   This function's job is to create preview for designated file
-   ----------------------------------------------------------------------------- */
-
-OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview, CFURLRef url, CFStringRef contentTypeUTI, CFDictionaryRef options)
-{
+OSStatus GeneratePreviewForURL(void *thisInterface,
+                               QLPreviewRequestRef preview,
+                               CFURLRef url,
+                               CFStringRef contentTypeUTI,
+                               CFDictionaryRef options) {
     CFStringRef fpath = CFURLCopyFileSystemPath(url, kCFURLPOSIXPathStyle);
 
     if (QLPreviewRequestIsCancelled(preview)) {
@@ -84,9 +99,11 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
 
     CGImageRef image = NULL;
 
-    if (CFStringHasSuffix(fpath, CFSTR(".iso")) || CFStringHasSuffix(fpath, CFSTR(".ISO"))) {
+    if (CFStringHasSuffix(fpath, CFSTR(".iso")) ||
+        CFStringHasSuffix(fpath, CFSTR(".ISO"))) {
         image = PSPISOPreview(fpath);
-    } else if (CFStringHasSuffix(fpath, CFSTR(".pbp")) || CFStringHasSuffix(fpath, CFSTR(".PBP"))) {
+    } else if (CFStringHasSuffix(fpath, CFSTR(".pbp")) ||
+               CFStringHasSuffix(fpath, CFSTR(".PBP"))) {
         image = PBPPreview(fpath);
     }
 
@@ -97,32 +114,28 @@ OSStatus GeneratePreviewForURL(void *thisInterface, QLPreviewRequestRef preview,
     size_t w = CGImageGetWidth(image);
     size_t h = CGImageGetHeight(image);
 
-    @autoreleasepool {
-        CGSize size = CGSizeMake(w, h);
-        CGRect rect = {{0, 0}, {size.width, size.height}};
+    CGSize size = CGSizeMake(w, h);
+    CGRect rect = {{0, 0}, {size.width, size.height}};
 
-        CGContextRef ctx = CreateARGBBitmapContext(size);
-        CGContextDrawImage(ctx, rect, image);
-        CGImageRef new_image = CGBitmapContextCreateImage(ctx);
-        CGContextRelease(ctx);
+    CGContextRef ctx = CreateARGBBitmapContext(size);
+    CGContextDrawImage(ctx, rect, image);
+    CGImageRef new_image = CGBitmapContextCreateImage(ctx);
+    CGContextRelease(ctx);
 
-        ctx = QLPreviewRequestCreateContext(preview, *(CGSize *)&size, false, NULL);
+    ctx = QLPreviewRequestCreateContext(preview, size, false, NULL);
 
-        if(ctx) {
-            CGContextDrawImage(ctx, rect, new_image);
-            QLPreviewRequestFlushContext(preview, ctx);
-            CFRelease(ctx);
-        }
-
-        // new_image
-        CGImageRelease(new_image);
+    if (ctx) {
+        CGContextDrawImage(ctx, rect, new_image);
+        QLPreviewRequestFlushContext(preview, ctx);
+        CFRelease(ctx);
     }
 
+    CGImageRelease(new_image);
 
     return noErr;
 }
 
-void CancelPreviewGeneration(void *thisInterface, QLPreviewRequestRef preview)
-{
+void CancelPreviewGeneration(void *thisInterface,
+                             QLPreviewRequestRef preview) {
     // Implement only if supported
 }

@@ -1344,7 +1344,7 @@ char* isofetch(char* iso_fpath, char* entry_name, int* size) {
                                    data,
                                    p_statbuf->lsn,
                                    block_count);
-
+    free(p_statbuf);
     if (r != block_count * ISO_BLOCKSIZE) {
         free(data);
         iso9660_close(p_iso);

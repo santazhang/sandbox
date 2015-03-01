@@ -1,16 +1,18 @@
 #include "common.h"
 
 
-char * MYCFStringCopyUTF8String(CFStringRef str) {
+char* MYCFStringCopyUTF8String(CFStringRef str) {
     if (str == NULL) {
         return NULL;
     }
     CFIndex len = CFStringGetLength(str);
-    CFIndex max_size = CFStringGetMaximumSizeForEncoding(len, kCFStringEncodingUTF8);
-    char * buf = (char *) malloc(max_size);
+    CFIndex max_size =
+        CFStringGetMaximumSizeForEncoding(len, kCFStringEncodingUTF8);
+    char* buf = (char *) malloc(max_size);
     if (CFStringGetCString(str, buf, max_size, kCFStringEncodingUTF8)) {
         return buf;
     }
+    free(buf);
     return NULL;
 }
 
@@ -19,7 +21,7 @@ char * MYCFStringCopyUTF8String(CFStringRef str) {
 CGContextRef CreateARGBBitmapContext(CGSize size) {
     CGContextRef    context = NULL;
     CGColorSpaceRef colorSpace;
-    void *          bitmapData;
+    void*           bitmapData;
     unsigned long   bitmapByteCount;
     unsigned long   bitmapBytesPerRow;
 
@@ -36,7 +38,7 @@ CGContextRef CreateARGBBitmapContext(CGSize size) {
     // Use the generic RGB color space.
     colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
     if (colorSpace == NULL) {
-        fprintf(stderr, "Error allocating color space\n");
+        fprintf(stderr, "  *** Error allocating color space!\n");
         return NULL;
     }
 
@@ -44,7 +46,7 @@ CGContextRef CreateARGBBitmapContext(CGSize size) {
     // where any drawing to the bitmap context will be rendered.
     bitmapData = malloc(bitmapByteCount);
     if (bitmapData == NULL) {
-        fprintf(stderr, "Memory not allocated!");
+        fprintf(stderr, "  *** Memory not allocated!\n");
         CGColorSpaceRelease(colorSpace);
         return NULL;
     }
@@ -59,10 +61,11 @@ CGContextRef CreateARGBBitmapContext(CGSize size) {
                                     8,  // bits per component
                                     bitmapBytesPerRow,
                                     colorSpace,
-                                    kCGImageAlphaPremultipliedFirst);
+                                    (kCGBitmapAlphaInfoMask &
+                                     kCGImageAlphaPremultipliedFirst));
     if (context == NULL) {
         free(bitmapData);
-        fprintf(stderr, "Context not created!");
+        fprintf(stderr, "  *** Context not created!");
     }
 
     // Make sure and release colorspace before returning

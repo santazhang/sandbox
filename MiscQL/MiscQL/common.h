@@ -18,7 +18,7 @@ char* isofetch(char* iso_fpath, char* entry_name, int* datalen);
 
 
 // common.m
-char * MYCFStringCopyUTF8String(CFStringRef str);
+char* MYCFStringCopyUTF8String(CFStringRef str);
 CGContextRef CreateARGBBitmapContext(CGSize size);
 
 
