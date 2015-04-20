@@ -1,5 +1,0 @@
-def configure(conf):
-    print("CONFIGURE")
-
-def build(bld):
-    print("BUILD")
