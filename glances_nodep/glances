@@ -7,43 +7,33 @@ import pkg_resources
 if (sys.version_info.major, sys.version_info.minor) != (2, 7):
     raise NotImplementedError("Python 2.7 required")
 
-if sys.platform == "darwin":
-    MACOSX = True
-    LINUX = False
-elif sys.platform.startswith('linux'):
-    MACOSX = False
-    LINUX = True
-else:
-    raise NotImplementedError("Unsupported OS: %s" % sys.platform)
-
-BOTTLE_DIR = "bottle-0.12.8"
-GLANCES_DIR = "glances-2.4.2"
-NETIFACES_DIR = "netifaces-0.10.4"
-PSUTIL_DIR = "psutil-3.0.1"
+BOTTLE = "bottle-0.12.8"
+GLANCES = "glances-2.4.2"
+NETIFACES = "netifaces-0.10.4"
+PSUTIL = "psutil-3.0.1"
 
 SCRIPT_ROOT = os.path.abspath(os.path.split(__file__)[0])
 
-sys.path += os.path.join(SCRIPT_ROOT, GLANCES_DIR),
-PSUTIL_ABSPATH = os.path.join(SCRIPT_ROOT, PSUTIL_DIR, "build", "lib." + pkg_resources.get_build_platform() + "-2.7")
-sys.path += PSUTIL_ABSPATH,
-sys.path += os.path.join(SCRIPT_ROOT, BOTTLE_DIR),
-NETIFACES_ABSPATH = os.path.join(SCRIPT_ROOT, NETIFACES_DIR, "build", "lib." + pkg_resources.get_build_platform() + "-2.7")
-sys.path += NETIFACES_ABSPATH,
+sys.path += os.path.join(SCRIPT_ROOT, GLANCES),
+PSUTIL_PATH = os.path.join(SCRIPT_ROOT, PSUTIL, "build", "lib." + pkg_resources.get_build_platform() + "-2.7")
+sys.path += PSUTIL_PATH,
+sys.path += os.path.join(SCRIPT_ROOT, BOTTLE),
+NETIFACES_PATH = os.path.join(SCRIPT_ROOT, NETIFACES, "build", "lib." + pkg_resources.get_build_platform() + "-2.7")
+sys.path += NETIFACES_PATH,
 
 def main():
     os.chdir(SCRIPT_ROOT)
 
-    if not os.path.exists(PSUTIL_ABSPATH):
+    if not os.path.exists(PSUTIL_PATH):
         print "Building psutil"
-        os.system("cd %s; python setup.py build > /dev/null 2>&1" % PSUTIL_DIR)
+        os.system("cd %s; python setup.py build > /dev/null 2>&1" % PSUTIL)
 
-    if not os.path.exists(NETIFACES_ABSPATH):
+    if not os.path.exists(NETIFACES_PATH):
         print "Building netifaces"
-        os.system("cd %s; python setup.py build > /dev/null 2>&1" % NETIFACES_DIR)
+        os.system("cd %s; python setup.py build > /dev/null 2>&1" % NETIFACES)
 
     import glances
     glances.main()
 
 if __name__ == "__main__":
     main()
-    import glances
