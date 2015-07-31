@@ -114,7 +114,7 @@ int main() {
         printf("per round: %lf sec\n", elapsed / n_rounds);
         printf("---\n\n");
     }
-    
+
     {
         // jansson
         printf("*** jansson ***\n");
