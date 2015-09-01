@@ -1,11 +1,19 @@
 #!/bin/bash
 
-mkdir fbstuff
-cd fbstuff
+set -e
+set -x
+
+sudo apt-get install -yq \
+    autoconf-archive \
+    libcap-dev
+
+mkdir devstuff
+cd devstuff
 
 git clone https://github.com/facebook/fbthrift.git
 git clone https://github.com/facebook/wangle.git
 git clone https://github.com/facebook/proxygen.git
+git clone https://github.com/facebook/rocksdb.git
 
 (
     cd fbthrift/thrift
@@ -17,10 +25,9 @@ git clone https://github.com/facebook/proxygen.git
 )
 
 (
-    cd wangle
+    cd wangle/wangle
     cmake .
     make
-    ctest
     sudo make install
 )
 
@@ -31,10 +38,15 @@ git clone https://github.com/facebook/proxygen.git
     make
 )
 
-#(
-#    cd proxygen/proxygen
-#    autoreconf -ivf
-#    ./configure
-#    make
-#    make check
-#)
+(
+    cd proxygen/proxygen
+    autoreconf -ivf
+    ./configure
+    make
+    make check
+)
+
+(
+    cd rocksdb
+    make
+)
