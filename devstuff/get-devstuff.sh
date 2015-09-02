@@ -1,13 +1,56 @@
 #!/bin/bash
 
-set -e
-set -x
+# set -e
+# set -x
 
-sudo apt-get install -yq \
-    autoconf-archive \
+PKGS=(
+    autoconf
+    autoconf-archive
+    bison
+    flex
+    g++
+    git
+    libboost-all-dev
     libcap-dev
+    libdouble-conversion-dev
+    libevent-dev
+    libgoogle-glog-dev
+    libkrb5-dev
+    libnuma-dev
+    libsasl2-dev
+    libsnappy-dev
+    libssl-dev
+    libtool
+    make
+    scons
+    zip
+)
 
-mkdir devstuff
+run_cmd() {
+    echo + $@
+    $@
+}
+
+if ! grep -i "ubuntu 14.04" /etc/issue > /dev/null; then
+    echo "  *** This script only supports Ubuntu 14.04 release."
+    echo "  *** Please manually modify it to make things work."
+    exit 1
+fi
+
+PKGS_TO_INSTALL=""
+
+for pkg in "${PKGS[@]}"
+do
+    if ! dpkg -s $pkg > /dev/null 2>&1; then
+        PKGS_TO_INSTALL="$PKGS_TO_INSTALL $pkg"
+    fi
+done
+
+if [ ! -z "$PKGS_TO_INSTALL" ]; then
+    run_cmd sudo apt-get install $PKGS_TO_INSTALL
+fi
+
+mkdir -p devstuff
 cd devstuff
 
 git clone https://github.com/facebook/fbthrift.git
