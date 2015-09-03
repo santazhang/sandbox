@@ -106,14 +106,15 @@ get_gtest_1_7_0() {
     popd > /dev/null
 }
 
-get_openssl_1_0_2() {
+get_openssl_1_0_1() {
     mkdir -p $ROOT/src
     pushd $ROOT/src > /dev/null
     if [ ! -f $ROOT/bin/openssl ]; then
-        wget https://www.openssl.org/source/openssl-1.0.2d.tar.gz
-        tar xzf openssl-1.0.2d.tar.gz
-        rm -f openssl-1.0.2d.tar.gz
-        cd openssl-1.0.2d
+        wget https://www.openssl.org/source/openssl-1.0.1p.tar.gz
+        tar xzf openssl-1.0.1p.tar.gz
+        rm -f openssl-1.0.1p.tar.gz
+        cd openssl-1.0.1p
+        patch -p1 < $(dirname $0)/openssl-version-script.patch
         CFLAGS=-fPIC ./config shared --prefix=$ROOT
         make && make install
     fi
@@ -206,7 +207,7 @@ get_protobuf() {
     popd > /dev/null
 }
 
-get_openssl_1_0_2
+get_openssl_1_0_1
 get_folly
 get_wangle
 get_fbthrift
