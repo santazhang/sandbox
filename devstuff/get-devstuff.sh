@@ -79,7 +79,6 @@ ROOT=$ROOT
 export LD_LIBRARY_PATH=\$ROOT/lib:\$LD_LIBRARY_PATH
 export LIBRARY_PATH=\$ROOT/lib:\$LIBRARY_PATH
 export CPATH=\$ROOT/include:\$CPATH
-export CMAKE_INSTALL_PREFIX=\$ROOT
 ACTIVATE_SH
 
 . activate.sh
@@ -170,7 +169,8 @@ get_fbthrift() {
         cd thrift
         autoreconf -if
         ./configure --prefix=$ROOT
-        make -j$N_CPU && make install && cd .. && echo $FBTHRIFT_VERSION > VERSION
+        make -j$N_CPU && make install && \
+            cd .. && echo $FBTHRIFT_VERSION > VERSION
     fi
     popd > /dev/null
 }
@@ -184,7 +184,8 @@ get_rocksdb() {
         cd rocksdb
         git checkout $ROCKSDB_VERSION
         rm -rf .git
-        make -j$NCPU && INSTALL_PATH=$ROOT make install && echo $ROCKSDB_VERSION > VERSION
+        make -j$N_CPU && INSTALL_PATH=$ROOT make install && \
+            echo $ROCKSDB_VERSION > VERSION
     fi
     popd > /dev/null
 }
