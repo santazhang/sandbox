@@ -13,6 +13,7 @@ N_CPU=`grep -c ^processor /proc/cpuinfo`
 
 FOLLY_VERSION="823a8c0198d3f72b0cf6fa2efec8ba47d9a4d644"
 WANGLE_VERSION="c1e434b725ca7e8336a0401f4bed548ea1aefc78"
+PROXYGEN_VERSION="080b2b157915f7e970d9c406659ad4f8f9f0bedd"
 FBTHRIFT_VERSION="181044fd78e0a26e77fb519e1cbd10238c2e32d6"
 ROCKSDB_VERSION="b42cd6bed50c576333d1e8010eed55775e19b56c"
 PROTOBUF_VERSION="0087da9d4775f79c67362cc89c653f3a33a9bae2"
@@ -25,6 +26,7 @@ PKGS=(
     flex
     g++
     git
+    gperf
     libboost-all-dev
     libcap-dev
     libdouble-conversion-dev
@@ -143,6 +145,24 @@ get_wangle() {
     popd > /dev/null
 }
 
+get_proxygen() {
+    mkdir -p $ROOT/src
+    pushd $ROOT/src > /dev/null
+    if version_mismatch proxygen/VERSION $PROXYGEN_VERSION; then
+        rm -rf proxygen
+        git clone https://github.com/facebook/proxygen.git
+        cd proxygen
+        git checkout $PROXYGEN_VERSION
+        rm -rf .git
+        cd proxygen
+        autoreconf -if
+        ./configure --prefix=$ROOT
+        make -j$N_CPU && make install && \
+            cd .. && echo $PROXYGEN_VERSION > VERSION
+    fi
+    popd > /dev/null
+}
+
 get_fbthrift() {
     mkdir -p $ROOT/src
     pushd $ROOT/src > /dev/null
@@ -154,7 +174,7 @@ get_fbthrift() {
         rm -rf .git
         cd thrift
         autoreconf -if
-        ./configure --prefix=$ROOT
+        ./configure --prefix=$ROOT --without-python --without-ruby --without-php
         make -j$N_CPU && make install && \
             cd .. && echo $FBTHRIFT_VERSION > VERSION
     fi
@@ -194,6 +214,7 @@ get_protobuf() {
 
 get_folly
 get_wangle
+get_proxygen
 get_fbthrift
 get_rocksdb
 get_protobuf
