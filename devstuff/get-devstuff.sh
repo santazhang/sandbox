@@ -99,24 +99,9 @@ get_gtest_1_7_0() {
     mkdir -p $ROOT/src
     pushd $ROOT/src > /dev/null
     if [ ! -d gtest-1.7.0 ]; then
-        wget https://googletest.googlecode.com/files/gtest-1.7.0.zip
+        wget http://googletest.googlecode.com/files/gtest-1.7.0.zip
         unzip gtest-1.7.0.zip
         rm -f gtest-1.7.0.zip
-    fi
-    popd > /dev/null
-}
-
-get_openssl_1_0_1() {
-    mkdir -p $ROOT/src
-    pushd $ROOT/src > /dev/null
-    if [ ! -f $ROOT/bin/openssl ]; then
-        wget https://www.openssl.org/source/openssl-1.0.1p.tar.gz
-        tar xzf openssl-1.0.1p.tar.gz
-        rm -f openssl-1.0.1p.tar.gz
-        cd openssl-1.0.1p
-        patch -p1 < $(dirname $0)/openssl-version-script.patch
-        CFLAGS=-fPIC ./config shared --prefix=$ROOT
-        make && make install
     fi
     popd > /dev/null
 }
@@ -207,7 +192,6 @@ get_protobuf() {
     popd > /dev/null
 }
 
-get_openssl_1_0_1
 get_folly
 get_wangle
 get_fbthrift
