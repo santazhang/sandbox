@@ -78,6 +78,7 @@ ROOT=$DIR
 
 cat <<ACTIVATE_SH > activate.sh
 ROOT=$ROOT
+export PATH=\$ROOT/bin:\$PATH
 export LD_LIBRARY_PATH=\$ROOT/lib:\$LD_LIBRARY_PATH
 export LIBRARY_PATH=\$ROOT/lib:\$LIBRARY_PATH
 export CPATH=\$ROOT/include:\$CPATH
