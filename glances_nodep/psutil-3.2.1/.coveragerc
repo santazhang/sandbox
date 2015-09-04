@@ -1,0 +1,21 @@
+[report]
+
+include =
+    *psutil*
+
+omit =
+    test/*
+    *setup*
+    *_compat.py*
+
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    if sys.platform.startswith
+    if _WINDOWS:
+    import enum
+    if enum is not None:
+    if enum is None:
+    if has_enums:
+    enum.IntEnum
+    except ImportError:

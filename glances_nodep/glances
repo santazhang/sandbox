@@ -10,7 +10,7 @@ assert sys.version_info[0] == 2
 BOTTLE = "bottle-0.12.8"
 GLANCES = "glances-2.4.2"
 NETIFACES = "netifaces-0.10.4"
-PSUTIL = "psutil-3.0.1"
+PSUTIL = "psutil-3.2.1"
 LOGUTILS = "logutils-0.3.3"
 
 SCRIPT_ROOT = os.path.abspath(os.path.split(__file__)[0])
@@ -34,7 +34,7 @@ def main():
 
     if not os.path.exists(NETIFACES_PATH):
         print "Building netifaces"
-        os.system("cd %s; python setup.py build > /dev/null 2>&1" % NETIFACES)
+        os.system("cd %s; PYTHONPATH=../setuptools-18.2:$PYTHONPATH python setup.py build > /dev/null 2>&1" % NETIFACES)
 
     import glances
     glances.main()
