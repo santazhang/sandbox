@@ -42,12 +42,18 @@ apt_get_install_packages() {
 
 get_rbenv() {
     pushd ~ > /dev/null
-    git clone https://github.com/sstephenson/rbenv.git ~/.rbenv
-    cd ~/.rbenv
-    git pull
-    git clone https://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
-    cd ~/.rbenv/plugins/ruby-build
-    git pull
+    if [ -d ~/.rbenv ]; then
+        cd ~/.rbenv
+        git pull
+    else
+        git clone https://github.com/sstephenson/rbenv.git ~/.rbenv
+    fi
+    if [ -d ~/.rbenv/plugins/ruby-build ]; then
+        cd ~/.rbenv/plugins/ruby-build
+        git pull
+    else
+        git clone https://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
+    fi
     if ! grep "rbenv init" ~/.bashrc > /dev/null 2>&1; then
         echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
         echo 'eval "$(rbenv init -)"' >> ~/.bashrc
@@ -94,12 +100,31 @@ get_linuxbrew() {
     fi
 }
 
+get_pip() {
+    mkdir -p ~/.local
+    cd ~/.local
+    if ! grep "export PATH=.*HOME/.local/bin" ~/.bashrc > /dev/null 2>&1; then
+        echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+        source ~/.bashrc
+    fi
+    wget http://bootstrap.pypa.io/get-pip.py
+    python get-pip.py --user
+    pip install -U setuptools
+}
+
 private_set_ssh_authorized_keys() {
     mkdir -p ~/.ssh
     cd ~/.ssh
-    curl http://www.yzhang.net/aws/authorized_keys >> authorized_keys
-    sort authorized_keys | uniq > authorized_keys~
-    mv authorized_keys~ authorized_keys
+    if [ -f authorized_keys ]; then
+        cp authorized_keys authorized_keys~
+        cp authorized_keys authorized_keys~~
+    fi
+    curl http://www.yzhang.net/aws/authorized_keys >> authorized_keys~~
+    if [ -f id_ras.pub ]; then
+        cat id_ras.pub >> authorized_keys~~
+    fi
+    sort authorized_keys~~ | uniq > authorized_keys
+    rm -f authorized_keys~~
 }
 
 private_get_toolkit() {
@@ -107,14 +132,23 @@ private_get_toolkit() {
     cd ~/.toolkit
     git pull
     ./housekeeper.py dotfiles-link
+    gem install teamocil
 }
-
 
 apt_get_install_packages
 
 get_rbenv
 get_ruby_2_2_3
 get_linuxbrew
+get_pip
+
+gem install bundler
+gem install pry
+
+brew install ag
+
+pip install -U --user ipython
+pip install -U --user numpy
 
 private_set_ssh_authorized_keys
 private_get_toolkit
