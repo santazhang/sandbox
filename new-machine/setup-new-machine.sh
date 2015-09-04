@@ -142,8 +142,7 @@ get_ruby_2_2_3
 get_linuxbrew
 get_pip
 
-gem install bundler
-gem install pry
+gem install bundler pry teamocil
 
 brew install ag
 
