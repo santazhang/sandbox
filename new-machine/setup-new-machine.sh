@@ -15,6 +15,7 @@ apt_get_install_packages() {
     local pkgs=(
         build-essential
         cmake
+        exuberant-ctags
         git
         htop
         libreadline-dev
