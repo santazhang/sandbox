@@ -6,7 +6,7 @@ if ! grep -i "ubuntu 14.04" /etc/issue > /dev/null; then
     exit 1
 fi
 
-export PATH="$HOME/.linuxbrew/bin:$HOME/.rbenv/bin:$HOME/.local/bin:$PATH"
+export PATH="$HOME/.linuxbrew/bin:$HOME/.rbenv/bin:$HOME/.rbenv/bin:$HOME/.rbenv/shims:$HOME/.local/bin:$PATH"
 
 run_cmd() {
     echo + $@
@@ -23,6 +23,7 @@ apt_get_install_packages() {
         libreadline-dev
         libssl-dev
         openssh-server
+        python-dev
         ruby
         tig
         tmux
