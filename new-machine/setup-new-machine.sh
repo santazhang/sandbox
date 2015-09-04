@@ -20,6 +20,7 @@ apt_get_install_packages() {
         htop
         libreadline-dev
         libssl-dev
+        openssl-server
         ruby
         tig
         tmux
@@ -36,7 +37,7 @@ apt_get_install_packages() {
     done
 
     if [ ! -z "$pkgs_to_install" ]; then
-        run_cmd sudo apt-get install $pkgs_to_install
+        run_cmd sudo apt-get -y install $pkgs_to_install
     fi
 }
 
