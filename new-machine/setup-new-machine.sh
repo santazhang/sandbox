@@ -129,9 +129,13 @@ private_set_ssh_authorized_keys() {
 }
 
 private_get_toolkit() {
-    git clone https://github.com/santazhang/toolkit.git ~/.toolkit
-    cd ~/.toolkit
-    git pull
+    if [ -d ~/.toolkit ]; then
+        cd ~/.toolkit
+        git pull
+    else
+        git clone https://github.com/santazhang/toolkit.git ~/.toolkit
+        cd ~/.toolkit
+    fi
     ./housekeeper.py dotfiles-link
     gem install teamocil
 }
