@@ -6,6 +6,8 @@ if ! grep -i "ubuntu 14.04" /etc/issue > /dev/null; then
     exit 1
 fi
 
+export PATH="$HOME/.linuxbrew/bin:$HOME/.rbenv/bin:$HOME/.local/bin:$PATH"
+
 run_cmd() {
     echo + $@
     $@
@@ -58,7 +60,6 @@ get_rbenv() {
     if ! grep "rbenv init" ~/.bashrc > /dev/null 2>&1; then
         echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
         echo 'eval "$(rbenv init -)"' >> ~/.bashrc
-        source ~/.bashrc
     fi
     popd > /dev/null
 }
@@ -87,7 +88,6 @@ get_linuxbrew() {
     fi
     if ! grep "linuxbrew/bin" ~/.bashrc > /dev/null 2>&1; then
         echo 'export PATH=$HOME/.linuxbrew/bin:$PATH' >> ~/.bashrc
-        source ~/.bashrc
     fi
     # bootstrap gcc: https://github.com/Homebrew/linuxbrew/issues/137
     if [ -f /usr/bin/gcc ]; then
@@ -106,7 +106,6 @@ get_pip() {
     cd ~/.local
     if ! grep "export PATH=.*HOME/.local/bin" ~/.bashrc > /dev/null 2>&1; then
         echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
-        source ~/.bashrc
     fi
     wget http://bootstrap.pypa.io/get-pip.py
     python get-pip.py --user
