@@ -147,8 +147,7 @@ gem install pry
 
 brew install ag
 
-pip install -U --user ipython
-pip install -U --user numpy
+pip install -U --user ipython numpy PyYaml requests
 
 private_set_ssh_authorized_keys
 private_get_toolkit
