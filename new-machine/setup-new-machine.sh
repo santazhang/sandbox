@@ -20,7 +20,7 @@ apt_get_install_packages() {
         htop
         libreadline-dev
         libssl-dev
-        openssl-server
+        openssh-server
         ruby
         tig
         tmux
