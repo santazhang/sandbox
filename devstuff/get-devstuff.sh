@@ -17,6 +17,7 @@ PROXYGEN_VERSION="080b2b157915f7e970d9c406659ad4f8f9f0bedd"
 FBTHRIFT_VERSION="181044fd78e0a26e77fb519e1cbd10238c2e32d6"
 ROCKSDB_VERSION="b42cd6bed50c576333d1e8010eed55775e19b56c"
 PROTOBUF_VERSION="0087da9d4775f79c67362cc89c653f3a33a9bae2"
+RE2_VERSION="81aad9ad217fe95de693e2253e7fd510f649e9f2"
 
 PKGS=(
     autoconf
@@ -213,9 +214,24 @@ get_protobuf() {
     popd > /dev/null
 }
 
+get_re2() {
+    mkdir -p $ROOT/src
+    pushd $ROOT/src > /dev/null
+    if version_mismatch re2/VERSION $RE2_VERSION; then
+        rm -rf re2
+        git clone https://github.com/google/re2.git
+        cd re2
+        git checkout $RE2_VERSION
+        rm -rf .git
+        make -j$N_CPU && make install prefix=$ROOT && echo $RE2_VERSION > VERSION
+    fi
+    popd > /dev/null
+}
+
 get_folly
 get_wangle
 get_proxygen
 get_fbthrift
 get_rocksdb
 get_protobuf
+get_re2
