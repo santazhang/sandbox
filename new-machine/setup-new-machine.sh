@@ -149,7 +149,7 @@ get_pip
 
 gem install bundler pry teamocil
 
-brew install ag
+brew install ag ncdu
 
 pip install -U --user ipython numpy PyYaml requests
 
