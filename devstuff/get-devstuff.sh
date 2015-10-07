@@ -100,30 +100,20 @@ version_mismatch() {
     return 0
 }
 
-get_gtest_1_7_0() {
-    mkdir -p $ROOT/src
-    pushd $ROOT/src > /dev/null
-    if [ ! -d gtest-1.7.0 ]; then
-        wget http://googletest.googlecode.com/files/gtest-1.7.0.zip
-        unzip gtest-1.7.0.zip
-        rm -f gtest-1.7.0.zip
-    fi
-    popd > /dev/null
-}
-
 get_gmock_1_7_0() {
     mkdir -p $ROOT/src
     pushd $ROOT/src > /dev/null
-    if [ ! -d gmock-1.7.0 ]; then
+    if [ ! -f gmock-1.7.0.zip ]; then
         wget https://googlemock.googlecode.com/files/gmock-1.7.0.zip
+    fi
+    if [ ! -d gmock-1.7.0 ]; then
         unzip gmock-1.7.0.zip
-        rm -f gmock-1.7.0.zip
     fi
     popd > /dev/null
 }
 
 get_folly() {
-    get_gtest_1_7_0
+    get_gmock_1_7_0
     mkdir -p $ROOT/src
     pushd $ROOT/src > /dev/null
     if version_mismatch folly/VERSION $FOLLY_VERSION; then
@@ -134,7 +124,7 @@ get_folly() {
         rm -rf .git
         cd folly/test
         rm -f gtest-1.7.0
-        ln -s $ROOT/src/gtest-1.7.0 gtest-1.7.0
+        ln -s $ROOT/src/gmock-1.7.0/gtest gtest-1.7.0
         cd ..
         autoreconf -ivf
         CXXFLAGS="-pthread $CXXFLAGS" ./configure --prefix=$ROOT
@@ -154,7 +144,12 @@ get_wangle() {
         git checkout $WANGLE_VERSION
         rm -rf .git
         cd wangle
+        mkdir -p gmock/src/gmock-stamp
+        cd gmock/src
+        ln -s $ROOT/src/gmock-1.7.0.zip gmock-1.7.0.zip
+        cd ../..
         cmake -DCMAKE_INSTALL_PREFIX=$ROOT .
+        cat /dev/null > gmock/src/gmock-stamp/download-gmock.cmake
         make -j$N_CPU && make install && cd .. && echo $WANGLE_VERSION > VERSION
     fi
     popd > /dev/null
@@ -171,6 +166,10 @@ get_proxygen() {
         git checkout $PROXYGEN_VERSION
         rm -rf .git
         cd proxygen
+        mkdir -p lib/test
+        cd lib/test
+        ln -s $ROOT/src/gmock-1.7.0 gmock-1.7.0
+        cd ../..
         autoreconf -if
         ./configure --prefix=$ROOT
         make -j$N_CPU && make install && \
@@ -225,6 +224,7 @@ get_protobuf() {
         cd protobuf
         git checkout $PROTOBUF_VERSION
         rm -rf .git
+        ln -s $ROOT/src/gmock-1.7.0 gmock
         ./autogen.sh
         ./configure --prefix=$ROOT
         make -j$N_CPU && make install && echo $PROTOBUF_VERSION > VERSION
