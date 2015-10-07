@@ -24,6 +24,7 @@ FBTHRIFT_VERSION="181044fd78e0a26e77fb519e1cbd10238c2e32d6"
 ROCKSDB_VERSION="726d9ce1a6eacfdc8c8953cacd24196e1e3780cd"
 PROTOBUF_VERSION="878b603d328697a027264c3f195df9b5981a4129"
 RE2_VERSION="7ef1560b5d4ba5954650e8b9d460e6660bf1e5ea"
+GPERFTOOLS_VERSION="6627f9217d8897b297c6da038cfbcff6a3086cfa"
 
 run_cmd() {
     echo + $@
@@ -276,6 +277,22 @@ get_re2() {
     popd > /dev/null
 }
 
+get_gperftools() {
+    mkdir -p $ROOT/src
+    pushd $ROOT/src > /dev/null
+    if version_mismatch gperftools/VERSION $GPERFTOOLS_VERSION; then
+        rm -rf gperftools
+        git clone https://github.com/gperftools/gperftools.git
+        cd gperftools
+        git checkout $GPERFTOOLS_VERSION
+        rm -rf .git
+        ./autogen.sh
+        ./configure --prefix=$ROOT
+        make -j$N_CPU && make install && echo $GPERFTOOLS_VERSION > VERSION
+    fi
+    popd > /dev/null
+}
+
 get_folly
 
 if [ -z "$MACOSX" ]; then
@@ -290,3 +307,4 @@ fi
 get_rocksdb
 get_protobuf
 get_re2
+get_gperftools
