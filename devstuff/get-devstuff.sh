@@ -110,6 +110,17 @@ get_gtest_1_7_0() {
     popd > /dev/null
 }
 
+get_gmock_1_7_0() {
+    mkdir -p $ROOT/src
+    pushd $ROOT/src > /dev/null
+    if [ ! -d gmock-1.7.0 ]; then
+        wget https://googlemock.googlecode.com/files/gmock-1.7.0.zip
+        unzip gmock-1.7.0.zip
+        rm -f gmock-1.7.0.zip
+    fi
+    popd > /dev/null
+}
+
 get_folly() {
     get_gtest_1_7_0
     mkdir -p $ROOT/src
@@ -132,6 +143,7 @@ get_folly() {
 }
 
 get_wangle() {
+    get_gmock_1_7_0
     mkdir -p $ROOT/src
     pushd $ROOT/src > /dev/null
     if version_mismatch wangle/VERSION $WANGLE_VERSION; then
@@ -148,6 +160,7 @@ get_wangle() {
 }
 
 get_proxygen() {
+    get_gmock_1_7_0
     mkdir -p $ROOT/src
     pushd $ROOT/src > /dev/null
     if version_mismatch proxygen/VERSION $PROXYGEN_VERSION; then
@@ -199,6 +212,7 @@ get_rocksdb() {
 }
 
 get_protobuf() {
+    get_gmock_1_7_0
     mkdir -p $ROOT/src
     pushd $ROOT/src > /dev/null
     if version_mismatch protobuf/VERSION $PROTOBUF_VERSION; then
