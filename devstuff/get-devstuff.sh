@@ -3,13 +3,19 @@
 # set -e
 # set -x
 
-if ! grep -i "ubuntu 14.04" /etc/issue > /dev/null; then
-    echo "  *** This script only supports Ubuntu 14.04 release."
-    echo "  *** Please manually modify it to make things work."
-    exit 1
-fi
+OS_UNAME=`uname`
 
-N_CPU=`grep -c ^processor /proc/cpuinfo`
+if [[ "$OS_UNAME" == "Linux" ]]; then
+    if ! grep -i "ubuntu 14.04" /etc/issue > /dev/null; then
+        echo "  *** This script only supports Ubuntu 14.04 release."
+        echo "  *** Please manually modify it to make things work."
+        exit 1
+    fi
+    N_CPU=`grep -c ^processor /proc/cpuinfo`
+elif [[ "$OS_UNAME" == "Darwin" ]]; then
+    MACOSX=1
+    N_CPU=`sysctl -n hw.ncpu`
+fi
 
 FOLLY_VERSION="800a6af06f7ad195a8e63d484b2f5cd7c19655fd"
 WANGLE_VERSION="c1e434b725ca7e8336a0401f4bed548ea1aefc78"
@@ -19,47 +25,53 @@ ROCKSDB_VERSION="726d9ce1a6eacfdc8c8953cacd24196e1e3780cd"
 PROTOBUF_VERSION="878b603d328697a027264c3f195df9b5981a4129"
 RE2_VERSION="7ef1560b5d4ba5954650e8b9d460e6660bf1e5ea"
 
-PKGS=(
-    autoconf
-    autoconf-archive
-    bison
-    cmake
-    flex
-    g++
-    git
-    gperf
-    libboost-all-dev
-    libcap-dev
-    libdouble-conversion-dev
-    libevent-dev
-    libgoogle-glog-dev
-    libkrb5-dev
-    libnuma-dev
-    libsasl2-dev
-    libsnappy-dev
-    libssl-dev
-    libtool
-    make
-    scons
-    zip
-)
-
 run_cmd() {
     echo + $@
     $@
 }
 
-PKGS_TO_INSTALL=""
+if [ -n "$MACOSX" ]; then
+    run_cmd brew install openssl boost double-conversion automake autoconf \
+        libtool glog gflags libevent snappy autoconf-archive
+    run_cmd brew link --force openssl
+else
+    PKGS=(
+        autoconf
+        autoconf-archive
+        bison
+        cmake
+        flex
+        g++
+        git
+        gperf
+        libboost-all-dev
+        libcap-dev
+        libdouble-conversion-dev
+        libevent-dev
+        libgoogle-glog-dev
+        libkrb5-dev
+        libnuma-dev
+        libsasl2-dev
+        libsnappy-dev
+        libssl-dev
+        libtool
+        make
+        scons
+        zip
+    )
 
-for pkg in "${PKGS[@]}"
-do
-    if ! dpkg -s $pkg > /dev/null 2>&1; then
-        PKGS_TO_INSTALL="$PKGS_TO_INSTALL $pkg"
+    PKGS_TO_INSTALL=""
+
+    for pkg in "${PKGS[@]}"
+    do
+        if ! dpkg -s $pkg > /dev/null 2>&1; then
+            PKGS_TO_INSTALL="$PKGS_TO_INSTALL $pkg"
+        fi
+    done
+
+    if [ ! -z "$PKGS_TO_INSTALL" ]; then
+        run_cmd sudo apt-get install $PKGS_TO_INSTALL
     fi
-done
-
-if [ ! -z "$PKGS_TO_INSTALL" ]; then
-    run_cmd sudo apt-get install $PKGS_TO_INSTALL
 fi
 
 mkdir -p devstuff
@@ -127,8 +139,26 @@ get_folly() {
         ln -s $ROOT/src/gmock-1.7.0/gtest gtest-1.7.0
         cd ..
         autoreconf -ivf
-        CXXFLAGS="-pthread $CXXFLAGS" ./configure --prefix=$ROOT
-        make -j$N_CPU && make install && cd .. && echo $FOLLY_VERSION > VERSION
+
+        if [ -n "$MACOSX" ]; then
+            # Due to MACOSX filesystem being case-insensitive, gcc will include
+            # String.h on `#include <string.h>`. To avoid this wrong behavior,
+            # do out-of-source build.
+            cd $ROOT/src/folly
+            ./folly/configure --prefix=$ROOT
+            mkdir -p build
+            cd build
+            ln -s ../folly/build/generate_escape_tables.py .
+            ln -s ../folly/build/generate_format_tables.py .
+            ln -s ../folly/build/generate_varint_tables.py .
+            cd ../folly
+            ln -s ../folly-config.h .
+            cd ..
+        else
+            CXXFLAGS="-pthread $CXXFLAGS" ./configure --prefix=$ROOT
+        fi
+
+        make -j$N_CPU && make install && cd $ROOT/src/folly && echo $FOLLY_VERSION > VERSION
     fi
     popd > /dev/null
 }
@@ -247,9 +277,16 @@ get_re2() {
 }
 
 get_folly
-get_wangle
-get_proxygen
-get_fbthrift
+
+if [ -z "$MACOSX" ]; then
+    # wangle cannot build on MACOSX because it uses splice() linux syscall
+    get_wangle
+    # proxygen cannot build on MACOSX because it needs libcap (capability api)
+    get_proxygen
+    # fbthrift cannot build on MACOSX because it needs libnuma
+    get_fbthrift
+fi
+
 get_rocksdb
 get_protobuf
 get_re2
