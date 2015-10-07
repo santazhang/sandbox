@@ -11,13 +11,13 @@ fi
 
 N_CPU=`grep -c ^processor /proc/cpuinfo`
 
-FOLLY_VERSION="823a8c0198d3f72b0cf6fa2efec8ba47d9a4d644"
+FOLLY_VERSION="b57fd1bc00e1213b0dc4a8d597c9c7d0cf70402d"
 WANGLE_VERSION="c1e434b725ca7e8336a0401f4bed548ea1aefc78"
 PROXYGEN_VERSION="080b2b157915f7e970d9c406659ad4f8f9f0bedd"
 FBTHRIFT_VERSION="181044fd78e0a26e77fb519e1cbd10238c2e32d6"
-ROCKSDB_VERSION="b42cd6bed50c576333d1e8010eed55775e19b56c"
-PROTOBUF_VERSION="0087da9d4775f79c67362cc89c653f3a33a9bae2"
-RE2_VERSION="81aad9ad217fe95de693e2253e7fd510f649e9f2"
+ROCKSDB_VERSION="f3170b6f6c88d2bb7992e2c4303d2c317af4cfa4"
+PROTOBUF_VERSION="fbabf987e671aa37d11e1163e0175f99b32df5fe"
+RE2_VERSION="08de04ce680858f52933d2554c656e56b891d9ce"
 
 PKGS=(
     autoconf
@@ -83,6 +83,7 @@ export PATH=\$ROOT/bin:\$PATH
 export LD_LIBRARY_PATH=\$ROOT/lib:\$LD_LIBRARY_PATH
 export LIBRARY_PATH=\$ROOT/lib:\$LIBRARY_PATH
 export CPATH=\$ROOT/include:\$CPATH
+export PYTHONPATH=\$ROOT/lib/python:\$PYTHONPATH
 ACTIVATE_SH
 
 . activate.sh
@@ -189,8 +190,11 @@ get_fbthrift() {
         rm -rf .git
         cd thrift
         autoreconf -if
-        ./configure --prefix=$ROOT --without-python --without-ruby --without-php
-        make -j$N_CPU && make install && \
+        ./configure --prefix=$ROOT --without-php
+        make -j$N_CPU && \
+            make install PY_INSTALL_HOME=$ROOT \
+                         PY_INSTALL_ARGS="--home=$ROOT" \
+                         PY_RUN_ENV="PYTHONPATH=$ROOT/lib/python" && \
             cd .. && echo $FBTHRIFT_VERSION > VERSION
     fi
     popd > /dev/null
