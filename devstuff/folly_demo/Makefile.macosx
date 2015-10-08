@@ -1,0 +1,17 @@
+.PHONY: all clean
+
+DEVSTUFF_ROOT=${HOME}/Workspace/devstuff
+
+all: folly_demo
+
+folly_demo: folly_demo.o
+	# if need to build with static gflags:
+	# brew install gflags --with-static
+	g++ ${DEVSTUFF_ROOT}/lib/libfolly.a /usr/local/lib/libdouble-conversion.a /usr/local/lib/libglog.a -lgflags $^ -o $@
+	otool -L $@
+
+folly_demo.o: folly_demo.cc
+	g++ -std=c++0x -stdlib=libc++ -I${DEVSTUFF_ROOT}/include -c $^ -o $@
+
+clean:
+	rm -f *.o folly_demo
