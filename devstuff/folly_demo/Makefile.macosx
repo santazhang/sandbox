@@ -7,7 +7,11 @@ all: folly_demo
 folly_demo: folly_demo.o
 	# if need to build with static gflags:
 	# brew install gflags --with-static
-	g++ ${DEVSTUFF_ROOT}/lib/libfolly.a /usr/local/lib/libdouble-conversion.a /usr/local/lib/libglog.a -lgflags $^ -o $@
+	g++ ${DEVSTUFF_ROOT}/lib/libfolly.a \
+        /usr/local/lib/libboost_system-mt.a \
+        /usr/local/lib/libboost_filesystem-mt.a \
+        /usr/local/lib/libdouble-conversion.a \
+        /usr/local/lib/libglog.a -lgflags $^ -o $@
 	otool -L $@
 
 folly_demo.o: folly_demo.cc

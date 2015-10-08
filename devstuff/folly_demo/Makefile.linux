@@ -5,7 +5,9 @@ DEVSTUFF_ROOT=${HOME}/Workspace/devstuff
 all: folly_demo
 
 folly_demo: folly_demo.o
-	g++ $^ ${DEVSTUFF_ROOT}/lib/libfolly.a /usr/lib/x86_64-linux-gnu/libdouble-conversion.a \
+	g++ $^ ${DEVSTUFF_ROOT}/lib/libfolly.a /usr/lib/x86_64-linux-gnu/libboost_system.a \
+		/usr/lib/x86_64-linux-gnu/libboost_filesystem.a \
+		/usr/lib/x86_64-linux-gnu/libdouble-conversion.a \
 		/usr/lib/x86_64-linux-gnu/libglog.a /usr/lib/x86_64-linux-gnu/libgflags.a -lpthread \
 		/usr/lib/x86_64-linux-gnu/libunwind.a /usr/lib/x86_64-linux-gnu/liblzma.a \
 		-o $@
