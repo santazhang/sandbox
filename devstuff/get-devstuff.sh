@@ -32,7 +32,7 @@ run_cmd() {
 }
 
 if [ -n "$MACOSX" ]; then
-    run_cmd brew install openssl boost double-conversion automake autoconf \
+    run_cmd brew install openssl boost boost-python double-conversion automake autoconf \
         libtool glog gflags libevent snappy autoconf-archive
     run_cmd brew link --force openssl
 else
@@ -125,6 +125,20 @@ get_gmock_1_7_0() {
     popd > /dev/null
 }
 
+get_macosx_hack() {
+    mkdir -p $ROOT/src
+    mkdir -p $ROOT/lib
+    mkdir -p $ROOT/include
+    pushd $ROOT/src > /dev/null
+    rm -rf macosx_hack
+    git clone https://gist.github.com/256985a658d765abed93.git macosx_hack
+    cd macosx_hack
+    make
+    cp pthread_macosx_hack.h numa.h numacompat1.h $ROOT/include
+    cp libnuma.a $ROOT/lib
+    popd > /dev/null
+}
+
 get_folly() {
     get_gmock_1_7_0
     mkdir -p $ROOT/src
@@ -147,6 +161,12 @@ get_folly() {
             # do out-of-source build.
             cd $ROOT/src/folly
             ./folly/configure --prefix=$ROOT
+            # mkdir -p test/gtest-1.7.0
+            # cd test/gtest-1.7.0
+            # ln -s ../../folly/test/gtest-1.7.0/include .
+            # mv src src.orig
+            # ln -s ../../folly/test/gtest-1.7.0/src .
+            # cd ../..
             mkdir -p build
             cd build
             ln -s ../folly/build/generate_escape_tables.py .
@@ -174,6 +194,12 @@ get_wangle() {
         cd wangle
         git checkout $WANGLE_VERSION
         rm -rf .git
+
+        if [ -n "$MACOSX" ]; then
+            cat $ROOT/src/macosx_hack/wangle-on-macosx.patch
+            patch -p1 < $ROOT/src/macosx_hack/wangle-on-macosx.patch
+        fi
+
         cd wangle
         mkdir -p gmock/src/gmock-stamp
         cd gmock/src
@@ -196,6 +222,16 @@ get_proxygen() {
         cd proxygen
         git checkout $PROXYGEN_VERSION
         rm -rf .git
+        if [ -n "$MACOSX" ]; then
+            cat $ROOT/src/macosx_hack/proxygen-on-macosx.patch
+            patch -p1 < $ROOT/src/macosx_hack/proxygen-on-macosx.patch
+            mv proxygen/lib/utils/Time.h proxygen/lib/utils/TimeUtils.h
+            grep -r -l "#include.*/Time\.h" proxygen/ | xargs -n 1 sed -i "" "s/\/Time\.h/\/TimeUtils\.h/g"
+            sed -i "" "s/	Time\.h \\\\/	TimeUtils\.h \\\\/g" proxygen/lib/utils/Makefile.am
+            touch proxygen/lib/ssl/dummy.cpp
+            sed -i "" "s/libproxygenssl_la_SOURCES =/libproxygenssl_la_SOURCES = dummy\.cpp/g" proxygen/lib/ssl/Makefile.am
+            sed -i "" "s/-lboost_thread/-lboost_thread-mt/g" proxygen/configure.ac
+        fi
         cd proxygen
         mkdir -p lib/test
         cd lib/test
@@ -218,6 +254,14 @@ get_fbthrift() {
         cd fbthrift
         git checkout $FBTHRIFT_VERSION
         rm -rf .git
+        if [ -n "$MACOSX" ]; then
+            cat $ROOT/src/macosx_hack/fbthrift-on-macosx.patch
+            patch -p1 < $ROOT/src/macosx_hack/fbthrift-on-macosx.patch
+            sed -i "" "s/<pthread\.h>/<pthread_macosx_hack\.h>/g" thrift/lib/cpp/concurrency/Mutex-impl.h
+            for file in thrift/configure.ac thrift/lib/cpp/Makefile.am thrift/lib/cpp2/Makefile.am thrift/lib/cpp2/test/Makefile.am; do
+                sed -i "" "s/-lboost_thread/-lboost_thread-mt/g" $file
+            done
+        fi
         cd thrift
         autoreconf -if
         ./configure --prefix=$ROOT --without-php
@@ -293,17 +337,14 @@ get_gperftools() {
     popd > /dev/null
 }
 
-get_folly
-
-if [ -z "$MACOSX" ]; then
-    # wangle cannot build on MACOSX because it uses splice() linux syscall
-    get_wangle
-    # proxygen cannot build on MACOSX because it needs libcap (capability api)
-    get_proxygen
-    # fbthrift cannot build on MACOSX because it needs libnuma
-    get_fbthrift
+if [ -n "$MACOSX" ]; then
+    get_macosx_hack
 fi
 
+get_folly
+get_wangle
+get_proxygen
+get_fbthrift
 get_rocksdb
 get_protobuf
 get_re2

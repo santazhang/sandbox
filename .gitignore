@@ -3,6 +3,7 @@
 *.swp
 
 # ignore output files
+*.a
 *.o
 *.out
 *.pdf

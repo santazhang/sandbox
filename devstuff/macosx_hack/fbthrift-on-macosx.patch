@@ -1,0 +1,13 @@
+diff --git a/thrift/lib/cpp/transport/THeader.cpp b/thrift/lib/cpp/transport/THeader.cpp
+index 60115de..691fe45 100644
+--- a/thrift/lib/cpp/transport/THeader.cpp
++++ b/thrift/lib/cpp/transport/THeader.cpp
+@@ -145,7 +145,7 @@ unique_ptr<IOBuf> THeader::removeHttpClient(IOBufQueue* queue, size_t& needed) {
+       void* parserBuf;
+       size_t parserBufLen;
+       parser.getReadBuffer(&parserBuf, &parserBufLen);
+-      size_t toCopyLen = std::min(parserBufLen, remainingDataLen);
++      size_t toCopyLen = std::min(parserBufLen, static_cast<size_t>(remainingDataLen));
+       memcpy(parserBuf, ioBufData + offset, toCopyLen);
+       success |= parser.readDataAvailable(toCopyLen);
+       remainingDataLen -= toCopyLen;
