@@ -11,6 +11,8 @@
 #include <folly/MPMCQueue.h>
 #include <folly/experimental/io/FsUtil.h>
 
+#include <folly/futures/Future.h>
+
 #include <iostream>
 #include <string>
 
@@ -66,6 +68,27 @@ int main() {
         cout << q.sizeGuess() << endl;
         q.blockingWrite(123);
         cout << q.sizeGuess() << endl;
+    }
+
+    {
+        folly::Future<int> fut(234);
+        cout << fut.isReady() << endl;
+        cout << fut.value() << endl;
+
+        using folly::Future;
+        Future<std::string> fut2 = fut.then([](const int& v) -> std::string {
+            cout << "fut done, fut2 ready, v = " << v << endl;
+            return "value for fut2";
+        });
+
+        cout << fut2.value() << endl;
+
+        Future<double> fut3 = fut2.then([] (const std::string& x) -> double {
+            cout << "x = " << x << endl;
+            return 1.987;
+        });
+
+        cout << folly::to<std::string>(fut3.value()) << endl;
     }
 
     return 0;
