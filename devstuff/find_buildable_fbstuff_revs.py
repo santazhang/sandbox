@@ -9,7 +9,7 @@ import re
 import subprocess
 import socket
 
-REV_SINCE = "2015-08-01T12:00:00-08:00"
+REV_SINCE = "2015-09-06T12:00:00-08:00"
 REV_SINCE_TM = calendar.timegm(time.strptime(REV_SINCE[:-6], "%Y-%m-%dT%H:%M:%S"))
 
 if "get-devstuff.sh" not in os.listdir("."):
@@ -36,11 +36,17 @@ def find_revs(github_repo, repo_name):
             r = sp[0]
             t = calendar.timegm(time.strptime(sp[1], time_fmt))
             revs += (t, r),
-    os.chdir("..")
     n_commits = len(revs)
     print("%d commits to %s since %s" % (n_commits, repo_name, REV_SINCE))
     if n_commits == 0:
-        exit(1)
+        with os.popen("git log --pretty='%H/%ad' | head -n 1") as p:
+            for l in p.readlines():
+                sp = l.strip()[:-6].split("/")
+                r = sp[0]
+                t = calendar.timegm(time.strptime(sp[1], time_fmt))
+                revs += (t, r),
+        print("using latest rev for %s: %s" % (repo_name, time.strftime(time_fmt, time.gmtime(revs[0][0]))))
+    os.chdir("..")
     return list(sorted(revs, reverse=True))
 
 folly_revs = find_revs("https://github.com/facebook/folly.git", "folly")
