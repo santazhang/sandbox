@@ -73,7 +73,6 @@ get_grpc() {
         ./configure --prefix=$ROOT
         make && make install
         cd ../..
-        make verify-install prefix=$ROOT
         echo $GRPC_VERSION > VERSION
     fi
     popd > /dev/null
