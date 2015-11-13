@@ -17,9 +17,9 @@ elif [[ "$OS_UNAME" == "Darwin" ]]; then
     N_CPU=`sysctl -n hw.ncpu`
 fi
 
-FOLLY_VERSION="1dee433c3440fe58e046de3b2e59dfd7f1a5cb35"
-WANGLE_VERSION="c1e434b725ca7e8336a0401f4bed548ea1aefc78"
-PROXYGEN_VERSION="080b2b157915f7e970d9c406659ad4f8f9f0bedd"
+FOLLY_VERSION="37cd970"
+WANGLE_VERSION="e7a8cd4"
+PROXYGEN_VERSION="5b81688"
 FBTHRIFT_VERSION="181044fd78e0a26e77fb519e1cbd10238c2e32d6"
 ROCKSDB_VERSION="2379944093530b04ff7dbd8f5d365a702b8dd1e6"
 PROTOBUF_VERSION="49f24afb45b7add17af3ed4493fa0a94d1cc64da"
@@ -265,6 +265,13 @@ get_fbthrift() {
         cd thrift
         autoreconf -if
         ./configure --prefix=$ROOT --without-php
+
+        # http://stackoverflow.com/a/24357384/1035246
+        # if build fails on mac with homebrew python, try creating ~/.pydistutils.cfg with content:
+        #
+        #   [install]
+        #   prefix=
+        #
         make -j$N_CPU && \
             make install PY_INSTALL_HOME=$ROOT \
                          PY_INSTALL_ARGS="--home=$ROOT" \

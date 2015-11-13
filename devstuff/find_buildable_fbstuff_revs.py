@@ -9,8 +9,8 @@ import re
 import subprocess
 import socket
 
-REV_SINCE = "2015-09-06T12:00:00-08:00"
-REV_SINCE_TM = calendar.timegm(time.strptime(REV_SINCE[:-6], "%Y-%m-%dT%H:%M:%S"))
+REV_SINCE = "2015-09-07 12:00:00"
+REV_SINCE_TM = calendar.timegm(time.strptime(REV_SINCE, "%Y-%m-%d %H:%M:%S"))
 
 if "get-devstuff.sh" not in os.listdir("."):
     print("Run this script with get-devstuff.sh in current dir")
@@ -102,20 +102,26 @@ for t in commit_times:
     os.system("chmod a+x patched-get-devstuff.sh")
     print("building...")
     os.system("rm -rf devstuff")
-    if subprocess.call("./patched-get-devstuff.sh", shell=True) == 0:
+    os.system("./patched-get-devstuff.sh")
+
+    build_ok = True
+    build_ok = build_ok and os.path.exists("devstuff/src/folly/VERSION")
+    build_ok = build_ok and os.path.exists("devstuff/src/wangle/VERSION")
+    build_ok = build_ok and os.path.exists("devstuff/src/proxygen/VERSION")
+    build_ok = build_ok and os.path.exists("devstuff/src/fbthrift/VERSION")
+
+    if build_ok:
         print("=============")
         print("build: OK")
         print("=============")
         print()
         outcome = "fbstuff build OK: "
-        build_ok = True
     else:
         print("=============")
         print("build: FAIL")
         print("=============")
         print()
         outcome = "fbstuff build FAIL: "
-        build_ok = False
     outcome += "rev_date=%s, host=%s, folly=%s, wangle=%s, proxygen=%s, fbthrfit=%s" % (
         time.strftime(time_fmt, time.gmtime(t)), socket.gethostname(),
         folly_commit[0:7], wangle_commit[0:7], proxygen_commit[0:7], fbthrift_commit[0:7])
