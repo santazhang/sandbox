@@ -101,13 +101,20 @@ for t in commit_times:
         print("build: OK")
         print("=============")
         print()
-        os.system("pingsanta.py 'fbstuff build OK: time=%s, host=%s, folly=%s, wangle=%s proxygen=%s, fbthrfit=%s'" % (
-            time.strftime(time_fmt, time.gmtime(t)), socket.gethostname(), folly_commit[0:7], wangle_commit[0:7], proxygen_commit[0:7], fbthrift_commit[0:7]))
+        outcome = "fbstuff build OK: "
+        build_ok = True
     else:
         print("=============")
         print("build: FAIL")
         print("=============")
         print()
-        os.system("pingsanta.py 'fbstuff build FAIL: time=%s, host=%s, folly=%s, wangle=%s proxygen=%s, fbthrfit=%s'" % (
-            time.strftime(time_fmt, time.gmtime(t)), socket.gethostname(), folly_commit[0:7], wangle_commit[0:7], proxygen_commit[0:7], fbthrift_commit[0:7]))
+        outcome = "fbstuff build FAIL: "
+        build_ok = False
+    outcome += "rev_date=%s, host=%s, folly=%s, wangle=%s, proxygen=%s, fbthrfit=%s" % (
+        time.strftime(time_fmt, time.gmtime(t)), socket.gethostname(),
+        folly_commit[0:7], wangle_commit[0:7], proxygen_commit[0:7], fbthrift_commit[0:7])
+    with open("build_outcome.log", "a") as f:
+        f.write(outcome + "\n")
+    if build_ok:
+        os.system("pingsanta.py '%s'" % outcome)
     time.sleep(1)
