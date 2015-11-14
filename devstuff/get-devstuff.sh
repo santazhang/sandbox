@@ -36,7 +36,7 @@ run_cmd() {
 
 if [ -n "$MACOSX" ]; then
     run_cmd brew install openssl boost boost-python double-conversion automake autoconf \
-        libtool glog gflags libevent snappy autoconf-archive cmake
+        libtool glog gflags libevent snappy autoconf-archive cmake || echo
     run_cmd brew link --force openssl
 else
     PKGS=(
