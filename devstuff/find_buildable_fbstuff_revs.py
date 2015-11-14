@@ -9,7 +9,7 @@ import re
 import subprocess
 import socket
 
-REV_SINCE = "2015-09-07 12:00:00"
+REV_SINCE = "2015-10-19 12:00:00"
 REV_SINCE_TM = calendar.timegm(time.strptime(REV_SINCE, "%Y-%m-%d %H:%M:%S"))
 
 if "get-devstuff.sh" not in os.listdir("."):
@@ -102,7 +102,7 @@ for t in commit_times:
     os.system("chmod a+x patched-get-devstuff.sh")
     print("building...")
     os.system("rm -rf devstuff")
-    os.system("./patched-get-devstuff.sh")
+    os.system("./patched-get-devstuff.sh 2>&1 | tee build_rev_date_%d.log" % t)
 
     build_ok = True
     build_ok = build_ok and os.path.exists("devstuff/src/folly/VERSION")
