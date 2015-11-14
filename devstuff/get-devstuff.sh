@@ -93,10 +93,13 @@ ROOT=$DIR
 cat <<ACTIVATE_SH > activate.sh
 ROOT=$ROOT
 export PATH=\$ROOT/bin:\$PATH
+export DYLD_FALLBACK_LIBRARY_PATH=\$ROOT/lib:\$DYLD_FALLBACK_LIBRARY_PATH
 export LD_LIBRARY_PATH=\$ROOT/lib:\$LD_LIBRARY_PATH
 export LIBRARY_PATH=\$ROOT/lib:\$LIBRARY_PATH
 export CPATH=\$ROOT/include:\$CPATH
 export PYTHONPATH=\$ROOT/lib/python:\$PYTHONPATH
+export LDFLAGS="-L\$ROOT/lib \$LDFLAGS"
+export CPPFLAGS="-I\$ROOT/include \$CPPFLAGS"
 ACTIVATE_SH
 
 . activate.sh
@@ -180,6 +183,7 @@ get_folly() {
         fi
 
         make -j$N_CPU && make install && cd $ROOT/src/folly && echo $FOLLY_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build folly" ; exit 1; }
     fi
     popd > /dev/null
 }
@@ -208,6 +212,7 @@ get_wangle() {
         cmake -DCMAKE_INSTALL_PREFIX=$ROOT .
         cat /dev/null > gmock/src/gmock-stamp/download-gmock.cmake
         make -j$N_CPU && make install && cd .. && echo $WANGLE_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build wangle" ; exit 1; }
     fi
     popd > /dev/null
 }
@@ -241,6 +246,7 @@ get_proxygen() {
         ./configure --prefix=$ROOT
         make -j$N_CPU && make install && \
             cd .. && echo $PROXYGEN_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build proxygen" ; exit 1; }
     fi
     popd > /dev/null
 }
@@ -277,6 +283,7 @@ get_fbthrift() {
                          PY_INSTALL_ARGS="--home=$ROOT" \
                          PY_RUN_ENV="PYTHONPATH=$ROOT/lib/python" && \
             cd .. && echo $FBTHRIFT_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build fbthrift" ; exit 1; }
     fi
     popd > /dev/null
 }
@@ -292,6 +299,7 @@ get_rocksdb() {
         rm -rf .git
         make -j$N_CPU && INSTALL_PATH=$ROOT make install && \
             echo $ROCKSDB_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build rocksdb" ; exit 1; }
     fi
     popd > /dev/null
 }
@@ -310,6 +318,7 @@ get_protobuf() {
         ./autogen.sh
         ./configure --prefix=$ROOT
         make -j$N_CPU && make install && echo $PROTOBUF_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build protobuf" ; exit 1; }
     fi
     popd > /dev/null
 }
@@ -324,6 +333,7 @@ get_re2() {
         git checkout $RE2_VERSION
         rm -rf .git
         make -j$N_CPU && make install prefix=$ROOT && echo $RE2_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build re2" ; exit 1; }
     fi
     popd > /dev/null
 }
@@ -340,6 +350,7 @@ get_gperftools() {
         ./autogen.sh
         ./configure --prefix=$ROOT
         make -j$N_CPU && make install && echo $GPERFTOOLS_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build gperftools" ; exit 1; }
     fi
     popd > /dev/null
 }
