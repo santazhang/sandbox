@@ -108,7 +108,7 @@ for t in commit_times:
     build_ok = build_ok and os.path.exists("devstuff/src/folly/VERSION")
     build_ok = build_ok and os.path.exists("devstuff/src/wangle/VERSION")
     build_ok = build_ok and os.path.exists("devstuff/src/proxygen/VERSION")
-    build_ok = build_ok and os.path.exists("devstuff/src/fbthrift/VERSION")
+    # build_ok = build_ok and os.path.exists("devstuff/src/fbthrift/VERSION")
 
     if build_ok:
         print("=============")

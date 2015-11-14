@@ -15,6 +15,9 @@ if [[ "$OS_UNAME" == "Linux" ]]; then
 elif [[ "$OS_UNAME" == "Darwin" ]]; then
     MACOSX=1
     N_CPU=`sysctl -n hw.ncpu`
+else
+    echo "  *** Unsupported platform: $OS_UNAME"
+    exit 1
 fi
 
 FOLLY_VERSION="37cd970"
@@ -362,7 +365,7 @@ fi
 get_folly
 get_wangle
 get_proxygen
-get_fbthrift
+# get_fbthrift
 get_rocksdb
 get_protobuf
 get_re2
