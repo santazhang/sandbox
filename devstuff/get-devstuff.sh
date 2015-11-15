@@ -25,9 +25,11 @@ WANGLE_VERSION="e7a8cd4"
 PROXYGEN_VERSION="5b81688"
 FBTHRIFT_VERSION="181044fd78e0a26e77fb519e1cbd10238c2e32d6"
 ROCKSDB_VERSION="2379944093530b04ff7dbd8f5d365a702b8dd1e6"
-PROTOBUF_VERSION="49f24afb45b7add17af3ed4493fa0a94d1cc64da"
+PROTOBUF_VERSION="8b31d7410aabefc2e93f85e13f44846ddfa0f135"
 RE2_VERSION="d10ed8f2303f6c7303f5472736e2f535249b0a75"
 GPERFTOOLS_VERSION="6627f9217d8897b297c6da038cfbcff6a3086cfa"
+GFLAGS_VERSION="9db828953a1047c95bf5fb780c3c1f9453f806eb"
+GRPC_VERSION="e695941aeb6c1835020f6e8bd526034fa4354763"
 
 run_cmd() {
     echo + $@
@@ -42,9 +44,9 @@ else
     PKGS=(
         autoconf
         autoconf-archive
-        bison
+        # bison
         cmake
-        flex
+        # flex
         g++
         git
         gperf
@@ -53,9 +55,9 @@ else
         libdouble-conversion-dev
         libevent-dev
         libgoogle-glog-dev
-        libkrb5-dev
-        libnuma-dev
-        libsasl2-dev
+        # libkrb5-dev
+        # libnuma-dev
+        # libsasl2-dev
         libsnappy-dev
         libssl-dev
         libtool
@@ -125,6 +127,7 @@ get_gmock_1_7_0() {
     if [ ! -f gmock-1.7.0.zip ]; then
         wget https://googlemock.googlecode.com/files/gmock-1.7.0.zip
     fi
+    [ -f gmock-1.7.0.zip ] || { echo "  *** Failed to get gmock" ; exit 1; }
     if [ ! -d gmock-1.7.0 ]; then
         unzip gmock-1.7.0.zip
     fi
@@ -138,10 +141,13 @@ get_macosx_hack() {
     pushd $ROOT/src > /dev/null
     rm -rf macosx_hack
     git clone https://gist.github.com/256985a658d765abed93.git macosx_hack
-    cd macosx_hack
-    make
-    cp pthread_macosx_hack.h numa.h numacompat1.h $ROOT/include
-    cp libnuma.a $ROOT/lib
+
+    # Disabled because fbthrift is not being built.
+    #
+    # cd macosx_hack
+    # make
+    # cp pthread_macosx_hack.h numa.h numacompat1.h $ROOT/include
+    # cp libnuma.a $ROOT/lib
     popd > /dev/null
 }
 
@@ -358,6 +364,38 @@ get_gperftools() {
     popd > /dev/null
 }
 
+get_gflags() {
+    mkdir -p $ROOT/src
+    pushd $ROOT/src > /dev/null
+    if version_mismatch gflags/VERSION $GFLAGS_VERSION; then
+        rm -rf gflags
+        git clone https://github.com/gflags/gflags
+        cd gflags
+        git checkout $GFLAGS_VERSION
+        rm -rf .git
+        cmake -DCMAKE_INSTALL_PREFIX=$ROOT .
+        make -j$N_CPU && make install && echo $GFLAGS_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build gflags" ; exit 1; }
+    fi
+    popd > /dev/null
+}
+
+get_grpc() {
+    mkdir -p $ROOT/src
+    pushd $ROOT/src > /dev/null
+    if version_mismatch grpc/VERSION $GRPC_VERSION; then
+        rm -rf grpc
+        git clone https://github.com/grpc/grpc.git
+        cd grpc
+        git checkout $GRPC_VERSION
+        git submodule update --init
+        rm -rf .git
+        make -j$N_CPU && make install prefix=$ROOT && echo $GRPC_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build grpc" ; exit 1; }
+    fi
+    popd > /dev/null
+}
+
 if [ -n "$MACOSX" ]; then
     get_macosx_hack
 fi
@@ -370,3 +408,5 @@ get_rocksdb
 get_protobuf
 get_re2
 get_gperftools
+get_gflags
+get_grpc
