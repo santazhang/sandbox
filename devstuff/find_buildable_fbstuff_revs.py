@@ -9,7 +9,7 @@ import re
 import subprocess
 import socket
 
-REV_SINCE = "2015-10-30 12:00:00"
+REV_SINCE = "2015-11-13 12:00:00"
 REV_SINCE_TM = calendar.timegm(time.strptime(REV_SINCE, "%Y-%m-%d %H:%M:%S"))
 
 if "get-devstuff.sh" not in os.listdir("."):
@@ -52,10 +52,9 @@ def find_revs(github_repo, repo_name):
 folly_revs = find_revs("https://github.com/facebook/folly.git", "folly")
 wangle_revs = find_revs("https://github.com/facebook/wangle.git", "wangle")
 proxygen_revs = find_revs("https://github.com/facebook/proxygen.git", "proxygen")
-fbthrift_revs = find_revs("https://github.com/facebook/fbthrift.git", "fbthrift")
 
 commit_times = set()
-for revs in [folly_revs, wangle_revs, proxygen_revs, fbthrift_revs]:
+for revs in [folly_revs, wangle_revs, proxygen_revs]:
     for r in revs:
         if r[0] >= REV_SINCE_TM:
             commit_times.add(r[0])
@@ -79,14 +78,12 @@ for t in commit_times:
     print("wangle commit: %s" % wangle_commit)
     proxygen_commit = find_commit(t, proxygen_revs)
     print("proxygen commit: %s" % proxygen_commit)
-    fbthrift_commit = find_commit(t, fbthrift_revs)
-    print("fbthrift commit: %s" % fbthrift_commit)
     print("=============")
 
     build_script = ""
     for l in base_build_script.split("\n"):
         if re.match("^get_[a-zA-Z0-9]+$", l):
-            if l not in ["get_folly", "get_wangle", "get_proxygen", "get_fbthrift"]:
+            if l not in ["get_glog", "get_gflags", "get_folly", "get_wangle", "get_proxygen"]:
                 continue
         if l.startswith("FOLLY_VERSION="):
             l = "FOLLY_VERSION=\"%s\"\necho FOLLY: $FOLLY_VERSION" % folly_commit
@@ -94,8 +91,6 @@ for t in commit_times:
             l = "WANGLE_VERSION=\"%s\"\necho WANGLE: $WANGLE_VERSION" % wangle_commit
         elif l.startswith("PROXYGEN_VERSION="):
             l = "PROXYGEN_VERSION=\"%s\"\necho PROXYGEN: $PROXYGEN_VERSION" % proxygen_commit
-        elif l.startswith("FBTHRIFT_VERSION="):
-            l = "FBTHRIFT_VERSION=\"%s\"\necho FBTHRIFT: $FBTHRIFT_VERSION" % fbthrift_commit
         build_script += l + "\n"
     with open("patched-get-devstuff.sh", "w") as f:
         f.write(build_script)
@@ -108,7 +103,6 @@ for t in commit_times:
     build_ok = build_ok and os.path.exists("devstuff/src/folly/VERSION")
     build_ok = build_ok and os.path.exists("devstuff/src/wangle/VERSION")
     build_ok = build_ok and os.path.exists("devstuff/src/proxygen/VERSION")
-    # build_ok = build_ok and os.path.exists("devstuff/src/fbthrift/VERSION")
 
     if build_ok:
         print("=============")
@@ -122,9 +116,9 @@ for t in commit_times:
         print("=============")
         print()
         outcome = "fbstuff build FAIL: "
-    outcome += "rev_date=%s, host=%s, folly=%s, wangle=%s, proxygen=%s, fbthrfit=%s" % (
+    outcome += "rev_date=%s, host=%s, folly=%s, wangle=%s, proxygen=%s" % (
         time.strftime(time_fmt, time.gmtime(t)), socket.gethostname(),
-        folly_commit[0:7], wangle_commit[0:7], proxygen_commit[0:7], fbthrift_commit[0:7])
+        folly_commit[0:7], wangle_commit[0:7], proxygen_commit[0:7])
     with open("build_outcome.log", "a") as f:
         f.write(outcome + "\n")
     if build_ok:

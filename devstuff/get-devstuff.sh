@@ -20,9 +20,9 @@ else
     exit 1
 fi
 
-FOLLY_VERSION="37cd970"
-WANGLE_VERSION="e7a8cd4"
-PROXYGEN_VERSION="5b81688"
+FOLLY_VERSION="d1027eb286433b5726e6778ee3a7ed85e4ca23d0"
+WANGLE_VERSION="52744471e8e43fb0fb4561e23c864d4d678dafa8"
+PROXYGEN_VERSION="fe1070ff19b447430c346100d45330adecb7e8c0"
 FBTHRIFT_VERSION="181044fd78e0a26e77fb519e1cbd10238c2e32d6"
 ROCKSDB_VERSION="2379944093530b04ff7dbd8f5d365a702b8dd1e6"
 PROTOBUF_VERSION="8b31d7410aabefc2e93f85e13f44846ddfa0f135"
@@ -30,6 +30,7 @@ RE2_VERSION="d10ed8f2303f6c7303f5472736e2f535249b0a75"
 GPERFTOOLS_VERSION="6627f9217d8897b297c6da038cfbcff6a3086cfa"
 GFLAGS_VERSION="9db828953a1047c95bf5fb780c3c1f9453f806eb"
 GRPC_VERSION="e695941aeb6c1835020f6e8bd526034fa4354763"
+GLOG_VERSION="f46e0745a842b2edc924b6d384acf01fd7034c62"
 
 run_cmd() {
     echo + $@
@@ -38,7 +39,7 @@ run_cmd() {
 
 if [ -n "$MACOSX" ]; then
     run_cmd brew install openssl boost boost-python double-conversion automake autoconf \
-        libtool glog gflags libevent snappy autoconf-archive cmake || echo
+        libtool libevent snappy autoconf-archive cmake || echo
     run_cmd brew link --force openssl
 else
     PKGS=(
@@ -54,7 +55,7 @@ else
         libcap-dev
         libdouble-conversion-dev
         libevent-dev
-        libgoogle-glog-dev
+        # libgoogle-glog-dev
         # libkrb5-dev
         # libnuma-dev
         # libsasl2-dev
@@ -210,7 +211,7 @@ get_wangle() {
 
         if [ -n "$MACOSX" ]; then
             cat $ROOT/src/macosx_hack/wangle-on-macosx.patch
-            patch -p1 < $ROOT/src/macosx_hack/wangle-on-macosx.patch
+            patch -p1 < $ROOT/src/macosx_hack/wangle-on-macosx.patch || echo
         fi
 
         cd wangle
@@ -396,10 +397,28 @@ get_grpc() {
     popd > /dev/null
 }
 
+get_glog() {
+    mkdir -p $ROOT/src
+    pushd $ROOT/src > /dev/null
+    if version_mismatch glog/VERSION $GLOG_VERSION; then
+        rm -rf glog
+        git clone https://github.com/google/glog.git
+        cd glog
+        git checkout $GLOG_VERSION
+        rm -rf .git
+        ./configure --prefix=$ROOT
+        make -j$N_CPU && make install && echo $GLOG_VERSION > VERSION
+        [ -f VERSION ] || { echo "  *** Failed to build glog" ; exit 1; }
+    fi
+    popd > /dev/null
+}
+
 if [ -n "$MACOSX" ]; then
     get_macosx_hack
 fi
 
+get_glog
+get_gflags
 get_folly
 get_wangle
 get_proxygen
@@ -408,5 +427,4 @@ get_rocksdb
 get_protobuf
 get_re2
 get_gperftools
-get_gflags
 get_grpc
