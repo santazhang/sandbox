@@ -83,7 +83,7 @@ for t in commit_times:
     build_script = ""
     for l in base_build_script.split("\n"):
         if re.match("^get_[a-zA-Z0-9]+$", l):
-            if l not in ["get_glog", "get_gflags", "get_folly", "get_wangle", "get_proxygen"]:
+            if l not in ["get_folly", "get_wangle", "get_proxygen"]:
                 continue
         if l.startswith("FOLLY_VERSION="):
             l = "FOLLY_VERSION=\"%s\"\necho FOLLY: $FOLLY_VERSION" % folly_commit

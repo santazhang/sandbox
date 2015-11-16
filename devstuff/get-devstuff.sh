@@ -39,7 +39,7 @@ run_cmd() {
 
 if [ -n "$MACOSX" ]; then
     run_cmd brew install openssl boost boost-python double-conversion automake autoconf \
-        libtool libevent snappy autoconf-archive cmake || echo
+        libtool glog gflags libevent snappy autoconf-archive cmake || echo
     run_cmd brew link --force openssl
 else
     PKGS=(
@@ -55,7 +55,8 @@ else
         libcap-dev
         libdouble-conversion-dev
         libevent-dev
-        # libgoogle-glog-dev
+        libgflags-dev
+        libgoogle-glog-dev
         # libkrb5-dev
         # libnuma-dev
         # libsasl2-dev
@@ -417,8 +418,8 @@ if [ -n "$MACOSX" ]; then
     get_macosx_hack
 fi
 
-get_glog
-get_gflags
+# get_glog
+# get_gflags
 get_folly
 get_wangle
 get_proxygen
