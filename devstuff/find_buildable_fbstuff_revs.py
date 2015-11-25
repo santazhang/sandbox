@@ -9,7 +9,7 @@ import re
 import subprocess
 import socket
 
-REV_SINCE = "2015-11-13 12:00:00"
+REV_SINCE = "2015-11-24 12:00:00"
 REV_SINCE_TM = calendar.timegm(time.strptime(REV_SINCE, "%Y-%m-%d %H:%M:%S"))
 
 if "get-devstuff.sh" not in os.listdir("."):
