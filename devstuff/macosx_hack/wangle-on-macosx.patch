@@ -47,16 +47,3 @@ index a8a6b0d..1a1d1f7 100644
  namespace {
  
  struct FileRegionReadPool {};
-diff --git a/wangle/concurrent/Codel.cpp b/wangle/concurrent/Codel.cpp
-index 5decbc4..a260819 100644
---- a/wangle/concurrent/Codel.cpp
-+++ b/wangle/concurrent/Codel.cpp
-@@ -84,7 +84,7 @@ bool Codel::overloaded(std::chrono::nanoseconds delay) {
- int Codel::getLoad() {
-   // it might be better to use the average delay instead of minDelay, but we'd
-   // have to track it. aspiring bootcamper?
--  return std::min(100l, 100 * getMinDelay() / getSloughTimeout());
-+  return std::min<int>(100, 100 * getMinDelay() / getSloughTimeout());
- }
- 
- nanoseconds Codel::getMinDelay() {
