@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <unistd.h>
 #include <stdio.h>
 
 #include <google/protobuf/io/coded_stream.h>

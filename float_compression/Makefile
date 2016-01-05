@@ -11,4 +11,4 @@ caffe.pb.h caffe.pb.cc: caffe.proto
 caffe.pb.o: caffe.pb.h caffe.pb.cc
 
 extract_floats: caffe.pb.o extract_floats.o
-	g++ -lprotobuf $^ -o $@
+	g++ $^ -lprotobuf -o $@
