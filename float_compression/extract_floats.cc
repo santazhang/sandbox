@@ -303,10 +303,10 @@ void process_blob(const BlobProto& blob) {
     const float* farr = blob.data().data();
     int n_floats = blob.data().size();
     analyze1(farr, n_floats);
-    // printf("**********\n");
-    // analyze2(farr, n_floats);
-    // printf("**********\n");
-    // analyze3(farr, n_floats);
+    printf("**********\n");
+    analyze2(farr, n_floats);
+    printf("**********\n");
+    analyze3(farr, n_floats);
     for (int i = 0; i < blob.width(); i++) {
         // print_float_structure(blob.data(i));
     }
@@ -314,9 +314,13 @@ void process_blob(const BlobProto& blob) {
 
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     NetParameter net_param;
-    ReadProtoFromBinaryFile("VGG_CNN_F.caffemodel", &net_param);
+    if (argc == 1) {
+        ReadProtoFromBinaryFile("VGG_CNN_F.caffemodel", &net_param);
+    } else {
+        ReadProtoFromBinaryFile(argv[1], &net_param);
+    }
     cout << net_param.name() << endl;
     if (net_param.layers_size() > 0) {
         cout << "(v1) layers: " << net_param.layers_size() << endl;
