@@ -10,5 +10,7 @@ caffe.pb.h caffe.pb.cc: caffe.proto
 
 caffe.pb.o: caffe.pb.h caffe.pb.cc
 
-extract_floats: caffe.pb.o extract_floats.o
-	g++ $^ -lprotobuf -o $@
+nn_lossy.o: nn_lossy.h nn_lossy.cc
+
+extract_floats: caffe.pb.o nn_lossy.o extract_floats.o
+	g++ -O3 $^ -lprotobuf -o $@

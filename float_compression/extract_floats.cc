@@ -12,6 +12,7 @@
 #include <map>
 
 #include "caffe.pb.h"
+#include "nn_lossy.h"
 
 using google::protobuf::Message;
 using google::protobuf::io::FileInputStream;
@@ -296,6 +297,17 @@ void analyze3(const float* farr, int n_floats) {
     
 }
 
+void try_compress(const float* farr, int n_floats) {
+    float* farr2 = new float[n_floats];
+    printf("*** trying compression\n");
+    char* compressed;
+    int compressed_bytes;
+    nn_compress(farr, n_floats, &compressed, &compressed_bytes);
+    printf("*** trying decompression\n");
+    nn_decompress(compressed, compressed_bytes, farr2, n_floats);
+    printf("*** done compression-decompression\n");
+}
+
 void process_blob(const BlobProto& blob) {
     if (blob.width() < 16) {
         return;
@@ -303,14 +315,15 @@ void process_blob(const BlobProto& blob) {
     printf("n=%d c=%d h=%d w=%d\n", blob.num(), blob.channels(), blob.height(), blob.width());
     const float* farr = blob.data().data();
     int n_floats = blob.data().size();
-    analyze1(farr, n_floats);
-    printf("**********\n");
-    analyze2(farr, n_floats);
-    printf("**********\n");
-    analyze3(farr, n_floats);
-    for (int i = 0; i < blob.width(); i++) {
+    // analyze1(farr, n_floats);
+    // printf("**********\n");
+    // analyze2(farr, n_floats);
+    // printf("**********\n");
+    // analyze3(farr, n_floats);
+    // for (int i = 0; i < blob.width(); i++) {
         // print_float_structure(blob.data(i));
-    }
+    // }
+    try_compress(farr, n_floats);
 }
 
 }
