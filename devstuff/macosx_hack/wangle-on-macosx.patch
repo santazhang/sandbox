@@ -1,3 +1,16 @@
+diff --git a/wangle/CMakeLists.txt b/wangle/CMakeLists.txt
+index ab020cb..deb945b 100644
+--- a/wangle/CMakeLists.txt
++++ b/wangle/CMakeLists.txt
+@@ -81,7 +81,7 @@ target_link_libraries(wangle
+   ${OPENSSL_LIBRARIES}
+   -lglog
+   -lgflags
+-  -latomic)
++)
+ 
+ install(TARGETS wangle DESTINATION lib)
+ foreach(dir ${WANGLE_HEADER_DIRS})
 diff --git a/wangle/channel/FileRegion.cpp b/wangle/channel/FileRegion.cpp
 index a8a6b0d..1a1d1f7 100644
 --- a/wangle/channel/FileRegion.cpp
