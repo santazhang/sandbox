@@ -5,6 +5,7 @@
 # ignore output files
 *.a
 *.o
+*.o-*
 *.out
 *.pdf
 *.log
