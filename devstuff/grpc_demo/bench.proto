@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+message Request {
+    repeated int32 v = 1;
+};
+
+message Response {
+    int32 v = 1;
+};
+
+service Bench {
+    rpc add (Request) returns (Response);
+};
