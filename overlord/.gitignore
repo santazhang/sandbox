@@ -1,6 +1,7 @@
-Crypto/
+/Crypto/
 *.pyc
 *.o
 *.so
 pycrypto-2.6.1/config.status
 pycrypto-2.6.1/src/config.h
+/tornado/
