@@ -8,8 +8,9 @@ COMMON_CXX_FLAGS="-std=c++0x -I ../gtest/include -I${DEVSTUFF_ROOT}/include"
 if [[ "$OS_UNAME" == 'Linux' ]]; then
     g++ $COMMON_CXX_FLAGS -c ../gtest/gmock-gtest-all.cc -o ../gtest/gtest.o
     g++ $COMMON_CXX_FLAGS -c folly_demo.cc -o folly_demo.o
-    g++ folly_demo.o ../gtest/gtest.o ${DEVSTUFF_ROOT}/lib/libfolly.a \
+    g++ folly_demo.o ../gtest/gtest.o -lpthread \
         ${DEVSTUFF_ROOT}/lib/libfollybenchmark.a \
+        ${DEVSTUFF_ROOT}/lib/libfolly.a \
         /usr/lib/x86_64-linux-gnu/libboost_system.a \
         /usr/lib/x86_64-linux-gnu/libboost_filesystem.a \
         /usr/lib/x86_64-linux-gnu/libboost_regex.a \
