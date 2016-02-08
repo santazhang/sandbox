@@ -2,6 +2,7 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <getopt.h>
 
 #include <thread>
 #include <vector>
