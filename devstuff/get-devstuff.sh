@@ -308,7 +308,7 @@ get_rocksdb() {
         cd rocksdb
         git checkout $ROCKSDB_VERSION
         rm -rf .git
-        make -j$N_CPU && INSTALL_PATH=$ROOT make install && \
+        DEBUG_LEVEL=0 make -j$N_CPU && INSTALL_PATH=$ROOT make install && \
             echo $ROCKSDB_VERSION > VERSION
         [ -f VERSION ] || { echo "  *** Failed to build rocksdb" ; exit 1; }
     fi
