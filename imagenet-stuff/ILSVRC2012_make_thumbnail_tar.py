@@ -27,9 +27,9 @@ def main():
         print("image index file %s not found!" % image_index)
         exit(1)
     image_main_fn = os.path.splitext(os.path.basename(image_tar))[0]
-    thumb_tar = os.path.join(work_dir, image_main_fn + ".tar")
-    thumb_index = os.path.join(work_dir, image_main_fn + ".index")
-    thumb_index2 = os.path.join(work_dir, image_main_fn + ".index2")
+    thumb_tar = os.path.join(work_dir, image_main_fn + "_thumbnail.tar")
+    thumb_index = os.path.join(work_dir, image_main_fn + "_thumbnail.index")
+    thumb_index2 = os.path.join(work_dir, image_main_fn + "_thumbnail.index2")
 
     with open(image_tar, "rb") as image_tar_f:
         with open(image_index, "r") as image_index_f:
@@ -57,7 +57,8 @@ def main():
                     exit(1)
                 os.remove(fn)
 
-    runcmd("cd '%s' ; tar cf '%s' *" % (data_dir, thumb_tar))
+    files_list = os.path.join(work_dir, "files.list")
+    runcmd("cd '%s' ; ls -1 > %s ; tar --files-from='%s' -cf '%s'" % (data_dir, files_list, files_list, thumb_tar))
     runcmd("python tarindexer.py -i '%s' '%s'" % (thumb_tar, thumb_index2))
     thumb_idx = []
     with open(thumb_index2, "r") as thumb_index2_f:
