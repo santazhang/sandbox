@@ -16,6 +16,7 @@
 // http://stackoverflow.com/a/31798726/1035246
 // Workaround missing "is_trivially_copyable" in g++ < 5.0
 #if __GNUG__ && __GNUC__ < 5
+#ifndef __APPLE__
 #define IS_TRIVIALLY_COPYABLE(T) __has_trivial_copy(T)
 namespace std {
 
@@ -25,7 +26,8 @@ struct is_trivially_copy_constructible {
 };
 
 }  // namespace std
-#endif
+#endif  // #ifndef __APPLE__
+#endif  // __GNUG__ && __GNUC__ < 5
 
 #include "sparsehash/sparse_hash_map"
 #include "sparsehash/sparse_hash_set"
@@ -306,7 +308,7 @@ static void eval_edge_clustering(
         for (const auto& it : sorted_distribution) {
             int32_t fanout_count = it.first;
             int32_t src_count = it.second;
-            printf("  %d nodes' outgoing edges spread on %d clusters.\n",
+            printf("  %d nodes have outgoing edges on %d clusters.\n",
                    src_count, fanout_count);
         }
     }
