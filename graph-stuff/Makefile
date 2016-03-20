@@ -1,9 +1,19 @@
 .PHONY: all clean
 
-all: graph-stats
+CXXFLAGS=-O3 -std=c++11 -I.
+PRELUDE=@mkdir -p bin
+
+all: \
+	bin/graph-stats \
+	bin/mem-stress-load-graph
 
 clean:
-	rm -f graph-stats
+	rm -rf bin
 
-graph-stats: graph-stats.cc
-	g++ -O3 -std=c++11 $^ -o $@
+bin/graph-stats: graph-stats.cc
+	$(PRELUDE)
+	g++ $(CXXFLAGS) $^ -o $@
+
+bin/mem-stress-load-graph: mem-stress-load-graph.cc
+	$(PRELUDE)
+	g++ $(CXXFLAGS) $^ -o $@
