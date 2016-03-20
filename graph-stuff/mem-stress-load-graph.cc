@@ -2,6 +2,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <map>
+#include <unordered_map>
 
 #include <stdio.h>
 #include <inttypes.h>
@@ -93,6 +95,7 @@ void stress2(const char* fpath) {
     proc_report();
 }
 
+// This is very slow (~40mins on twitter-small.csv, also uses twice mem than stress2)
 void stress3(const char* fpath) {
     REPORT_FUNCTION_TIMING_AFTER_RETURN;
 
@@ -119,6 +122,56 @@ void stress3(const char* fpath) {
     proc_report();
 }
 
+// Uses 2/3 time of stress2, but 5x memory.
+void stress4(const char* fpath) {
+    REPORT_FUNCTION_TIMING_AFTER_RETURN;
+
+    ifstream fin(fpath);
+    string line;
+    int line_counter = 0;
+
+    map<edge_t, int32_t> edge_to_i32;
+    while (getline(fin, line)) {
+        line_counter++;
+        if (line_counter % (1000 * 1000) == 0) {
+            printf("Processed %d lines\n", line_counter);
+            proc_report();
+        }
+        edge_t e = parse_edge(line);
+        if (e.first == -1 || e.second == -1) {
+            continue;
+        }
+        edge_to_i32[e] = 2016;
+    }
+    printf("=== stress4: load %ld edges into map<edge -> val>\n", edge_to_i32.size());
+    proc_report();
+}
+
+// Speed similar to stress2, but uses 5x memory.
+void stress5(const char* fpath) {
+    REPORT_FUNCTION_TIMING_AFTER_RETURN;
+
+    ifstream fin(fpath);
+    string line;
+    int line_counter = 0;
+
+    unordered_map<edge_t, int32_t> edge_to_i32;
+    while (getline(fin, line)) {
+        line_counter++;
+        if (line_counter % (1000 * 1000) == 0) {
+            printf("Processed %d lines\n", line_counter);
+            proc_report();
+        }
+        edge_t e = parse_edge(line);
+        if (e.first == -1 || e.second == -1) {
+            continue;
+        }
+        edge_to_i32[e] = 2016;
+    }
+    printf("=== stress5: load %ld edges into unordered_map<edge -> val>\n", edge_to_i32.size());
+    proc_report();
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         printf("Usage: %s graph-file\n", argv[0]);
@@ -127,6 +180,8 @@ int main(int argc, char* argv[]) {
     const char* fpath = argv[1];
     stress1(fpath);
     stress2(fpath);
-    stress3(fpath);
+    // stress3(fpath);
+    stress4(fpath);
+    stress5(fpath);
     return 0;
 }
