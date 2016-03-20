@@ -27,9 +27,10 @@ def main():
         print("image index file %s not found!" % image_index)
         exit(1)
     image_main_fn = os.path.splitext(os.path.basename(image_tar))[0]
-    thumb_tar = os.path.join(work_dir, image_main_fn + "_thumbnail.tar")
-    thumb_index = os.path.join(work_dir, image_main_fn + "_thumbnail.index")
-    thumb_index2 = os.path.join(work_dir, image_main_fn + "_thumbnail.index2")
+    thumb_suffix = "_thumbnail_%dx%d" % (THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
+    thumb_tar = os.path.join(work_dir, image_main_fn + thumb_suffix + ".tar")
+    thumb_index = os.path.join(work_dir, image_main_fn + thumb_suffix + ".index")
+    thumb_index2 = os.path.join(work_dir, image_main_fn + thumb_suffix + ".index2")
 
     with open(image_tar, "rb") as image_tar_f:
         with open(image_index, "r") as image_index_f:
@@ -47,9 +48,7 @@ def main():
                         image_data = image_tar_f.read(min(4096, sz - cnt))
                         f.write(image_data)
                         cnt += len(image_data)
-                thumb_fn = (os.path.splitext(fn)[0] +
-                            "_thumbnail_%dx%d" % (THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT) +
-                            os.path.splitext(fn)[1])
+                thumb_fn = os.path.splitext(fn)[0] + thumb_suffix + os.path.splitext(fn)[1]
                 print("Convert %s" % thumb_fn)
                 cmd = "convert -resize %dx%d! '%s' '%s'" % (
                         THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, fn, thumb_fn)
@@ -75,6 +74,7 @@ def main():
     with open(thumb_index, "w") as thumb_index_f:
         for x in thumb_idx:
             thumb_index_f.write(fmt % x)
+    os.remove(thumb_index2)
 
 if __name__ == "__main__":
     main()
