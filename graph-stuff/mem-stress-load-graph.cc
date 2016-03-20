@@ -2,48 +2,15 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <utility>
 
 #include <stdio.h>
 #include <inttypes.h>
 #include <unistd.h>
 
-// http://stackoverflow.com/a/31798726/1035246
-// Workaround missing "is_trivially_copyable" in g++ < 5.0
-#if __GNUG__ && __GNUC__ < 5
-#define IS_TRIVIALLY_COPYABLE(T) __has_trivial_copy(T)
-namespace std {
-
-template <typename T>
-struct is_trivially_copy_constructible {
-    static const bool value = __has_trivial_copy(T);
-};
-
-}  // namespace std
-#endif
-
-#include "sparsehash/sparse_hash_map"
-#include "sparsehash/sparse_hash_set"
+#include "graph_utils.h"
 
 using namespace std;
 using namespace google;
-
-using node_t = int32_t;
-using edge_t = std::pair<int32_t, int32_t>;
-
-namespace std {
-
-template <>
-struct hash<edge_t> {
-    size_t operator() (edge_t e) const {
-        return (h_(e.first) * 0x9e3779b97f4a7c15LLU) ^ h_(e.second);
-    }
-
-private:
-    hash<node_t> h_;
-};
-
-}  // namespace std
 
 void proc_report() {
     ostringstream oss;
@@ -64,7 +31,7 @@ void proc_report() {
 }
 
 edge_t parse_edge(const std::string& line) {
-    edge_t e{ -1, -1 };
+    edge_t e { -1, -1 };
     if (line[0] == '#') {
         return e;
     }
@@ -79,6 +46,8 @@ edge_t parse_edge(const std::string& line) {
 }
 
 void stress1(const char* fpath) {
+    REPORT_FUNCTION_TIMING_AFTER_RETURN;
+
     ifstream fin(fpath);
     string line;
     int line_counter = 0;
@@ -91,13 +60,18 @@ void stress1(const char* fpath) {
             proc_report();
         }
         edge_t e = parse_edge(line);
+        if (e.first == -1 || e.second == -1) {
+            continue;
+        }
         all_edges.insert(e);
     }
-    printf("=== stress1: load %ld edges into sparse_hash_set<pair<i32, i32>>\n", all_edges.size());
+    printf("=== stress1: load %ld edges into sparse_set<edge>\n", all_edges.size());
     proc_report();
 }
 
 void stress2(const char* fpath) {
+    REPORT_FUNCTION_TIMING_AFTER_RETURN;
+
     ifstream fin(fpath);
     string line;
     int line_counter = 0;
@@ -110,9 +84,38 @@ void stress2(const char* fpath) {
             proc_report();
         }
         edge_t e = parse_edge(line);
+        if (e.first == -1 || e.second == -1) {
+            continue;
+        }
         edge_to_i32[e] = 2016;
     }
-    printf("=== stress2: load %ld edges into sparse_hash_map<pair<i32, i32> -> i32>\n", edge_to_i32.size());
+    printf("=== stress2: load %ld edges into sparse_map<edge -> val>\n", edge_to_i32.size());
+    proc_report();
+}
+
+void stress3(const char* fpath) {
+    REPORT_FUNCTION_TIMING_AFTER_RETURN;
+
+    ifstream fin(fpath);
+    string line;
+    int line_counter = 0;
+    int edge_count = 0;
+
+    sparse_hash_map<node_t, sparse_hash_map<node_t, int32_t>> graph;
+    while (getline(fin, line)) {
+        line_counter++;
+        if (line_counter % (1000 * 1000) == 0) {
+            printf("Processed %d lines\n", line_counter);
+            proc_report();
+        }
+        edge_t e = parse_edge(line);
+        if (e.first == -1 || e.second == -1) {
+            continue;
+        }
+        graph[e.first][e.second] = 2016;
+        edge_count++;
+    }
+    printf("=== stress3: load %d edges into sparse_map<node -> sparse_map<node -> val>>\n", edge_count);
     proc_report();
 }
 
@@ -124,5 +127,6 @@ int main(int argc, char* argv[]) {
     const char* fpath = argv[1];
     stress1(fpath);
     stress2(fpath);
+    stress3(fpath);
     return 0;
 }

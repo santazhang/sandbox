@@ -12,8 +12,8 @@ clean:
 
 bin/graph-stats: graph-stats.cc
 	$(PRELUDE)
-	g++ $(CXXFLAGS) $^ -o $@
+	g++ $(CXXFLAGS) $< -o $@
 
-bin/mem-stress-load-graph: mem-stress-load-graph.cc
+bin/mem-stress-load-graph: mem-stress-load-graph.cc graph_utils.h
 	$(PRELUDE)
-	g++ $(CXXFLAGS) $^ -o $@
+	g++ $(CXXFLAGS) $< -o $@
