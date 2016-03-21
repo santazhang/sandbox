@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include "hyperloglog/hyperloglog.hpp"
 
