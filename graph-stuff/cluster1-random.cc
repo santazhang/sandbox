@@ -20,8 +20,9 @@ edge_t parse_edge(const std::string& line) {
         return e;
     }
     istringstream iss(line);
-    char ignored_char;
-    iss >> e.first >> ignored_char >> e.second;
+    iss >> e.first;
+    iss.get();  // skip separator (one char)
+    iss >> e.second;
     if (e.first == -1 || e.second == -1) {
         e.first = -1;
         e.second = -1;
@@ -31,29 +32,13 @@ edge_t parse_edge(const std::string& line) {
 
 void random_clustering(const char* fpath) {
     Timer timer;
-    timer.start();
-
-    ifstream fin(fpath);
-    string line;
-    int line_counter = 0;
+    Progress progress;
 
     sparse_hash_map<edge_t, int32_t> edge_to_i32;
-    while (getline(fin, line)) {
-        line_counter++;
-        if (line_counter % (1000 * 1000) == 0) {
-            printf("Processed %d lines\n", line_counter);
-        }
-        edge_t e = parse_edge(line);
-        if (e.first == -1 || e.second == -1) {
-            continue;
-        }
+    edge_to_i32.resize(estimate_edges_in_txt_file(fpath));
+    load_edge_file(fpath, [&edge_to_i32] (edge_t e) {
         edge_to_i32[e] = 2016;
-    }
-    timer.stop();
-    printf("Loaded %ld edges in %.6lf seconds.\n",
-            edge_to_i32.size(), timer.elapsed());
-
-    Progress progress;
+    });
 
     // random clustering
     timer.start();
@@ -70,7 +55,7 @@ void random_clustering(const char* fpath) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        printf("Usage: %s graph-file\n", argv[0]);
+        printf("Usage: %s graph-txt-or-adj\n", argv[0]);
         return 1;
     }
     my_srand();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include <utility>
 #include <vector>
 #include <algorithm>
@@ -8,6 +9,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <inttypes.h>
 #include <sys/time.h>
 
@@ -36,6 +38,8 @@ const int MAX_CLUSTERS = 1000 * 1000;
 
 using node_t = int32_t;
 using edge_t = std::pair<int32_t, int32_t>;
+
+const node_t BAD_NODE = -1;
 
 class Timer {
     struct timeval begin_;
@@ -194,6 +198,74 @@ private:
 }  // namespace std
 
 
+static int estimate_edges_in_txt_file(const char* fpath) {
+    int est_edges = 0;
+    std::ifstream fin(fpath);
+    fin.seekg(0, std::ios_base::end);
+    size_t fsize = fin.tellg();
+    printf("File %s size: %ld\n", fpath, fsize);
+    if (fsize > 1024 * 1024) {
+        const int n_sample = 100;
+        double sample_len_sum = 0.0;
+        std::string line;
+        for (size_t i = 0; i < n_sample; i++) {
+            fin.seekg(i * fsize / n_sample, std::ios_base::beg);
+            getline(fin, line);  // discard first (partially read) line
+            getline(fin, line);
+            sample_len_sum += line.size() + 1;  // +1 for \n
+        }
+        if (sample_len_sum / n_sample > 0) {
+            est_edges = fsize / (sample_len_sum / n_sample);
+            printf("Estimate file %s has ~= %d edges.\n", fpath, est_edges);
+        }
+    }
+    return est_edges;
+}
+
+static size_t round_down(size_t val, size_t align) {
+    if (align <= 1) {
+        return val;
+    }
+    return (val / align) * align;
+}
+
+static int estimate_edges_in_adj_file(const std::string& fpath) {
+    int est_edges = 0;
+    FILE* fp = fopen(fpath.c_str(), "rb");
+    fseek(fp, 0, SEEK_END);
+    size_t fsize = ftell(fp);
+    printf("File %s size: %ld\n", fpath.c_str(), fsize);
+    if (fsize > 1024 * 1024) {
+        const int n_sample = 100;
+        double sample_edge_bytes = 0.0;
+        double sample_all_bytes = 0.0;
+        for (size_t i = 0; i < n_sample; i++) {
+            fseek(fp, round_down(i * fsize / n_sample, sizeof(node_t)), SEEK_SET);
+
+            // discard first (partially read) adjlist
+            node_t u = BAD_NODE;
+            do {
+                fread(&u, 1, sizeof(node_t), fp);
+            } while (u != BAD_NODE);
+
+            // second adjlist can be used for analysis
+            u = BAD_NODE;
+            int count = 0;
+            do {
+                fread(&u, 1, sizeof(node_t), fp);
+                count++;
+            } while (u != BAD_NODE);
+
+            sample_all_bytes += count * sizeof(node_t);
+            // do not include <src> and <separator>
+            sample_edge_bytes += (count - 2) * sizeof(node_t);
+        }
+        est_edges = (fsize * (sample_edge_bytes / sample_all_bytes)) / sizeof(node_t);
+        printf("Estimate file %s has ~= %d edges.\n", fpath.c_str(), est_edges);
+    }
+    return est_edges;
+}
+
 static int estimate_node_count(
         const google::sparse_hash_map<edge_t, int32_t>& clustering) {
 
@@ -315,4 +387,113 @@ static void eval_edge_clustering(
 
     timer.stop();
     printf("Evaluated edge clustering in %.6lf seconds.\n", timer.elapsed());
+}
+
+void load_adjfile(const char* adjfn, std::function<void(edge_t)>&& cb) {
+    Timer timer;
+    timer.start();
+
+    FILE* fp = fopen(adjfn, "rb");
+    if (fp == nullptr) {
+        printf("  *** Failed to open for read: %s\n", adjfn);
+        exit(1);
+    }
+
+    fseek(fp, 0, SEEK_END);
+    size_t fsize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    Progress progress;
+    progress.begin(adjfn, fsize);
+    size_t fpos = 0;
+    int edge_counter = 0;
+
+    node_t cur_u = BAD_NODE;
+    for (;;) {
+        node_t v = BAD_NODE;
+        int r = fread(&v, 1, sizeof(node_t), fp);
+        if (r < sizeof(node_t) || feof(fp)) {
+            break;
+        }
+
+        if (cur_u == BAD_NODE && v == BAD_NODE) {
+            printf("  *** Unexpected code reached!\n");
+            abort();
+        } else if (cur_u == BAD_NODE && v != BAD_NODE) {
+            // new src node found!
+            cur_u = v;
+        } else if (cur_u != BAD_NODE && v == BAD_NODE) {
+            // new separator found!
+            cur_u = BAD_NODE;
+
+            size_t new_fpos = ftell(fp);
+            progress.step(new_fpos - fpos);
+            fpos = new_fpos;
+        } else if (cur_u != BAD_NODE && v != BAD_NODE) {
+            cb(edge_t { cur_u, v });
+            edge_counter++;
+        }
+    }
+    fclose(fp);
+
+    timer.stop();
+    printf("Loaded %d edges in %.6lf seconds.\n",
+           edge_counter, timer.elapsed());
+}
+
+void load_txtfile(const char* txtfn, std::function<void(edge_t)>&& cb) {
+    Timer timer;
+    timer.start();
+
+    std::ifstream fin(txtfn);
+    std::string line;
+    int edge_counter = 0;
+
+    while (std::getline(fin, line)) {
+        node_t u = -1, v = -1;
+        std::istringstream iss(line);
+        iss >> u;
+        iss.get();  // skip separator (one char)
+        iss >> v;
+        if (u == -1 || v == -1) {
+            continue;
+        }
+        edge_counter++;
+        if (edge_counter % (1000 * 1000) == 0) {
+            printf("Loaded %d edges\n", edge_counter);
+        }
+        cb(edge_t { u, v });
+    }
+    timer.stop();
+    printf("Loaded %d edges in %.6lf seconds.\n",
+           edge_counter, timer.elapsed());
+}
+
+void load_edge_file(const char* fpath, std::function<void(edge_t)>&& cb) {
+    bool txt_only = true;
+
+    FILE* fp = fopen(fpath, "rb");
+    if (fp == nullptr) {
+        printf("  *** Failed to open for read: %s\n", fpath);
+        abort();
+    }
+    const int buf_size = 4096;
+    char buf[buf_size];
+    int cnt = fread(buf, 1, buf_size, fp);
+    fclose(fp);
+
+    for (int i = 0; i < cnt; i++) {
+        if (!isprint(buf[i]) && !isspace(buf[i])) {
+            txt_only = false;
+            break;
+        }
+    }
+
+    if (txt_only) {
+        printf("Open as text file: %s\n", fpath);
+        load_txtfile(fpath, std::move(cb));
+    } else {
+        printf("Open as adj list file: %s\n", fpath);
+        load_adjfile(fpath, std::move(cb));
+    }
 }

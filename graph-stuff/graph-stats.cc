@@ -40,8 +40,9 @@ void analyze_graph_file(const char* fpath) {
     while (getline(fin, line)) {
         int u = -1, v = -1;
         istringstream iss(line);
-        char ignore_char;
-        iss >> u >> ignore_char >> v;
+        iss >> u;
+        iss.get();  // skip separator (one char)
+        iss >> v;
         if (u == -1 || v == -1) {
             continue;
         }

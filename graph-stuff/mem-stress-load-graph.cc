@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <deque>
 #include <map>
 #include <unordered_map>
 
@@ -38,8 +39,9 @@ edge_t parse_edge(const std::string& line) {
         return e;
     }
     istringstream iss(line);
-    char ignored_char;
-    iss >> e.first >> ignored_char >> e.second;
+    iss >> e.first;
+    iss.get();  // skip separator (one char)
+    iss >> e.second;
     if (e.first == -1 || e.second == -1) {
         e.first = -1;
         e.second = -1;
@@ -55,6 +57,7 @@ void stress1(const char* fpath) {
     int line_counter = 0;
 
     sparse_hash_set<edge_t> all_edges;
+    all_edges.resize(estimate_edges_in_txt_file(fpath));
     while (getline(fin, line)) {
         line_counter++;
         if (line_counter % (1000 * 1000) == 0) {
@@ -79,6 +82,7 @@ void stress2(const char* fpath) {
     int line_counter = 0;
 
     sparse_hash_map<edge_t, int32_t> edge_to_i32;
+    edge_to_i32.resize(estimate_edges_in_txt_file(fpath));
     while (getline(fin, line)) {
         line_counter++;
         if (line_counter % (1000 * 1000) == 0) {
@@ -172,6 +176,54 @@ void stress5(const char* fpath) {
     proc_report();
 }
 
+void stress6(const char* fpath) {
+    REPORT_FUNCTION_TIMING_AFTER_RETURN;
+
+    ifstream fin(fpath);
+    string line;
+    int line_counter = 0;
+
+    vector<edge_t> edges;
+    while (getline(fin, line)) {
+        line_counter++;
+        if (line_counter % (1000 * 1000) == 0) {
+            printf("Processed %d lines\n", line_counter);
+            proc_report();
+        }
+        edge_t e = parse_edge(line);
+        if (e.first == -1 || e.second == -1) {
+            continue;
+        }
+        edges.push_back(e);
+    }
+    printf("=== stress6: load %ld edges into vector<edge>\n", edges.size());
+    proc_report();
+}
+
+void stress7(const char* fpath) {
+    REPORT_FUNCTION_TIMING_AFTER_RETURN;
+
+    ifstream fin(fpath);
+    string line;
+    int line_counter = 0;
+
+    deque<edge_t> edges;
+    while (getline(fin, line)) {
+        line_counter++;
+        if (line_counter % (1000 * 1000) == 0) {
+            printf("Processed %d lines\n", line_counter);
+            proc_report();
+        }
+        edge_t e = parse_edge(line);
+        if (e.first == -1 || e.second == -1) {
+            continue;
+        }
+        edges.push_back(e);
+    }
+    printf("=== stress6: load %ld edges into vector<edge>\n", edges.size());
+    proc_report();
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         printf("Usage: %s graph-file\n", argv[0]);
@@ -181,7 +233,9 @@ int main(int argc, char* argv[]) {
     stress1(fpath);
     stress2(fpath);
     // stress3(fpath);
-    stress4(fpath);
-    stress5(fpath);
+    // stress4(fpath);
+    // stress5(fpath);
+    stress6(fpath);
+    stress7(fpath);
     return 0;
 }
