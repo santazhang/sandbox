@@ -242,27 +242,41 @@ static int estimate_edges_in_adj_file(const std::string& fpath) {
         double sample_all_bytes = 0.0;
         for (size_t i = 0; i < n_sample; i++) {
             fseek(fp, round_down(i * fsize / n_sample, sizeof(node_t)), SEEK_SET);
+            bool io_error = false;
 
             // discard first (partially read) adjlist
             node_t u = BAD_NODE;
             do {
-                fread(&u, 1, sizeof(node_t), fp);
+                if (fread(&u, 1, sizeof(node_t), fp) < sizeof(node_t)) {
+                    io_error = true;
+                    break;
+                }
             } while (u != BAD_NODE);
 
             // second adjlist can be used for analysis
             u = BAD_NODE;
             int count = 0;
             do {
-                fread(&u, 1, sizeof(node_t), fp);
+                if (fread(&u, 1, sizeof(node_t), fp) < sizeof(node_t)) {
+                    io_error = true;
+                    break;
+                }
                 count++;
             } while (u != BAD_NODE);
+
+            if (io_error) {
+                continue;
+            }
 
             sample_all_bytes += count * sizeof(node_t);
             // do not include <src> and <separator>
             sample_edge_bytes += (count - 2) * sizeof(node_t);
         }
-        est_edges = (fsize * (sample_edge_bytes / sample_all_bytes)) / sizeof(node_t);
-        printf("Estimate file %s has ~= %d edges.\n", fpath.c_str(), est_edges);
+
+        if (sample_all_bytes > 1024) {
+            est_edges = (fsize * (sample_edge_bytes / sample_all_bytes)) / sizeof(node_t);
+            printf("Estimate file %s has ~= %d edges.\n", fpath.c_str(), est_edges);
+        }
     }
     return est_edges;
 }
@@ -451,6 +465,9 @@ void load_txtfile(const char* txtfn, std::function<void(edge_t)>&& cb) {
     int edge_counter = 0;
 
     while (std::getline(fin, line)) {
+        if (line[0] == '#') {
+            continue;
+        }
         node_t u = -1, v = -1;
         std::istringstream iss(line);
         iss >> u;
@@ -470,7 +487,7 @@ void load_txtfile(const char* txtfn, std::function<void(edge_t)>&& cb) {
            edge_counter, timer.elapsed());
 }
 
-void load_edge_file(const char* fpath, std::function<void(edge_t)>&& cb) {
+bool is_txt_file(const char* fpath) {
     bool txt_only = true;
 
     FILE* fp = fopen(fpath, "rb");
@@ -490,11 +507,24 @@ void load_edge_file(const char* fpath, std::function<void(edge_t)>&& cb) {
         }
     }
 
-    if (txt_only) {
+    return txt_only;
+}
+
+void load_edge_file(const char* fpath, std::function<void(edge_t)>&& cb) {
+    if (is_txt_file(fpath)) {
         printf("Open as text file: %s\n", fpath);
         load_txtfile(fpath, std::move(cb));
     } else {
         printf("Open as adj list file: %s\n", fpath);
         load_adjfile(fpath, std::move(cb));
+    }
+}
+
+
+static int estimate_edges_in_file(const char* fpath) {
+    if (is_txt_file(fpath)) {
+        return estimate_edges_in_txt_file(fpath);
+    } else {
+        return estimate_edges_in_adj_file(fpath);
     }
 }

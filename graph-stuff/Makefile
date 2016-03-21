@@ -1,10 +1,11 @@
 .PHONY: all clean
 
-CXXFLAGS=-O3 -std=c++11 -I.
+CXXFLAGS=-O3 -std=c++11 -ggdb -I.
 PRELUDE=@mkdir -p bin
 
 all: \
 	bin/cluster1-random \
+	bin/cluster2-powergraph \
 	bin/graph-stats \
 	bin/graph-adj2txt \
 	bin/graph-txt2adj \
@@ -16,6 +17,10 @@ clean:
 	rm -rf bin
 
 bin/cluster1-random: cluster1-random.cc graph_utils.h
+	$(PRELUDE)
+	g++ $(CXXFLAGS) $< -o $@
+
+bin/cluster2-powergraph: cluster2-powergraph.cc graph_utils.h
 	$(PRELUDE)
 	g++ $(CXXFLAGS) $< -o $@
 

@@ -2,8 +2,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <map>
-#include <unordered_map>
 
 #include <stdio.h>
 #include <inttypes.h>
@@ -14,28 +12,12 @@
 using namespace std;
 using namespace google;
 
-edge_t parse_edge(const std::string& line) {
-    edge_t e { -1, -1 };
-    if (line[0] == '#') {
-        return e;
-    }
-    istringstream iss(line);
-    iss >> e.first;
-    iss.get();  // skip separator (one char)
-    iss >> e.second;
-    if (e.first == -1 || e.second == -1) {
-        e.first = -1;
-        e.second = -1;
-    }
-    return e;
-}
-
 void random_clustering(const char* fpath) {
     Timer timer;
     Progress progress;
 
     sparse_hash_map<edge_t, int32_t> edge_to_i32;
-    edge_to_i32.resize(estimate_edges_in_txt_file(fpath));
+    edge_to_i32.resize(estimate_edges_in_file(fpath));
     load_edge_file(fpath, [&edge_to_i32] (edge_t e) {
         edge_to_i32[e] = 2016;
     });

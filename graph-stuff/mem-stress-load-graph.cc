@@ -33,43 +33,14 @@ void proc_report() {
     }
 }
 
-edge_t parse_edge(const std::string& line) {
-    edge_t e { -1, -1 };
-    if (line[0] == '#') {
-        return e;
-    }
-    istringstream iss(line);
-    iss >> e.first;
-    iss.get();  // skip separator (one char)
-    iss >> e.second;
-    if (e.first == -1 || e.second == -1) {
-        e.first = -1;
-        e.second = -1;
-    }
-    return e;
-}
-
 void stress1(const char* fpath) {
     REPORT_FUNCTION_TIMING_AFTER_RETURN;
 
-    ifstream fin(fpath);
-    string line;
-    int line_counter = 0;
-
     sparse_hash_set<edge_t> all_edges;
-    all_edges.resize(estimate_edges_in_txt_file(fpath));
-    while (getline(fin, line)) {
-        line_counter++;
-        if (line_counter % (1000 * 1000) == 0) {
-            printf("Processed %d lines\n", line_counter);
-            proc_report();
-        }
-        edge_t e = parse_edge(line);
-        if (e.first == -1 || e.second == -1) {
-            continue;
-        }
+    all_edges.resize(estimate_edges_in_file(fpath));
+    load_edge_file(fpath, [&all_edges] (edge_t e) {
         all_edges.insert(e);
-    }
+    });
     printf("=== stress1: load %ld edges into sparse_set<edge>\n", all_edges.size());
     proc_report();
 }
@@ -77,24 +48,11 @@ void stress1(const char* fpath) {
 void stress2(const char* fpath) {
     REPORT_FUNCTION_TIMING_AFTER_RETURN;
 
-    ifstream fin(fpath);
-    string line;
-    int line_counter = 0;
-
     sparse_hash_map<edge_t, int32_t> edge_to_i32;
-    edge_to_i32.resize(estimate_edges_in_txt_file(fpath));
-    while (getline(fin, line)) {
-        line_counter++;
-        if (line_counter % (1000 * 1000) == 0) {
-            printf("Processed %d lines\n", line_counter);
-            proc_report();
-        }
-        edge_t e = parse_edge(line);
-        if (e.first == -1 || e.second == -1) {
-            continue;
-        }
+    edge_to_i32.resize(estimate_edges_in_file(fpath));
+    load_edge_file(fpath, [&edge_to_i32] (edge_t e) {
         edge_to_i32[e] = 2016;
-    }
+    });
     printf("=== stress2: load %ld edges into sparse_map<edge -> val>\n", edge_to_i32.size());
     proc_report();
 }
@@ -103,25 +61,12 @@ void stress2(const char* fpath) {
 void stress3(const char* fpath) {
     REPORT_FUNCTION_TIMING_AFTER_RETURN;
 
-    ifstream fin(fpath);
-    string line;
-    int line_counter = 0;
     int edge_count = 0;
-
     sparse_hash_map<node_t, sparse_hash_map<node_t, int32_t>> graph;
-    while (getline(fin, line)) {
-        line_counter++;
-        if (line_counter % (1000 * 1000) == 0) {
-            printf("Processed %d lines\n", line_counter);
-            proc_report();
-        }
-        edge_t e = parse_edge(line);
-        if (e.first == -1 || e.second == -1) {
-            continue;
-        }
+    load_edge_file(fpath, [&graph, &edge_count] (edge_t e) {
         graph[e.first][e.second] = 2016;
         edge_count++;
-    }
+    });
     printf("=== stress3: load %d edges into sparse_map<node -> sparse_map<node -> val>>\n", edge_count);
     proc_report();
 }
@@ -130,23 +75,10 @@ void stress3(const char* fpath) {
 void stress4(const char* fpath) {
     REPORT_FUNCTION_TIMING_AFTER_RETURN;
 
-    ifstream fin(fpath);
-    string line;
-    int line_counter = 0;
-
     map<edge_t, int32_t> edge_to_i32;
-    while (getline(fin, line)) {
-        line_counter++;
-        if (line_counter % (1000 * 1000) == 0) {
-            printf("Processed %d lines\n", line_counter);
-            proc_report();
-        }
-        edge_t e = parse_edge(line);
-        if (e.first == -1 || e.second == -1) {
-            continue;
-        }
+    load_edge_file(fpath, [&edge_to_i32] (edge_t e) {
         edge_to_i32[e] = 2016;
-    }
+    });
     printf("=== stress4: load %ld edges into map<edge -> val>\n", edge_to_i32.size());
     proc_report();
 }
@@ -155,23 +87,10 @@ void stress4(const char* fpath) {
 void stress5(const char* fpath) {
     REPORT_FUNCTION_TIMING_AFTER_RETURN;
 
-    ifstream fin(fpath);
-    string line;
-    int line_counter = 0;
-
     unordered_map<edge_t, int32_t> edge_to_i32;
-    while (getline(fin, line)) {
-        line_counter++;
-        if (line_counter % (1000 * 1000) == 0) {
-            printf("Processed %d lines\n", line_counter);
-            proc_report();
-        }
-        edge_t e = parse_edge(line);
-        if (e.first == -1 || e.second == -1) {
-            continue;
-        }
+    load_edge_file(fpath, [&edge_to_i32] (edge_t e) {
         edge_to_i32[e] = 2016;
-    }
+    });
     printf("=== stress5: load %ld edges into unordered_map<edge -> val>\n", edge_to_i32.size());
     proc_report();
 }
@@ -179,23 +98,10 @@ void stress5(const char* fpath) {
 void stress6(const char* fpath) {
     REPORT_FUNCTION_TIMING_AFTER_RETURN;
 
-    ifstream fin(fpath);
-    string line;
-    int line_counter = 0;
-
     vector<edge_t> edges;
-    while (getline(fin, line)) {
-        line_counter++;
-        if (line_counter % (1000 * 1000) == 0) {
-            printf("Processed %d lines\n", line_counter);
-            proc_report();
-        }
-        edge_t e = parse_edge(line);
-        if (e.first == -1 || e.second == -1) {
-            continue;
-        }
+    load_edge_file(fpath, [&edges] (edge_t e) {
         edges.push_back(e);
-    }
+    });
     printf("=== stress6: load %ld edges into vector<edge>\n", edges.size());
     proc_report();
 }
@@ -203,23 +109,10 @@ void stress6(const char* fpath) {
 void stress7(const char* fpath) {
     REPORT_FUNCTION_TIMING_AFTER_RETURN;
 
-    ifstream fin(fpath);
-    string line;
-    int line_counter = 0;
-
     deque<edge_t> edges;
-    while (getline(fin, line)) {
-        line_counter++;
-        if (line_counter % (1000 * 1000) == 0) {
-            printf("Processed %d lines\n", line_counter);
-            proc_report();
-        }
-        edge_t e = parse_edge(line);
-        if (e.first == -1 || e.second == -1) {
-            continue;
-        }
+    load_edge_file(fpath, [&edges] (edge_t e) {
         edges.push_back(e);
-    }
+    });
     printf("=== stress6: load %ld edges into vector<edge>\n", edges.size());
     proc_report();
 }
