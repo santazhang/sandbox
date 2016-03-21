@@ -2,4 +2,8 @@
 
 set -x
 
-./devstuff/get-devstuff.sh
+./.poorman_ci/frequency_control.sh \
+    build-devstuff \
+    4h \
+    devstuff/ \
+    $0.real
