@@ -35,7 +35,7 @@ struct is_trivially_copy_constructible {
 #include "sparsehash/sparse_hash_map"
 #include "sparsehash/sparse_hash_set"
 
-const int MAX_CLUSTERS = 1000 * 1000;
+const int MAX_CLUSTERS = 100;
 
 using node_t = int32_t;
 using edge_t = std::pair<int32_t, int32_t>;
@@ -362,22 +362,26 @@ static void eval_edge_clustering(
     int est_nodes = estimate_node_count(clustering);
     int est_src_cluster = estimate_src_cluster_pair_count(clustering);
 
-    {
-        google::sparse_hash_set<std::pair<node_t, int32_t>> src_to_cluster;
-        src_to_cluster.resize(est_src_cluster);
-        google::sparse_hash_map<node_t, int32_t> src_to_cluster_count;
-        src_to_cluster_count.resize(est_nodes);
-        progress.begin("Collect src_to_cluster_count", clustering.size());
-        for (const auto& it : clustering) {
-            progress.step();
-            node_t src = it.first.first;
-            int32_t cluster = it.second;
-            std::pair<node_t, int32_t> src_cluster { src, cluster };
-            if (src_to_cluster.find(src_cluster) == src_to_cluster.end()) {
-                src_to_cluster.insert(src_cluster);
-                src_to_cluster_count[src]++;
-            }
+    google::sparse_hash_set<std::pair<node_t, int32_t>> src_to_cluster;
+    src_to_cluster.resize(est_src_cluster);
+    google::sparse_hash_map<node_t, int32_t> src_to_cluster_count;
+    src_to_cluster_count.resize(est_nodes);
+    progress.begin("Collect src_to_cluster_count", clustering.size());
+    for (const auto& it : clustering) {
+        progress.step();
+        node_t src = it.first.first;
+        int32_t cluster = it.second;
+        std::pair<node_t, int32_t> src_cluster { src, cluster };
+        if (src_to_cluster.find(src_cluster) == src_to_cluster.end()) {
+            src_to_cluster.insert(src_cluster);
+            src_to_cluster_count[src]++;
         }
+    }
+
+    printf("Powergraph replication factor: %lf\n",
+           1.0 * src_to_cluster.size() / src_to_cluster_count.size());
+
+    {
         google::sparse_hash_map<int32_t, int32_t> fanout_by_src_distribution;
         progress.begin("Collect fanout_by_src_distribution",
                        src_to_cluster_count.size());

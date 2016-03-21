@@ -115,8 +115,11 @@ void powergraph_clustering(const char* fpath) {
 
     sparse_hash_map<int32_t, int32_t> cluster_to_load;
     cluster_to_load.resize(MAX_CLUSTERS);
-
-    int32_t next_cluster_id = 0;
+    vector<int32_t> all_cluster_ids;
+    for (int i = 0; i < MAX_CLUSTERS; i++) {
+        cluster_to_load[i] = 0;
+        all_cluster_ids.push_back(i);
+    }
 
     // Powergraph clustering
     timer.start();
@@ -134,7 +137,7 @@ void powergraph_clustering(const char* fpath) {
 
         if (u_set.empty() && v_set.empty()) {
             // Neither node assigned, assign to new cluster.
-            assigned_cluster = next_cluster_id++;
+            assigned_cluster = cluster_with_least_load(all_cluster_ids, cluster_to_load);
             insert_into_cluster_set(&u_set, assigned_cluster);
             insert_into_cluster_set(&v_set, assigned_cluster);
 

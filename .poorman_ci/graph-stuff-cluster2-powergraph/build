@@ -3,4 +3,4 @@
 set -x
 
 cd graph-stuff
-make bin/cluster1-random
+make bin/cluster2-powergraph

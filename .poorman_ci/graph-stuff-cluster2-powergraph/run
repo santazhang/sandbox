@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -x
+
+./graph-stuff/bin/cluster2-powergraph /home/santa/public/twitter-small.csv
