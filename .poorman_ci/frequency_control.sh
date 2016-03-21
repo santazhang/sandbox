@@ -27,8 +27,9 @@ else
     exit 1
 fi
 
-project_md5=`echo "$project" | $MD5_CMD`
-src_tree_md5=`find "$src_tree" -type f | sort | xargs -n 1 cat | $MD5_CMD`
+project_md5=`echo "$project" | $MD5_CMD | cut -c1-16`
+src_tree_md5=`find "$src_tree" -type f | sort | xargs -n 1 cat | \
+              $MD5_CMD | cut -c1-16`
 sentinel_fn="$SENTINEL_DIR/$project_md5-$src_tree_md5"
 
 if find $SENTINEL_DIR -type f -Btime -$min_interval | \
