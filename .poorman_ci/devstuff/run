@@ -4,6 +4,6 @@ set -x
 
 ./.poorman_ci/frequency_control.sh \
     build-devstuff \
-    4h \
+    4 \
     devstuff/ \
     $0.real
