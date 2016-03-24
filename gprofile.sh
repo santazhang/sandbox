@@ -21,6 +21,8 @@ GPERFTOOLS_REPORT=`mktemp -q /tmp/gperftools-profile-${appname}.XXXXXX` || exit 
 
 shift
 
+echo "  *** HINT: set CPUPROFILE_FREQUENCY=samples_per_second"
+
 set -x
 
 env LD_PRELOAD=$DEVSTUFF_ROOT/lib/libprofiler.so \
