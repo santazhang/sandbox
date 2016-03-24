@@ -23,8 +23,8 @@ shift
 
 set -x
 
-env LD_PRELOAD=$DEVSTUFF_ROOT/libprofiler.so \
-    DYLD_INSERT_LIBRARIES=$DEVSTUFF_ROOT/libprofiler.dylib \
+env LD_PRELOAD=$DEVSTUFF_ROOT/lib/libprofiler.so \
+    DYLD_INSERT_LIBRARIES=$DEVSTUFF_ROOT/lib/libprofiler.dylib \
     CPUPROFILE=$GPERFTOOLS_REPORT $target $@
 
 pprof --text $target $GPERFTOOLS_REPORT
