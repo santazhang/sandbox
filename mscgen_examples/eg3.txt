@@ -1,0 +1,7 @@
+# MSC for some fictional process
+msc {
+    width = "800";
+    a, b, "c";
+    a->b;
+    a<-c [label="return"];
+}

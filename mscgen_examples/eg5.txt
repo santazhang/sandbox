@@ -1,0 +1,10 @@
+msc {
+# Options section
+    hscale="1.5", arcgradient="5";
+
+# Entities
+    A, B;
+
+# Arcs
+    A -> B;
+}
