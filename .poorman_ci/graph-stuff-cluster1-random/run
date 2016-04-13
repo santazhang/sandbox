@@ -1,5 +1,0 @@
-#!/bin/bash
-
-set -x
-
-./graph-stuff/bin/cluster1-random /home/santa/public/twitter-small.csv

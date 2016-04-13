@@ -1,6 +1,0 @@
-#!/bin/bash
-
-set -x
-
-cd graph-stuff
-make bin/cluster2-powergraph
