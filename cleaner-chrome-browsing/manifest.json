@@ -1,0 +1,20 @@
+{
+  "name": "cleaner-chrome-browsing",
+  "version": "0.1",
+  "manifest_version": 2,
+  "description": "Make the world cleaner",
+  "author": "Yang Zhang",
+  "content_scripts": [{
+    "matches": ["http://www.flickr.com/*", "https://www.flickr.com/*"],
+    "css": ["clean-flickr-navbar.css"]
+  }, {
+    "matches": ["http://*.gamepedia.com/*", "https://*.gamepedia.com/*"],
+    "css": ["clean-gamepedia.css"]
+  }],
+  "permissions": [
+    "http://*.gamepedia.com/*",
+    "https://*.gamepedia.com/*",
+    "http://www.flickr.com/*",
+    "https://www.flickr.com/*"
+  ]
+}
