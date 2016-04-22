@@ -1,6 +1,6 @@
 #!/bin/bash
 
-HADOOP_DIR="/Users/santa/Downloads/k/hadoop-2.7.2"
+HADOOP_DIR="/Users/santa/Downloads/hadoop-2.7.2"
 . $HADOOP_DIR/libexec/hadoop-config.sh
 
 mkdir -p out/production
