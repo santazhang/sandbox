@@ -44,4 +44,18 @@ public class DSConstants {
      * Used to validate the local resource.
      */
     public static final String DISTRIBUTEDSHELLSCRIPTLEN = "DISTRIBUTEDSHELLSCRIPTLEN";
+
+    public static final String DISTRIBUTEDSHELLSCRIPTLOCATION2 = "DISTRIBUTEDSHELLSCRIPTLOCATION2";
+
+    /**
+     * Environment key name denoting the file timestamp for the shell script.
+     * Used to validate the local resource.
+     */
+    public static final String DISTRIBUTEDSHELLSCRIPTTIMESTAMP2 = "DISTRIBUTEDSHELLSCRIPTTIMESTAMP2";
+
+    /**
+     * Environment key name denoting the file content length for the shell script.
+     * Used to validate the local resource.
+     */
+    public static final String DISTRIBUTEDSHELLSCRIPTLEN2 = "DISTRIBUTEDSHELLSCRIPTLEN2";
 }

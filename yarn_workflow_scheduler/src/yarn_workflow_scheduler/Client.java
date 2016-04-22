@@ -19,8 +19,9 @@
 package yarn_workflow_scheduler;
 
 import org.apache.commons.cli.*;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -47,9 +48,12 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
+
+import static org.apache.hadoop.record.meta.TypeID.RIOType.BUFFER;
 
 /**
  * Client for Distributed Shell application submission to YARN.
@@ -108,15 +112,16 @@ public class Client {
     private final String appMasterMainClass;
 
     // Shell command to be executed
-    private String shellCommand = "";
+//    private String shellCommand = "";
     // Location of shell script
-    private String shellScriptPath = "";
+//    private String shellScriptPath = "";
     // Args to be passed to the shell command
-    private String[] shellArgs = new String[]{};
+//    private String[] shellArgs = new String[]{};
     // Env variables to be setup for the shell command
     private Map<String, String> shellEnv = new HashMap<String, String>();
     // Shell Command Container priority
     private int shellCmdPriority = 0;
+    private String workflowDir = "";
 
     // Amt of memory to request for container in which shell script will be executed
     private int containerMemory = 10;
@@ -149,7 +154,8 @@ public class Client {
     // Hardcoded path to custom log_properties
     private static final String log4jPath = "log4j.properties";
 
-    public static final String SCRIPT_PATH = "ExecScript";
+//    public static final String SCRIPT_PATH = "ExecScript";
+    public static final String WORKFLOW_ZIP = "WORKFLOW.tar.gz";
 
     /**
      * @param args Command line arguments
@@ -185,9 +191,7 @@ public class Client {
     /**
      */
     public Client(Configuration conf) throws Exception {
-        this(
-                "org.apache.hadoop.yarn.applications.distributedshell.ApplicationMaster",
-                conf);
+        this("yarn_workflow_scheduler.ApplicationMaster", conf);
     }
 
     Client(String appMasterMainClass, Configuration conf) {
@@ -203,14 +207,15 @@ public class Client {
         opts.addOption("master_memory", true, "Amount of memory in MB to be requested to run the application master");
         opts.addOption("master_vcores", true, "Amount of virtual cores to be requested to run the application master");
         opts.addOption("jar", true, "Jar file containing the application master");
-        opts.addOption("shell_command", true, "Shell command to be executed by " +
-                "the Application Master. Can only specify either --shell_command " +
-                "or --shell_script");
-        opts.addOption("shell_script", true, "Location of the shell script to be " +
-                "executed. Can only specify either --shell_command or --shell_script");
-        opts.addOption("shell_args", true, "Command line args for the shell script." +
-                "Multiple args can be separated by empty space.");
-        opts.getOption("shell_args").setArgs(Option.UNLIMITED_VALUES);
+        opts.addOption("workflow_dir", true, "Dir containing a workflow specification");
+//        opts.addOption("shell_command", true, "Shell command to be executed by " +
+//                "the Application Master. Can only specify either --shell_command " +
+//                "or --shell_script");
+//        opts.addOption("shell_script", true, "Location of the shell script to be " +
+//                "executed. Can only specify either --shell_command or --shell_script");
+//        opts.addOption("shell_args", true, "Command line args for the shell script." +
+//                "Multiple args can be separated by empty space.");
+//        opts.getOption("shell_args").setArgs(Option.UNLIMITED_VALUES);
         opts.addOption("shell_env", true, "Environment for shell script. Specified as env_key=env_val pairs");
         opts.addOption("shell_cmd_priority", true, "Priority for the shell command containers");
         opts.addOption("container_memory", true, "Amount of memory in MB to be requested to run the shell command");
@@ -278,7 +283,7 @@ public class Client {
             keepContainers = true;
         }
 
-        appName = cliParser.getOptionValue("appname", "DistributedShell");
+        appName = cliParser.getOptionValue("appname", "YarnWorkflow");
         amPriority = Integer.parseInt(cliParser.getOptionValue("priority", "0"));
         amQueue = cliParser.getOptionValue("queue", "default");
         amMemory = Integer.parseInt(cliParser.getOptionValue("master_memory", "10"));
@@ -299,19 +304,24 @@ public class Client {
 
         appMasterJar = cliParser.getOptionValue("jar");
 
-        if (!cliParser.hasOption("shell_command") && !cliParser.hasOption("shell_script")) {
-            throw new IllegalArgumentException(
-                    "No shell command or shell script specified to be executed by application master");
-        } else if (cliParser.hasOption("shell_command") && cliParser.hasOption("shell_script")) {
-            throw new IllegalArgumentException("Can not specify shell_command option " +
-                    "and shell_script option at the same time");
-        } else if (cliParser.hasOption("shell_command")) {
-            shellCommand = cliParser.getOptionValue("shell_command");
+//        if (!cliParser.hasOption("shell_command") && !cliParser.hasOption("shell_script")) {
+//            throw new IllegalArgumentException(
+//                    "No shell command or shell script specified to be executed by application master");
+//        } else if (cliParser.hasOption("shell_command") && cliParser.hasOption("shell_script")) {
+//            throw new IllegalArgumentException("Can not specify shell_command option " +
+//                    "and shell_script option at the same time");
+//        } else if (cliParser.hasOption("shell_command")) {
+//            shellCommand = cliParser.getOptionValue("shell_command");
+//        } else {
+//            shellScriptPath = cliParser.getOptionValue("shell_script");
+//        }
+//        if (cliParser.hasOption("shell_args")) {
+//            shellArgs = cliParser.getOptionValues("shell_args");
+//        }
+        if (!cliParser.hasOption("workflow_dir")) {
+            throw new IllegalArgumentException("workflow_dir not specified!");
         } else {
-            shellScriptPath = cliParser.getOptionValue("shell_script");
-        }
-        if (cliParser.hasOption("shell_args")) {
-            shellArgs = cliParser.getOptionValues("shell_args");
+            workflowDir = cliParser.getOptionValue("workflow_dir");
         }
         if (cliParser.hasOption("shell_env")) {
             String envs[] = cliParser.getOptionValues("shell_env");
@@ -457,28 +467,64 @@ public class Client {
         String hdfsShellScriptLocation = "";
         long hdfsShellScriptLen = 0;
         long hdfsShellScriptTimestamp = 0;
-        if (!shellScriptPath.isEmpty()) {
-            Path shellSrc = new Path(shellScriptPath);
-            String shellPathSuffix =
-                    appName + "/" + appId.toString() + "/" + SCRIPT_PATH;
-            Path shellDst =
-                    new Path(fs.getHomeDirectory(), shellPathSuffix);
-            fs.copyFromLocalFile(false, true, shellSrc, shellDst);
-            hdfsShellScriptLocation = shellDst.toUri().toString();
-            FileStatus shellFileStatus = fs.getFileStatus(shellDst);
-            hdfsShellScriptLen = shellFileStatus.getLen();
-            hdfsShellScriptTimestamp = shellFileStatus.getModificationTime();
-        }
 
-        if (!shellCommand.isEmpty()) {
-            addToLocalResources(fs, null, shellCommandPath, appId.toString(),
-                    localResources, shellCommand);
-        }
+        Path workflowSrc = new Path(workflowDir + "/" + WORKFLOW_ZIP);
+        FileOutputStream zipDest = new FileOutputStream(workflowDir + "/" + WORKFLOW_ZIP);
+        GZIPOutputStream gzOut = new GZIPOutputStream(zipDest);
+        TarArchiveOutputStream tarOut = new TarArchiveOutputStream(new BufferedOutputStream(gzOut));
+        byte zipBuffer[] = new byte[4096];
+        java.io.File workflowDirFile = new java.io.File(workflowDir);
+        for (java.io.File f : workflowDirFile.listFiles()) {
+            if (f.isFile() && !f.getName().equals(WORKFLOW_ZIP) && !f.getName().equals(".DS_Store")) {
+                FileInputStream fi = new FileInputStream(f.getAbsolutePath());
+                BufferedInputStream origin = new BufferedInputStream(fi, BUFFER);
 
-        if (shellArgs.length > 0) {
-            addToLocalResources(fs, null, shellArgsPath, appId.toString(),
-                    localResources, StringUtils.join(shellArgs, " "));
+                TarArchiveEntry entry = new TarArchiveEntry(f.getName());
+                entry.setSize(f.length());
+                tarOut.putArchiveEntry(entry);
+
+                int count;
+                while((count = origin.read(zipBuffer, 0, zipBuffer.length)) != -1) {
+                    tarOut.write(zipBuffer, 0, count);
+                }
+                tarOut.closeArchiveEntry();
+                origin.close();
+            }
         }
+        tarOut.close();
+
+        FileOutputStream scrOut = new FileOutputStream(workflowDir + "/LAUNCHER.sh");
+        scrOut.write(("#!/bin/bash\n" +
+                "tar zxf WORKFLOW.tar.gz\n" +
+                "bash $1\n").getBytes());
+        scrOut.close();
+
+        String workflowPathSuffix =
+                appName + "/" + appId.toString() + "/" + WORKFLOW_ZIP;
+        Path shellDst =
+                new Path(fs.getHomeDirectory(), workflowPathSuffix);
+        fs.copyFromLocalFile(false, true, workflowSrc, shellDst);
+        Path shellDst2 = new Path(fs.getHomeDirectory(), appName + "/" + appId.toString() + "/LAUNCHER.sh");
+        fs.copyFromLocalFile(false, true, new Path(workflowDir + "/LAUNCHER.sh"),
+                shellDst2);
+        hdfsShellScriptLocation = shellDst.toUri().toString();
+        FileStatus shellFileStatus = fs.getFileStatus(shellDst);
+        hdfsShellScriptLen = shellFileStatus.getLen();
+        hdfsShellScriptTimestamp = shellFileStatus.getModificationTime();
+        FileStatus shellFileStatus2 = fs.getFileStatus(shellDst2);
+        String hdfsShellScriptLocation2 = shellDst2.toUri().toString();
+        long hdfsShellScriptLen2 = shellFileStatus2.getLen();
+        long hdfsShellScriptTimestamp2 = shellFileStatus2.getModificationTime();
+
+//        if (!shellCommand.isEmpty()) {
+//            addToLocalResources(fs, null, shellCommandPath, appId.toString(),
+//                    localResources, shellCommand);
+//        }
+//
+//        if (shellArgs.length > 0) {
+//            addToLocalResources(fs, null, shellArgsPath, appId.toString(),
+//                    localResources, StringUtils.join(shellArgs, " "));
+//        }
 
         // Set the necessary security tokens as needed
         //amContainer.setContainerTokens(containerToken);
@@ -493,6 +539,9 @@ public class Client {
         env.put(yarn_workflow_scheduler.DSConstants.DISTRIBUTEDSHELLSCRIPTLOCATION, hdfsShellScriptLocation);
         env.put(yarn_workflow_scheduler.DSConstants.DISTRIBUTEDSHELLSCRIPTTIMESTAMP, Long.toString(hdfsShellScriptTimestamp));
         env.put(yarn_workflow_scheduler.DSConstants.DISTRIBUTEDSHELLSCRIPTLEN, Long.toString(hdfsShellScriptLen));
+        env.put(yarn_workflow_scheduler.DSConstants.DISTRIBUTEDSHELLSCRIPTLOCATION2, hdfsShellScriptLocation2);
+        env.put(yarn_workflow_scheduler.DSConstants.DISTRIBUTEDSHELLSCRIPTTIMESTAMP2, Long.toString(hdfsShellScriptTimestamp2));
+        env.put(yarn_workflow_scheduler.DSConstants.DISTRIBUTEDSHELLSCRIPTLEN2, Long.toString(hdfsShellScriptLen2));
 
         // Add AppMaster.jar location to classpath
         // At some point we should not be required to add
