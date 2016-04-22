@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="yarn_workflow_scheduler">
+    <output-path>$PROJECT_DIR$/out/artifacts/yarn_workflow_scheduler</output-path>
+    <root id="archive" name="yarn_workflow_scheduler.jar">
+      <element id="module-output" name="yarn_workflow_scheduler" />
+    </root>
+  </artifact>
+</component>

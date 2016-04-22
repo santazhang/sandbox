@@ -1,0 +1,5 @@
+# Makefile-ish dependency
+
+step-3.sh: step-2.sh
+
+step-2.sh: step-1.sh
