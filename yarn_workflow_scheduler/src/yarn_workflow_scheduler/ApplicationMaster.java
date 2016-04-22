@@ -20,12 +20,15 @@ package yarn_workflow_scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.*;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.IOUtils;
@@ -58,8 +61,9 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPInputStream;
 
 import static yarn_workflow_scheduler.Client.WORKFLOW_ZIP;
 
@@ -172,8 +176,8 @@ public class ApplicationMaster {
 
     // App Master configuration
     // No. of containers to run shell command on
-    @VisibleForTesting
-    protected int numTotalContainers = 1;
+//    @VisibleForTesting
+//    protected int numTotalContainers = 1;
     // Memory to request for the container on which the shell command will run
     private int containerMemory = 10;
     // VirtualCores to request for the container on which the shell command will run
@@ -182,18 +186,18 @@ public class ApplicationMaster {
     private int requestPriority;
 
     // Counter for completed containers ( complete denotes successful or failed )
-    private AtomicInteger numCompletedContainers = new AtomicInteger();
+//    private AtomicInteger numCompletedContainers = new AtomicInteger();
     // Allocated container count so that we know how many containers has the RM
     // allocated to us
-    @VisibleForTesting
-    protected AtomicInteger numAllocatedContainers = new AtomicInteger();
+//    @VisibleForTesting
+//    protected AtomicInteger numAllocatedContainers = new AtomicInteger();
     // Count of failed containers
-    private AtomicInteger numFailedContainers = new AtomicInteger();
+//    private AtomicInteger numFailedContainers = new AtomicInteger();
     // Count of containers already requested from the RM
     // Needed as once requested, we should not request for containers again.
     // Only request for more if the original requirement changes.
-    @VisibleForTesting
-    protected AtomicInteger numRequestedContainers = new AtomicInteger();
+//    @VisibleForTesting
+//    protected AtomicInteger numRequestedContainers = new AtomicInteger();
 
     // Shell command to be executed
     private String shellCommand = "";
@@ -236,6 +240,8 @@ public class ApplicationMaster {
 
     private final String linux_bash_command = "bash";
     private final String windows_command = "cmd /c";
+    private DagHelper dagHelper = null;
+    private ConcurrentLinkedQueue<String> jobsToRun = new ConcurrentLinkedQueue<String>();
 
     /**
      * @param args Command line args
@@ -448,15 +454,45 @@ public class ApplicationMaster {
             }
         }
 
+        // Get WORKFLOW to local
+        FileSystem fs = FileSystem.get(conf);
+
+        String workflowPathSuffix =
+                "YarnWorkflow/" + appAttemptID.getApplicationId() + "/" + WORKFLOW_ZIP;
+        Path shellSrc =
+                new Path(fs.getHomeDirectory(), workflowPathSuffix);
+        LOG.info("***** GET: " + shellSrc + " -> " + new Path(WORKFLOW_ZIP));
+        String workflowTxt = "# EMPTY";
+        fs.copyToLocalFile(shellSrc, new Path(WORKFLOW_ZIP));
+        GZIPInputStream gzIn = new GZIPInputStream(new FileInputStream(WORKFLOW_ZIP));
+        TarArchiveInputStream tarIn = new TarArchiveInputStream(gzIn);
+        TarArchiveEntry entry = tarIn.getNextTarEntry();
+        while (entry != null) {
+            if (entry.isDirectory()) {
+                entry = tarIn.getNextTarEntry();
+                continue;
+            }
+            if (entry.getName().equals("WORKFLOW")) {
+                byte[] buf = new byte[(int) entry.getSize()];
+                tarIn.read(buf);
+                workflowTxt = new String(buf, "UTF-8");
+                break;
+            }
+            entry = tarIn.getNextTarEntry();
+        }
+        gzIn.close();
+        LOG.info("******WORKFLOW TXT: " + workflowTxt);
+        dagHelper = DagHelper.createFromString(workflowTxt);
+
         containerMemory = Integer.parseInt(cliParser.getOptionValue(
                 "container_memory", "10"));
         containerVirtualCores = Integer.parseInt(cliParser.getOptionValue(
                 "container_vcores", "1"));
-        numTotalContainers = Integer.parseInt(cliParser.getOptionValue(
-                "num_containers", "1"));
-        if (numTotalContainers == 0) {
-            throw new IllegalArgumentException(
-                    "Cannot run distributed shell with no containers");
+//        numTotalContainers = Integer.parseInt(cliParser.getOptionValue(
+//                "num_containers", "1"));
+        int immediateJobs = dagHelper.numImmediatelySchedulableJobs();
+        if (immediateJobs == 0) {
+            throw new IllegalArgumentException("No jobs can be run");
         }
         requestPriority = Integer.parseInt(cliParser
                 .getOptionValue("priority", "0"));
@@ -550,8 +586,6 @@ public class ApplicationMaster {
         int maxVCores = response.getMaximumResourceCapability().getVirtualCores();
         LOG.info("Max vcores capabililty of resources in this cluster " + maxVCores);
 
-        LOG.info("**** CALLED 499");
-
         // A resource ask cannot exceed the max.
         if (containerMemory > maxMem) {
             LOG.info("Container memory specified above max threshold of cluster."
@@ -571,50 +605,40 @@ public class ApplicationMaster {
                 response.getContainersFromPreviousAttempts();
         LOG.info(appAttemptID + " received " + previousAMRunningContainers.size()
                 + " previous attempts' running containers on AM registration.");
-        numAllocatedContainers.addAndGet(previousAMRunningContainers.size());
+//        numAllocatedContainers.addAndGet(previousAMRunningContainers.size());
 
+        int numImmediateJobs = dagHelper.numImmediatelySchedulableJobs();
         int numTotalContainersToRequest =
-                numTotalContainers - previousAMRunningContainers.size();
+                numImmediateJobs - previousAMRunningContainers.size();
         // Setup ask for containers from RM
         // Send request for containers to RM
         // Until we get our fully allocated quota, we keep on polling RM for
         // containers
         // Keep looping until all the containers are launched and shell script
         // executed on them ( regardless of success/failure).
-        for (int i = 0; i < numTotalContainersToRequest; ++i) {
-            ContainerRequest containerAsk = setupContainerAskForRM();
-            amRMClient.addContainerRequest(containerAsk);
-        }
-        numRequestedContainers.set(numTotalContainers);
-        try {
-            publishApplicationAttemptEvent(timelineClient, appAttemptID.toString(),
-                    DSEvent.DS_APP_ATTEMPT_END);
-        } catch (Exception e) {
-            LOG.error("App Attempt start event coud not be pulished for "
-                    + appAttemptID.toString(), e);
-        }
-
-        int originalRequests = numTotalContainers;
-        int additionalRequests = 10;
-        int finished = 0;
-        int counter = 20;
-        LOG.info("**** CALLED 4");
-        while (numTotalContainers < originalRequests + additionalRequests && counter >= 0) {
-            LOG.info("**** CALLED 2");
-            while (numCompletedContainers.get() == finished) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ex) {
-                }
+//        for (int i = 0; i < numTotalContainersToRequest; ++i) {
+//            ContainerRequest containerAsk = setupContainerAskForRM();
+//            amRMClient.addContainerRequest(containerAsk);
+//        }
+        for (;;) {
+            String nextJob = dagHelper.getNextUnscheduled();
+            if (nextJob == null) {
+                break;
             }
-            LOG.info("**** CALLED");
-            finished = numCompletedContainers.get();
+            jobsToRun.add(nextJob);
+            LOG.info("*** WILL RUN " + nextJob);
             ContainerRequest containerAsk = setupContainerAskForRM();
             amRMClient.addContainerRequest(containerAsk);
-            numRequestedContainers.incrementAndGet();
-            numTotalContainers++;
-            counter--;
+//            numRequestedContainers.incrementAndGet();
         }
+//
+//        try {
+//            publishApplicationAttemptEvent(timelineClient, appAttemptID.toString(),
+//                    DSEvent.DS_APP_ATTEMPT_END);
+//        } catch (Exception e) {
+//            LOG.error("App Attempt start event coud not be pulished for "
+//                    + appAttemptID.toString(), e);
+//        }
     }
 
     @VisibleForTesting
@@ -625,8 +649,7 @@ public class ApplicationMaster {
     @VisibleForTesting
     protected boolean finish() {
         // wait for completion.
-        while (!done
-                && (numCompletedContainers.get() != numTotalContainers)) {
+        while (!done && !dagHelper.shouldStop()) {
             try {
                 Thread.sleep(200);
             } catch (InterruptedException ex) {
@@ -656,15 +679,14 @@ public class ApplicationMaster {
         FinalApplicationStatus appStatus;
         String appMessage = null;
         boolean success = true;
-        if (numFailedContainers.get() == 0 &&
-                numCompletedContainers.get() == numTotalContainers) {
+        if (dagHelper.succeeded()) {
             appStatus = FinalApplicationStatus.SUCCEEDED;
         } else {
             appStatus = FinalApplicationStatus.FAILED;
-            appMessage = "Diagnostics." + ", total=" + numTotalContainers
-                    + ", completed=" + numCompletedContainers.get() + ", allocated="
-                    + numAllocatedContainers.get() + ", failed="
-                    + numFailedContainers.get();
+//            appMessage = "Diagnostics."
+//                    + ", completed=" + numCompletedContainers.get() + ", allocated="
+//                    + numAllocatedContainers.get() + ", failed="
+//                    + numFailedContainers.get();
             success = false;
         }
         try {
@@ -703,22 +725,40 @@ public class ApplicationMaster {
                     if (ContainerExitStatus.ABORTED != exitStatus) {
                         // shell script failed
                         // counts as completed
-                        numCompletedContainers.incrementAndGet();
-                        numFailedContainers.incrementAndGet();
+//                        numCompletedContainers.incrementAndGet();
+//                        numFailedContainers.incrementAndGet();
+                        String dagJobName = dagHelper.getJobNameByContainerId(containerStatus.getContainerId().toString());
+                        dagHelper.markJobFailedAndRetry(dagJobName);
                     } else {
                         // container was killed by framework, possibly preempted
                         // we should re-try as the container was lost for some reason
-                        numAllocatedContainers.decrementAndGet();
-                        numRequestedContainers.decrementAndGet();
+//                        numAllocatedContainers.decrementAndGet();
+//                        numRequestedContainers.decrementAndGet();
                         // we do not need to release the container as it would be done
                         // by the RM
+                        String dagJobName = dagHelper.getJobNameByContainerId(containerStatus.getContainerId().toString());
+                        dagHelper.markJobFailedAndRetry(dagJobName);
                     }
                 } else {
                     // nothing to do
                     // container completed successfully
-                    numCompletedContainers.incrementAndGet();
+//                    numCompletedContainers.incrementAndGet();
+                    String dagJobName = dagHelper.getJobNameByContainerId(containerStatus.getContainerId().toString());
+                    dagHelper.markJobDone(dagJobName);
                     LOG.info("Container completed successfully." + ", containerId="
-                            + containerStatus.getContainerId());
+                            + containerStatus.getContainerId() + ", jobScript=" + dagJobName);
+
+                    for (;;) {
+                        String nextJob = dagHelper.getNextUnscheduled();
+                        if (nextJob == null) {
+                            break;
+                        }
+                        jobsToRun.add(nextJob);
+                        LOG.info("*** WILL RUN " + nextJob);
+                        ContainerRequest containerAsk = setupContainerAskForRM();
+                        amRMClient.addContainerRequest(containerAsk);
+//                        numRequestedContainers.incrementAndGet();
+                    }
                 }
                 try {
                     publishContainerEndEvent(timelineClient, containerStatus);
@@ -728,28 +768,33 @@ public class ApplicationMaster {
                 }
             }
 
-            // ask for more containers if any failed
-            int askCount = numTotalContainers - numRequestedContainers.get();
-            numRequestedContainers.addAndGet(askCount);
-
-            if (askCount > 0) {
-                for (int i = 0; i < askCount; ++i) {
-                    ContainerRequest containerAsk = setupContainerAskForRM();
-                    amRMClient.addContainerRequest(containerAsk);
-                }
-            }
-
-            if (numCompletedContainers.get() == numTotalContainers) {
-                done = true;
-            }
+//            // ask for more containers if any failed
+//            int askCount = numTotalContainers - numRequestedContainers.get();
+//            numRequestedContainers.addAndGet(askCount);
+//
+//            if (askCount > 0) {
+//                for (int i = 0; i < askCount; ++i) {
+//                    ContainerRequest containerAsk = setupContainerAskForRM();
+//                    amRMClient.addContainerRequest(containerAsk);
+//                }
+//            }
+//
+//            if (numCompletedContainers.get() == numTotalContainers) {
+//                done = true;
+//            }
         }
 
         @Override
         public void onContainersAllocated(List<Container> allocatedContainers) {
             LOG.info("Got response from RM for container ask, allocatedCnt="
                     + allocatedContainers.size());
-            numAllocatedContainers.addAndGet(allocatedContainers.size());
+//            numAllocatedContainers.addAndGet(allocatedContainers.size());
             for (Container allocatedContainer : allocatedContainers) {
+                String jobScript = jobsToRun.poll();
+                if (jobScript == null) {
+                    continue;
+                }
+
                 LOG.info("Launching shell command on a new container."
                         + ", containerId=" + allocatedContainer.getId()
                         + ", containerNode=" + allocatedContainer.getNodeId().getHost()
@@ -758,12 +803,14 @@ public class ApplicationMaster {
                         + ", containerResourceMemory="
                         + allocatedContainer.getResource().getMemory()
                         + ", containerResourceVirtualCores="
-                        + allocatedContainer.getResource().getVirtualCores());
+                        + allocatedContainer.getResource().getVirtualCores()
+                        + ",jobScript=" + jobScript);
                 // + ", containerToken"
                 // +allocatedContainer.getContainerToken().getIdentifier().toString());
 
+                dagHelper.schedJobOnContainer(jobScript, allocatedContainer.getId().toString());
                 LaunchContainerRunnable runnableLaunchContainer =
-                        new LaunchContainerRunnable(allocatedContainer, containerListener);
+                        new LaunchContainerRunnable(jobScript, allocatedContainer, containerListener);
                 Thread launchThread = new Thread(runnableLaunchContainer);
 
                 // launch and start the container on a separate thread to keep
@@ -786,8 +833,8 @@ public class ApplicationMaster {
         @Override
         public float getProgress() {
             // set progress to deliver to RM on next heartbeat
-            float progress = (float) numCompletedContainers.get()
-                    / numTotalContainers;
+//            float progress = (float) numCompletedContainers.get() / dagHelper.totalNodes();
+            float progress = 0.8f;
             return progress;
         }
 
@@ -854,8 +901,8 @@ public class ApplicationMaster {
         public void onStartContainerError(ContainerId containerId, Throwable t) {
             LOG.error("Failed to start Container " + containerId);
             containers.remove(containerId);
-            applicationMaster.numCompletedContainers.incrementAndGet();
-            applicationMaster.numFailedContainers.incrementAndGet();
+//            applicationMaster.numCompletedContainers.incrementAndGet();
+//            applicationMaster.numFailedContainers.incrementAndGet();
         }
 
         @Override
@@ -877,6 +924,7 @@ public class ApplicationMaster {
      */
     private class LaunchContainerRunnable implements Runnable {
 
+        String jobScript;
         // Allocated container
         Container container;
 
@@ -887,7 +935,8 @@ public class ApplicationMaster {
          * @param containerListener Callback handler of the container
          */
         public LaunchContainerRunnable(
-                Container lcontainer, NMCallbackHandler containerListener) {
+                String jobScript, Container lcontainer, NMCallbackHandler containerListener) {
+            this.jobScript = jobScript;
             this.container = lcontainer;
             this.containerListener = containerListener;
         }
@@ -945,8 +994,8 @@ public class ApplicationMaster {
                     // We know we cannot continue launching the container
                     // so we should release it.
                     // TODO
-                    numCompletedContainers.incrementAndGet();
-                    numFailedContainers.incrementAndGet();
+//                    numCompletedContainers.incrementAndGet();
+//                    numFailedContainers.incrementAndGet();
                     return;
                 }
                 LocalResource shellRsrc = LocalResource.newInstance(yarnUrl,
@@ -955,8 +1004,8 @@ public class ApplicationMaster {
                 LocalResource shellRsrc2 = LocalResource.newInstance(yarnUrl2,
                         LocalResourceType.FILE, LocalResourceVisibility.APPLICATION,
                         shellScriptPathLen2, shellScriptPathTimestamp2);
-                LOG.info("YARN URL: " + yarnUrl);
-                LOG.info("YARN URL: " + yarnUrl2);
+//                LOG.info("YARN URL: " + yarnUrl);
+//                LOG.info("YARN URL: " + yarnUrl2);
                 localResources.put(WORKFLOW_ZIP, shellRsrc);
                 localResources.put("LAUNCHER.sh", shellRsrc2);
                 shellCommand = Shell.WINDOWS ? windows_command : linux_bash_command;
@@ -971,7 +1020,7 @@ public class ApplicationMaster {
             if (!scriptPath.isEmpty()) {
 //                vargs.add(Shell.WINDOWS ? ExecBatScripStringtPath
 //                        : ExecShellStringPath);
-                vargs.add("LAUNCHER.sh step-2.sh");
+                vargs.add("LAUNCHER.sh " + jobScript);
             }
 
             // Set args for the shell command if any

@@ -3,3 +3,12 @@
 step-3.sh: step-2.sh
 
 step-2.sh: step-1.sh
+
+step-4a.sh : step-3.sh
+step-4b.sh : step-2.sh
+step-4c.sh : step-1.sh
+
+step-5a.sh : step-4a.sh
+
+step-6.sh : step-5a.sh step-5b.sh
+
