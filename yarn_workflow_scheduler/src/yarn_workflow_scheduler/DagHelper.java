@@ -181,16 +181,16 @@ public class DagHelper {
 
     public void schedJobOnContainer(String job, String containerId) {
         synchronized (this) {
-            System.out.println("**** PUT job " + job + " on container " + containerId);
+//            System.out.println("**** PUT job " + job + " on container " + containerId);
             jobs.get(job).containerName = containerId;
         }
     }
 
     public String getJobNameByContainerId(String containerId) {
         synchronized (this) {
-            System.out.println("**** Find job on container " + containerId);
+//            System.out.println("**** Find job on container " + containerId);
             for (DagJob j : jobs.values()) {
-                System.out.println("**** Job " + j.name + " is on container " + j.containerName);
+//                System.out.println("**** Job " + j.name + " is on container " + j.containerName);
                 if (j.containerName.equals(containerId)) {
                     return j.name;
                 }
@@ -203,5 +203,17 @@ public class DagHelper {
         synchronized (this) {
             return jobs.size();
         }
+    }
+
+    public int completedNodes() {
+        int cnt = 0;
+        synchronized (this) {
+            for (DagJob j : jobs.values()) {
+                if (j.status == JobStatus.SUCCEEDED) {
+                    cnt++;
+                }
+            }
+        }
+        return cnt;
     }
 }

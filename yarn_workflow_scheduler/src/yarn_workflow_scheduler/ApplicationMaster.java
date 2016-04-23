@@ -179,7 +179,7 @@ public class ApplicationMaster {
 //    @VisibleForTesting
 //    protected int numTotalContainers = 1;
     // Memory to request for the container on which the shell command will run
-    private int containerMemory = 10;
+    private int containerMemory = 1;
     // VirtualCores to request for the container on which the shell command will run
     private int containerVirtualCores = 1;
     // Priority of the request
@@ -631,6 +631,7 @@ public class ApplicationMaster {
             amRMClient.addContainerRequest(containerAsk);
 //            numRequestedContainers.incrementAndGet();
         }
+        LOG.info("*** LIST OVER 1");
 //
 //        try {
 //            publishApplicationAttemptEvent(timelineClient, appAttemptID.toString(),
@@ -737,7 +738,9 @@ public class ApplicationMaster {
                         // we do not need to release the container as it would be done
                         // by the RM
                         String dagJobName = dagHelper.getJobNameByContainerId(containerStatus.getContainerId().toString());
-                        dagHelper.markJobFailedAndRetry(dagJobName);
+                        if (dagJobName != null) {
+                            dagHelper.markJobFailedAndRetry(dagJobName);
+                        }
                     }
                 } else {
                     // nothing to do
@@ -747,18 +750,6 @@ public class ApplicationMaster {
                     dagHelper.markJobDone(dagJobName);
                     LOG.info("Container completed successfully." + ", containerId="
                             + containerStatus.getContainerId() + ", jobScript=" + dagJobName);
-
-                    for (;;) {
-                        String nextJob = dagHelper.getNextUnscheduled();
-                        if (nextJob == null) {
-                            break;
-                        }
-                        jobsToRun.add(nextJob);
-                        LOG.info("*** WILL RUN " + nextJob);
-                        ContainerRequest containerAsk = setupContainerAskForRM();
-                        amRMClient.addContainerRequest(containerAsk);
-//                        numRequestedContainers.incrementAndGet();
-                    }
                 }
                 try {
                     publishContainerEndEvent(timelineClient, containerStatus);
@@ -767,6 +758,21 @@ public class ApplicationMaster {
                             + containerStatus.getContainerId().toString(), e);
                 }
             }
+
+            for (;;) {
+                String nextJob = dagHelper.getNextUnscheduled();
+                if (nextJob == null) {
+                    break;
+                }
+                jobsToRun.add(nextJob);
+                LOG.info("*** WILL RUN " + nextJob);
+
+                ContainerRequest containerAsk = setupContainerAskForRM();
+                amRMClient.addContainerRequest(containerAsk);
+
+//                        numRequestedContainers.incrementAndGet();
+            }
+            LOG.info("*** LIST OVER 2");
 
 //            // ask for more containers if any failed
 //            int askCount = numTotalContainers - numRequestedContainers.get();
@@ -788,10 +794,14 @@ public class ApplicationMaster {
         public void onContainersAllocated(List<Container> allocatedContainers) {
             LOG.info("Got response from RM for container ask, allocatedCnt="
                     + allocatedContainers.size());
+            for (Container allocatedContainer : allocatedContainers) {
+                LOG.info("Newly allocated container: " + allocatedContainer.getId());
+            }
 //            numAllocatedContainers.addAndGet(allocatedContainers.size());
             for (Container allocatedContainer : allocatedContainers) {
                 String jobScript = jobsToRun.poll();
                 if (jobScript == null) {
+                    amRMClient.releaseAssignedContainer(allocatedContainer.getId());
                     continue;
                 }
 
@@ -834,7 +844,7 @@ public class ApplicationMaster {
         public float getProgress() {
             // set progress to deliver to RM on next heartbeat
 //            float progress = (float) numCompletedContainers.get() / dagHelper.totalNodes();
-            float progress = 0.8f;
+            float progress = (float) dagHelper.completedNodes() / dagHelper.totalNodes();
             return progress;
         }
 
