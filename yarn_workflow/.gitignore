@@ -1,0 +1,6 @@
+lib/
+out/
+WORKFLOW.*
+LAUNCHER.sh
+*.jar
+.idea/workspace.xml
