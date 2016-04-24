@@ -20,16 +20,15 @@ else
     exit 1
 fi
 
-FOLLY_VERSION="6785961"
-WANGLE_VERSION="12ceee6"
-PROXYGEN_VERSION="f3ab18e"
-FBTHRIFT_VERSION="181044fd78e0a26e77fb519e1cbd10238c2e32d6"
-ROCKSDB_VERSION="b9d4fa8"
-PROTOBUF_VERSION="34eeeff"
-RE2_VERSION="526c396"
+FOLLY_VERSION="d78429749bc315b744e1c7ae5f0969fbdf31ca3d"
+WANGLE_VERSION="29451338fdb05ca1691c102ab98e824b438ff90a"
+PROXYGEN_VERSION="21d200110e62d15f89fb19d6ddfcea5dd5bc5fb3"
+ROCKSDB_VERSION="b71c4e613f9ce3bb2ab8b5a198a8bdcbdc1e9ec4"
+PROTOBUF_VERSION="40574479978f80bd86caf44edae5b0a22d596c79"
+RE2_VERSION="b3f77c59894a3c2ee3806d23eda4f34b36085011"
 GPERFTOOLS_VERSION="55cf6e6"
 GFLAGS_VERSION="9db828953a1047c95bf5fb780c3c1f9453f806eb"
-GRPC_VERSION="835065a"
+GRPC_VERSION="ab8b9f51437ab7502b09bed22b7fc1a265016e44"
 GLOG_VERSION="f46e0745a842b2edc924b6d384acf01fd7034c62"
 
 run_cmd() {
@@ -143,13 +142,6 @@ get_macosx_hack() {
     pushd $ROOT/src > /dev/null
     rm -rf macosx_hack
     git clone https://gist.github.com/256985a658d765abed93.git macosx_hack
-
-    # Disabled because fbthrift is not being built.
-    #
-    # cd macosx_hack
-    # make
-    # cp pthread_macosx_hack.h numa.h numacompat1.h $ROOT/include
-    # cp libnuma.a $ROOT/lib
     popd > /dev/null
 }
 
@@ -258,43 +250,6 @@ get_proxygen() {
         make -j$N_CPU && make install && \
             cd .. && echo $PROXYGEN_VERSION > VERSION
         [ -f VERSION ] || { echo "  *** Failed to build proxygen" ; exit 1; }
-    fi
-    popd > /dev/null
-}
-
-get_fbthrift() {
-    mkdir -p $ROOT/src
-    pushd $ROOT/src > /dev/null
-    if version_mismatch fbthrift/VERSION $FBTHRIFT_VERSION; then
-        rm -rf fbthrift
-        git clone https://github.com/facebook/fbthrift.git
-        cd fbthrift
-        git checkout $FBTHRIFT_VERSION
-        rm -rf .git
-        if [ -n "$MACOSX" ]; then
-            cat $ROOT/src/macosx_hack/fbthrift-on-macosx.patch
-            patch -p1 < $ROOT/src/macosx_hack/fbthrift-on-macosx.patch
-            sed -i "" "s/<pthread\.h>/<pthread_macosx_hack\.h>/g" thrift/lib/cpp/concurrency/Mutex-impl.h
-            for file in thrift/configure.ac thrift/lib/cpp/Makefile.am thrift/lib/cpp2/Makefile.am thrift/lib/cpp2/test/Makefile.am; do
-                sed -i "" "s/-lboost_thread/-lboost_thread-mt/g" $file
-            done
-        fi
-        cd thrift
-        autoreconf -if
-        ./configure --prefix=$ROOT --without-php
-
-        # http://stackoverflow.com/a/24357384/1035246
-        # if build fails on mac with homebrew python, try creating ~/.pydistutils.cfg with content:
-        #
-        #   [install]
-        #   prefix=
-        #
-        make -j$N_CPU && \
-            make install PY_INSTALL_HOME=$ROOT \
-                         PY_INSTALL_ARGS="--home=$ROOT" \
-                         PY_RUN_ENV="PYTHONPATH=$ROOT/lib/python" && \
-            cd .. && echo $FBTHRIFT_VERSION > VERSION
-        [ -f VERSION ] || { echo "  *** Failed to build fbthrift" ; exit 1; }
     fi
     popd > /dev/null
 }
@@ -423,7 +378,6 @@ fi
 get_folly
 get_wangle
 get_proxygen
-# get_fbthrift
 get_rocksdb
 get_re2
 get_protobuf
