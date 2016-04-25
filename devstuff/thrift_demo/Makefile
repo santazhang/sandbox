@@ -8,7 +8,7 @@ clean:
 	rm -rf gen-cpp *.o
 
 bench: bench.o gen-cpp/bench_constants.o gen-cpp/bench_types.o gen-cpp/echo.o
-	g++ -lthrift $^ -o $@
+	g++ $^ -lthrift -o $@
 
 bench.o: bench.cc gen-cpp/bench_constants.cpp gen-cpp/bench_types.cpp gen-cpp/echo.cpp gen-cpp/bench_constants.h gen-cpp/bench_types.h gen-cpp/echo.h
 

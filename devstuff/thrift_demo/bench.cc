@@ -29,7 +29,7 @@ class echoHandler : virtual public echoIf {
 
 int main(int argc, char **argv) {
     if (argc == 2 && argv[1][1] == 'c') {
-        boost::shared_ptr<TTransport> socket(new TSocket("localhost", 9090));
+        boost::shared_ptr<TTransport> socket(new TSocket("beaker-24", 9090));
         boost::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
         boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
         echoClient client(protocol);
