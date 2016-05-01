@@ -1,0 +1,43 @@
+sudo: true
+dist: precise
+
+services:
+  - docker
+
+cache:
+  directories:
+  - $HOME/upstream
+  - $HOME/sources
+  - $HOME/output
+
+# language: cpp
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - wget
+      # There packages are needed to build lrte, see  build_grte.sh
+      - texinfo
+      - texi2html
+      - x2-utils
+      - make
+      - gcc
+      - g++
+      - gawk
+      - rpm
+      - alien
+      - fakeroot
+      - debhelper
+
+before_install:
+  - TAR_DIR=$HOME/upstream ./grte/download.sh
+  - TAR_DIR=$HOME/upstream ./grte/prepare-sources.sh
+
+script:
+  - mkdir -p $HOME/lrte-k8
+  - ./grte/grte-build $HOME/lrte-k8 $HOME/output
+  - ./grte/grte-package $HOME/lrte-k8 $HOME/output
+
+notifications:
+  email: false
