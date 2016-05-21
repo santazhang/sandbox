@@ -32,6 +32,8 @@ INCLUDEPATH += . \
 
 # Input
 HEADERS += source/gui/axisBox.h \
+           source/gui/climateBox.h \
+           source/gui/displayBox.h \
            source/gui/mainMenu.h \
            source/gui/mainWindow.h \
            source/gui/planetHandler.h \
@@ -84,6 +86,8 @@ HEADERS += source/gui/axisBox.h \
            source/render/render_data/planet_render_data.h
 SOURCES += source/main.cpp \
            source/gui/axisBox.cpp \
+           source/gui/climateBox.cpp \
+           source/gui/diplayBox.cpp \
            source/gui/mainMenu.cpp \
            source/gui/mainWindow.cpp \
            source/gui/planetHandler.cpp \
