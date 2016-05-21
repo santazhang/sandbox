@@ -11,5 +11,6 @@ MainWindow::MainWindow () {
 		planetWidget->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
 		layout->addWidget(planetWidget, 0, 1, 2, 1, 0);
 	setLayout(layout);
-	resize(860,600);
+    this->setMinimumSize(800, 640);
+    resize(960,640);
 }

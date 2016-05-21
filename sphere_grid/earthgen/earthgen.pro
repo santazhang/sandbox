@@ -53,7 +53,6 @@ HEADERS += source/gui/axisBox.h \
            source/render/globe_renderer.h \
            source/render/hammer_projection.h \
            source/render/hammer_tile.h \
-           source/render/map_projection.h \
            source/render/map_renderer.h \
            source/render/planet_colours.h \
            source/render/planet_renderer.h \
