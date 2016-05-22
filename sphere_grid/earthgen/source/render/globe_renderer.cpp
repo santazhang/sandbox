@@ -74,6 +74,24 @@ void Globe_renderer::draw (const Planet& planet, const Quaternion& q, const Plan
 					}
 				}
 			}
+
+    glColor3f(1, 0, 0);
+    glBegin(GL_LINES);
+    glVertex3f(m*Vector3(0, 0, 0));
+    glVertex3f(m*Vector3(1.2, 0, 0));
+    glEnd();
+
+    glColor3f(0, 1, 0);
+    glBegin(GL_LINES);
+    glVertex3f(m*Vector3(0, 0, 0));
+    glVertex3f(m*Vector3(0, 1.2, 0));
+    glEnd();
+
+    glColor3f(0, 0, 1);
+    glBegin(GL_LINES);
+    glVertex3f(m*Vector3(0, 0, 0));
+    glVertex3f(m*Vector3(0, 0, 1.2));
+    glEnd();
 }
 
 void Globe_renderer::change_scale (const Vector2&, double delta) {

@@ -27,7 +27,7 @@ public:
 	}
 
 	void set_default () {
-		grid_size = 6;
+        grid_size = 4;
 		axis = Vector3(0,0,1);
 		iterations = 1000;
 		water_ratio = 0.65;

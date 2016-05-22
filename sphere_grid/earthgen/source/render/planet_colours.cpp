@@ -46,6 +46,10 @@ void colour_topography (Planet_colours& c, const Planet& p) {
 	for (const Tile& t : tiles(p)) {
 		const Terrain_tile& ter = nth_tile(terrain(p), id(t));
 		double elev = elevation(ter) - sea_level(p);
+        if (t.edge_count == 5) {
+            c.tiles[id(t)] = Colour(1, 0, 0);
+            continue;
+        }
 		if (is_water(ter)) {
 			if (elev < -1000) {
 				c.tiles[id(t)] = water_deep;
