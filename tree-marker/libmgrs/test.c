@@ -26,5 +26,16 @@ int main() {
     Convert_Geodetic_To_MGRS(lat, lon, 3 /* precision */, buf);
     printf("Washington Square Park -> %s\n", buf);
 
+    // North pole
+    lon = -73.9971;
+    lat = 89.99;
+
+    // to radius
+    lon /= 180/3.1415926;
+    lat /= 180/3.1415926;
+
+    Convert_Geodetic_To_MGRS(lat, lon, 3 /* precision */, buf);
+    printf("Near North Pole -> %s\n", buf);
+
     return 0;
 }
