@@ -32,7 +32,7 @@ src_tree_md5=`find "$src_tree" -type f | sort | xargs -n 1 cat | \
               $MD5_CMD | cut -c1-16`
 sentinel_fn="$SENTINEL_DIR/$project_md5-$src_tree_md5"
 
-if find $SENTINEL_DIR -type f -mtime -$min_interval | \
+if find $SENTINEL_DIR -type f -mtime -${min_interval}h | \
         grep -q "$project_md5-$src_tree_md5"; then
 
     # Found file, so the min_interval has not passed yet.
