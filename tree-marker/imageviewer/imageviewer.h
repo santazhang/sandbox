@@ -51,6 +51,8 @@
 #include <QLabel>
 
 #include <vector>
+#include <string>
+#include <stdio.h>
 
 class QAction;
 class QLabel;
@@ -72,6 +74,7 @@ Q_OBJECT
 public:
     explicit ClickableLabel( const QString& text="", QWidget* parent=0 );
     ~ClickableLabel();
+    void set_mark_txt_fname(const std::string& name);
 
     void undo_action();
 
@@ -90,6 +93,8 @@ protected:
     int cur_x;
     int cur_y;
     int btn_down; // 1 left, 2 right, 0 not pressed;
+
+    FILE* txt_fp;
 };
 
 

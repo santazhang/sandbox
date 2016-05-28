@@ -46,19 +46,69 @@
 #endif
 
 #include <algorithm>
+#include <sstream>
+#include <fstream>
 
 #include "imageviewer.h"
 
 
 ClickableLabel::ClickableLabel(const QString& text, QWidget* parent)
-    : QLabel(parent), btn_down(0)
+    : QLabel(parent), btn_down(0), txt_fp(NULL)
 {
-
     setText(text);
 }
 
 ClickableLabel::~ClickableLabel()
 {
+    if (txt_fp != NULL) {
+        fclose(txt_fp);
+    }
+}
+
+void ClickableLabel::set_mark_txt_fname(const std::string& txt_fn) {
+    printf("LOAD: %s\n", txt_fn.c_str());
+    std::ifstream fin(txt_fn);
+    std::string line;
+    while (std::getline(fin, line)) {
+        QString qs(line.c_str());
+        line = qs.trimmed().toStdString();
+        printf("LINE: %s\n", line.c_str());
+        std::istringstream iss(line);
+        std::string op;
+        iss >> op;
+        double v;
+        iss >> v;
+        mark_box bx;
+        bx.x = v * this->pixmap()->width();
+        iss >> v;
+        bx.y = v * this->pixmap()->height();
+        iss >> v;
+        bx.w = v * this->pixmap()->width();
+        iss >> v;
+        bx.h = v * this->pixmap()->height();
+        if (op == "TREE") {
+            bx.type = 1;
+            boxes.push_back(bx);
+        } else if (op == "NOT_TREE") {
+            bx.type = -1;
+            boxes.push_back(bx);
+        } else if (op == "REMOVE") {
+            int idx = boxes.size() - 1;
+            while (idx >= 0) {
+                if (bx.x == boxes[idx].x && bx.y == boxes[idx].y && bx.w == boxes[idx].w && bx.h == boxes[idx].h) {
+                    boxes.erase(boxes.begin() + idx);
+                    break;
+                }
+                idx--;
+            }
+        }
+    }
+
+    if (txt_fp != NULL) {
+        fclose(txt_fp);
+    }
+
+    txt_fp = fopen(txt_fn.c_str(), "a");
 }
 
 void ClickableLabel::mousePressEvent(QMouseEvent* event)
@@ -104,6 +154,19 @@ void ClickableLabel::mouseReleaseEvent(QMouseEvent* event)
         bx.type = -1;
     }
     boxes.push_back(bx);
+    if (txt_fp != NULL) {
+        double fx = 1.0 * bx.x / this->pixmap()->width();
+        double fy = 1.0 * bx.y / this->pixmap()->height();
+        double fw = 1.0 * bx.w / this->pixmap()->width();
+        double fh = 1.0 * bx.h / this->pixmap()->height();
+
+        if (bx.type == 1) {
+            fprintf(txt_fp, "TREE %lf %lf %lf %lf\n", fx, fy, fw, fh);
+        } else if (bx.type == -1) {
+            fprintf(txt_fp, "NOT_TREE %lf %lf %lf %lf\n", fx, fy, fw, fh);
+        }
+        fflush(txt_fp);
+    }
 
     update();
 //    emit clicked();
@@ -132,10 +195,21 @@ void ClickableLabel::mouseMoveEvent(QMouseEvent* event){
 }
 
 void ClickableLabel::undo_action() {
-printf("undo action called\n");
-if (boxes.size() > 0) {
-    boxes.pop_back();
-}
+//printf("undo action called\n");
+    if (boxes.size() > 0) {
+        mark_box bx = boxes.back();
+        boxes.pop_back();
+
+        if (txt_fp != NULL) {
+            double fx = 1.0 * bx.x / this->pixmap()->width();
+            double fy = 1.0 * bx.y / this->pixmap()->height();
+            double fw = 1.0 * bx.w / this->pixmap()->width();
+            double fh = 1.0 * bx.h / this->pixmap()->height();
+
+            fprintf(txt_fp, "REMOVE %lf %lf %lf %lf\n", fx, fy, fw, fh);
+            fflush(txt_fp);
+        }
+    }
     update();
 }
 
@@ -149,7 +223,7 @@ void ClickableLabel::paintEvent(QPaintEvent *event){
     QBrush redBrush(Qt::red);
     QPen redPen(redBrush, 1);
     painter.setPen(bluePen);
-    printf("called\n");
+//    printf("called\n");
     for (auto& b : boxes) {
         if (b.type == 1) {
             painter.setPen(bluePen);
@@ -212,6 +286,9 @@ bool ImageViewer::loadFile(const QString &fileName)
     }
 
     setImage(newImage);
+    std::string mark_txt_fname = fileName.toStdString();
+    mark_txt_fname = mark_txt_fname.substr(0, mark_txt_fname.length() - 4) + ".tree_marker.txt";
+    this->imageLabel->set_mark_txt_fname(mark_txt_fname);
 
     setWindowFilePath(fileName);
 
