@@ -40,3 +40,6 @@ profile
 a.out
 
 /devstuff/find_buildable_rev/
+
+build-*
+*.pro.user
