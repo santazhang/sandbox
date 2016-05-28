@@ -75,6 +75,13 @@ func (fs filteredFileSystem) Open(name string) (http.File, error) {
 	return makeFilteredFile(f, fs.ignoreRegexp), err
 }
 
+func disallowCache(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "no-store")
+		h.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	flag.Parse()
 	listen := fmt.Sprintf("%s:%d", *addr, *port)
@@ -82,7 +89,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	handler := http.FileServer(makeFilteredFileSystem(http.Dir(root)))
+	h := disallowCache(http.FileServer(makeFilteredFileSystem(http.Dir(root))))
 	log.Printf("Serving %s on %s...", root, listen)
-	log.Fatal(http.ListenAndServe(listen, handler))
+	log.Fatal(http.ListenAndServe(listen, h))
 }
