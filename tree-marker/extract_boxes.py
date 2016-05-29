@@ -53,9 +53,9 @@ def box_cover_ratio(x, y, w, h, bx, by, bw, bh):
 
 out_fn_prefix = os.path.splitext(os.path.basename(img_fn))[0]
 
-for y in range(0, im.height, 7):
+for y in range(0, im.height - 7, 7):
     print("%.2f%%" % (100.0 * y / im.height))
-    for x in range(0, im.width, 7):
+    for x in range(0, im.width - 7, 7):
         max_tree_cover = 0.0
         max_non_tree_cover = 0.0
         for b in boxes:
