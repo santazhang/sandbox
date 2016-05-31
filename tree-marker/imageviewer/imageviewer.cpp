@@ -66,6 +66,8 @@ ClickableLabel::~ClickableLabel()
 }
 
 void ClickableLabel::set_mark_txt_fname(const std::string& txt_fn) {
+    this->boxes.clear();
+    this->update();
     printf("LOAD: %s\n", txt_fn.c_str());
     std::ifstream fin(txt_fn);
     std::string line;
