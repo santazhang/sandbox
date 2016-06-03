@@ -1,0 +1,3 @@
+[submodule "geopipe-stuff/deps/openjpeg"]
+	path = geopipe-stuff/deps/openjpeg
+	url = https://github.com/uclouvain/openjpeg.git
