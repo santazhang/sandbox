@@ -43,17 +43,10 @@ clean:
 configure:
 	$(WAF) configure mkgen
 
-deps:
-	$(WAF_PRELUDE)
-	$(WAF) builddeps
-
 dist:
 	$(WAF) dist
 
 distclean:
 	$(WAF) distclean
-
-lint:
-	$(WAF) lint
 
 -include build/targets.mk

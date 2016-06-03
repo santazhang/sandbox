@@ -20,6 +20,3 @@ def configure(conf):
 def build(bld):
     if bld.cmd == "build":
         waf_commands.MakefileGen().execute()
-
-    bld.program(source=bld.path.ant_glob("jp2_to_bmp/*.cc"),
-                target="jp2_to_bmp.bin")
