@@ -41,5 +41,5 @@ a.out
 
 /devstuff/find_buildable_rev/
 
-build-*
+build-*_Qt_*
 *.pro.user
