@@ -20,11 +20,16 @@ def configure(conf):
     conf.load("waf_default", tooldir="./scripts/waf_utils")
 
     src_dir = conf.srcnode.abspath()
-    deps_install_dir = os.path.join(src_dir, "deps", "_install")
+    deps_dir = os.path.join(src_dir, "deps")
+    deps_install_dir = os.path.join(deps_dir, "_install")
+    deps_install_include_dir = os.path.join(deps_install_dir, "include")
+    deps_install_lib_dir = os.path.join(deps_install_dir, "lib")
+
+    conf.env.append_value("CXXFLAGS", ["-isystem", deps_dir])
+    conf.env.append_value("CXXFLAGS", ["-isystem", deps_install_include_dir])
+    conf.env.append_value("LINKFLAGS", ["-L", deps_install_lib_dir])
 
     conf.env.LIB_LASLIB = "las"
-    conf.env.LIBPATH_LASLIB = os.path.join(deps_install_dir, "lib")
-    conf.env.INCLUDE_LASLIB = os.path.join(deps_install_dir, "include")
 
 
 def build(bld):
@@ -32,10 +37,12 @@ def build(bld):
         waf_commands.MakefileGen().execute()
 
     bld.stlib(source=bld.path.ant_glob("deps/gtest/*.cc"),
-              target="gtest_main",
-              includes="deps")
+              target="gtest_main")
 
     bld.program(source=bld.path.ant_glob("test/test-*.cc"),
                 target="t",
-                includes="deps",
                 use="gtest_main LASLIB")
+
+    bld.program(source=bld.path.ant_glob("las2img/*.cc"),
+                target="las2img.bin",
+                use="LASLIB")
