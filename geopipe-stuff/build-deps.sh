@@ -33,3 +33,9 @@ cp lib/liblas.a $DEPS_ROOT/_install/lib
 rsync -avx inc/ $DEPS_ROOT/_install/include/laslib/
 cd ../LASzip
 cp src/*.hpp $DEPS_ROOT/_install/include/laslib/
+
+cd $DEPS_ROOT/_build
+rsync -avx ../caffe .
+cd caffe
+cp ../../caffe-Makefile.config Makefile.config
+make -j$N_CPU

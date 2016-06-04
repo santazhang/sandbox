@@ -4,3 +4,6 @@
 [submodule "geopipe-stuff/deps/LAStools"]
 	path = geopipe-stuff/deps/LAStools
 	url = https://github.com/LAStools/LAStools.git
+[submodule "geopipe-stuff/deps/caffe"]
+	path = geopipe-stuff/deps/caffe
+	url = https://github.com/BVLC/caffe.git
