@@ -7,16 +7,35 @@ import waf_commands
 APPNAME = "geopipe-stuff"
 from waflib import Logs
 
+
 def options(opt):
     opt.load("compiler_c")
     opt.load("compiler_cxx")
     opt.load("waf_default", tooldir="./scripts/waf_utils")
+
 
 def configure(conf):
     conf.load("compiler_c")
     conf.load("compiler_cxx")
     conf.load("waf_default", tooldir="./scripts/waf_utils")
 
+    src_dir = conf.srcnode.abspath()
+    deps_install_dir = os.path.join(src_dir, "deps", "_install")
+
+    conf.env.LIB_LASLIB = "las"
+    conf.env.LIBPATH_LASLIB = os.path.join(deps_install_dir, "lib")
+    conf.env.INCLUDE_LASLIB = os.path.join(deps_install_dir, "include")
+
+
 def build(bld):
     if bld.cmd == "build":
         waf_commands.MakefileGen().execute()
+
+    bld.stlib(source=bld.path.ant_glob("deps/gtest/*.cc"),
+              target="gtest_main",
+              includes="deps")
+
+    bld.program(source=bld.path.ant_glob("test/test-*.cc"),
+                target="t",
+                includes="deps",
+                use="gtest_main LASLIB")

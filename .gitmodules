@@ -1,3 +1,6 @@
 [submodule "geopipe-stuff/deps/openjpeg"]
 	path = geopipe-stuff/deps/openjpeg
 	url = https://github.com/uclouvain/openjpeg.git
+[submodule "geopipe-stuff/deps/LAStools"]
+	path = geopipe-stuff/deps/LAStools
+	url = https://github.com/LAStools/LAStools.git
