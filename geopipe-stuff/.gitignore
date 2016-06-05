@@ -2,3 +2,9 @@ deps/_build
 deps/_install
 build/
 .lock-waf*
+training/01_*/
+training/02_*/
+training/03_*/
+training/04_*/
+training/05_*/
+training/06_*/

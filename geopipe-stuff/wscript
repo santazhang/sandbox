@@ -30,6 +30,7 @@ def configure(conf):
     conf.env.append_value("LINKFLAGS", ["-L", deps_install_lib_dir])
 
     conf.env.LIB_LASLIB = "las"
+    conf.env.LIB_GFLAGS = "gflags"
 
 
 def build(bld):
@@ -45,4 +46,4 @@ def build(bld):
 
     bld.program(source=bld.path.ant_glob("las2img/*.cc"),
                 target="las2img.bin",
-                use="LASLIB")
+                use="LASLIB GFLAGS")
