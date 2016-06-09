@@ -44,59 +44,15 @@
 #include <QMainWindow>
 #include <QImage>
 
-#include <QPainter>
-#include <QLabel>
-
 #include <vector>
 #include <string>
 #include <stdio.h>
 
 class QAction;
-class QLabel;
-class QMenu;
 class QScrollArea;
-class QScrollBar;
+class TreeImageLabel;
 
-struct mark_box {
-    int x;
-    int y;
-    int w;
-    int h;
-    int type;  // 1: tree -1: not tree
-};
-
-class ClickableLabel : public QLabel
-{
-Q_OBJECT
-public:
-    explicit ClickableLabel( const QString& text="", QWidget* parent=0 );
-    ~ClickableLabel();
-    void set_mark_txt_fname(const std::string& name);
-
-    void undo_action();
-
-//signals:
-//    void clicked();
-protected:
-    void mouseMoveEvent(QMouseEvent *event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
-    void paintEvent(QPaintEvent *event);
-
-    QPainter painter;
-    std::vector<mark_box> boxes;
-    int last_x;
-    int last_y;
-    int cur_x;
-    int cur_y;
-    int btn_down; // 1 left, 2 right, 0 not pressed;
-
-    FILE* txt_fp;
-};
-
-
-class ImageViewer : public QMainWindow
-{
+class ImageViewer : public QMainWindow {
     Q_OBJECT
 
 public:
@@ -105,19 +61,15 @@ public:
 
 private slots:
     void open();
-    void about();
     void undo();
 
 private:
     void createActions();
-    void createMenus();
     void setImage(const QImage &newImage);
-    void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
     QImage image;
-    ClickableLabel *imageLabel;
+    TreeImageLabel *imageLabel;
     QScrollArea *scrollArea;
-    double scaleFactor;
 
     QAction* undoAct;
 };
