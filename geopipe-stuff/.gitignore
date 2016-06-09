@@ -8,3 +8,7 @@ training/03_*/
 training/04_*/
 training/05_*/
 training/06_*/
+mark_trees/Makefile
+mark_trees/.qmake.stash
+mark_trees/mark_trees.app/
+mark_trees/moc_*
