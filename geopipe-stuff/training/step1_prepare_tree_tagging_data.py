@@ -5,9 +5,7 @@ from __future__ import print_function
 import os
 os.chdir(os.path.dirname(__file__))
 
-from PIL import Image
-
-from training_configurations import *
+import shutil
 from utils import *
 
 for e in os.listdir("01_source_data"):
@@ -27,17 +25,9 @@ for e in os.listdir("01_source_data"):
             if not os.path.exists(decoded_fn) or ext != ".decoded.RGB.png":
                 continue
             decoded_fn2 = os.path.join("02_decoded_data", main_fn + ext)
+            decoded_fn3 = os.path.join("03_tree_tagging", main_fn + ext)
+            shutil.copyfile(decoded_fn, decoded_fn3)
             os.rename(decoded_fn, decoded_fn2)
-            decoded_fn = decoded_fn2
-            im = Image.open(decoded_fn2)
-            for x in range(0, im.width, MAX_TAGGING_IMAGE_WIDTH):
-                for y in range(0, im.height, MAX_TAGGING_IMAGE_HEIGHT):
-                    w = min(MAX_TAGGING_IMAGE_WIDTH, im.width - x)
-                    h = min(MAX_TAGGING_IMAGE_HEIGHT, im.height - y)
-                    im2 = im.crop((x, y, x + w, y + h))
-                    crop_fn = os.path.join("03_tree_tagging", "%s.x%dy%d.tagging.png" % (main_fn, x, y))
-                    im2.save(crop_fn)
-                    print("  *** Saved %s" % crop_fn)
 
     elif e.endswith(".las"):
         for stddev_cap in [25,]:
