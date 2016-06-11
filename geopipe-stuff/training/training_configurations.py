@@ -2,6 +2,8 @@ from __future__ import print_function
 
 TREE_RECOGNITION_RESOLUTION_IN_METERS = 4.0
 
+TRAINING_BATCH_SIZE = 500
+
 TRAINING_COMBINATIONS = [
     ("IR",),
     ("LAB_A",),
