@@ -16,3 +16,4 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 export WORKSPACE_GEOPIPE_STUFF=$DIR
 export PATH=$WORKSPACE_GEOPIPE_STUFF/build:$PATH
+export LD_LIBRARY_PATH=$WORKSPACE_GEOPIPE_STUFF/deps/_build/caffe/build/lib:$LD_LIBRARY_PATH
