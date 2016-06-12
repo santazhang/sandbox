@@ -34,7 +34,8 @@ def configure(conf):
     # build variant
     conf.env.append_value("CFLAGS", ["-Wall", "-pthread", "-ggdb"])
     conf.env.append_value("CXXFLAGS", ["-Wall", "-pthread", "-ggdb"])
-    conf.env.append_value("LINKFLAGS", "-pthread")
+    if not MACOSX:
+        conf.env.append_value("LINKFLAGS", "-pthread")
     if conf.options.variant == "debug":
         Logs.pprint("PINK", "DEBUG build enabled")
     elif conf.options.variant == "release":
