@@ -11,6 +11,8 @@ if [ -z "$WORKSPACE_GEOPIPE_STUFF" ]; then
     . $(dirname $0)/../activate.sh
 fi
 
+export LD_LIBRARY_PATH=$WORKSPACE_GEOPIPE_STUFF/deps/_install/lib:$LD_LIBRARY_PATH
+
 opj_decompress_bin=$WORKSPACE_GEOPIPE_STUFF/deps/_install/bin/opj_decompress
 
 if [ ! -f $opj_decompress_bin ]; then

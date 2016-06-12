@@ -6,7 +6,8 @@
 #include <string>
 
 #include <laslib/lasreader.hpp>
-#include <gflags/gflags.h>
+
+#include "utils/inc_gflags.h"
 
 using std::string;
 

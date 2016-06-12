@@ -46,4 +46,5 @@ def build(bld):
 
     bld.program(source=bld.path.ant_glob("las2img/*.cc"),
                 target="las2img.bin",
+                includes=".",
                 use="LASLIB GFLAGS")
