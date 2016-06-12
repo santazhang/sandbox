@@ -1,5 +1,8 @@
 from __future__ import print_function
 
+TILE_TYPE_NOT_TREE = 1
+TILE_TYPE_TREE = 2
+
 TREE_RECOGNITION_RESOLUTION_IN_METERS = 4.0
 
 TRAINING_BATCH_SIZE = 500

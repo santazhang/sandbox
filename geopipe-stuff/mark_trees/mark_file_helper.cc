@@ -88,6 +88,6 @@ int remove_mark(FILE* fp, const std::pair<int, QPolygon>& mark, QSize imageSize)
     if (fp == nullptr || ferror(fp)) {
         return -1;
     }
-    fprintf(fp, "-1");
+    fprintf(fp, "-1\n");
     return 0;
 }

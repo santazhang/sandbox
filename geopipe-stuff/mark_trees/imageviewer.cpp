@@ -74,7 +74,7 @@ bool ImageViewer::loadFile(const QString &fileName) {
 
     std::string markFileName = fileName.toStdString();
     int idx = markFileName.rfind("/");
-    markFileName = markFileName.substr(0, idx + 19) + ".mark.txt";
+    markFileName = markFileName.substr(0, idx + 12) + ".mark.txt";
     imageLabel->setMarkFile(markFileName);
 
     setWindowFilePath(fileName);

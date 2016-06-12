@@ -25,11 +25,9 @@ for e in os.listdir("01_source_data"):
             decoded_fn2 = os.path.join("02_decoded_data", main_fn + ext)
             if not os.path.exists(decoded_fn):
                 continue
-            elif ext != ".decoded.RGB.png":
-                os.rename(decoded_fn, decoded_fn2)
-                continue
-            decoded_fn3 = os.path.join("03_tree_tagging", main_fn + ext)
-            shutil.copyfile(decoded_fn, decoded_fn3)
+            elif ext == ".decoded.RGB.png":
+                decoded_fn3 = os.path.join("03_tree_tagging", main_fn + ext)
+                shutil.copyfile(decoded_fn, decoded_fn3)
             os.rename(decoded_fn, decoded_fn2)
 
     elif e.endswith(".las"):
