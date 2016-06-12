@@ -26,13 +26,17 @@ static std::vector<std::pair<int, std::vector<std::pair<double, double>>>> load_
             if (x < 0 || y < 0) {
                 break;
             }
-            mark.second.push_back(std::make_pair(x, y));
+            std::pair<double, double> pt = std::make_pair(x, y);
+            if (!mark.second.empty() && mark.second.back() == pt) {
+                continue;
+            }
+            mark.second.push_back(pt);
         }
         if (mark.first == -1) {
             if (!marks.empty()) {
                 marks.pop_back();
             }
-        } else {
+        } else if (mark.second.size() > 2u) {
             marks.push_back(mark);
         }
     }
@@ -75,6 +79,9 @@ std::vector<std::pair<int, QPolygon>> load_marks(const std::string& fname, QSize
 int add_mark(FILE* fp, const std::pair<int, QPolygon>& mark, QSize imageSize) {
     if (fp == nullptr || ferror(fp)) {
         return -1;
+    }
+    if (mark.second.size() <= 2u) {
+        return 0;
     }
     fprintf(fp, "%d", mark.first);
     for (const auto& p : mark.second) {
