@@ -2,8 +2,6 @@
 
 # Usage: frequency_control.sh project min_interval_h src_tree command
 
-set -x
-
 if [ "$#" -lt 3 ]; then
     echo "Usage: frequency_control.sh project min_interval_h src_tree command"
     exit 1
@@ -11,7 +9,8 @@ fi
 
 project=$1
 shift
-min_interval=$1
+min_interval_h=$1
+min_interval_minutes=$(($min_interval_h * 60))
 shift
 src_tree=$1
 shift
@@ -34,11 +33,11 @@ src_tree_md5=`find "$src_tree" -type f | sort | xargs -n 1 cat | \
               $MD5_CMD | cut -c1-16`
 sentinel_fn="$SENTINEL_DIR/$project_md5-$src_tree_md5"
 
-if find $SENTINEL_DIR -type f -mtime -$min_interval | \
+if find $SENTINEL_DIR -type f -mmin -$min_interval_minutes | \
         grep -q "$project_md5-$src_tree_md5"; then
 
     # Found file, so the min_interval has not passed yet.
-    echo "  *** Skipping command '$@' ($min_interval hours interval)"
+    echo "  *** Skipping command '$@' ($min_interval_h hours interval)"
     exit 0
 
 else
@@ -48,7 +47,7 @@ else
     if $@; then
         touch $sentinel_fn
         echo "  *** Created sentinel file $sentinel_fn"
-        echo "  *** Will not re-run until $min_interval hours passed"
+        echo "  *** Will not re-run until $min_interval_h hours passed"
     else
         rm -f $sentinel_fn
         echo "  *** Command '$@' failed"
