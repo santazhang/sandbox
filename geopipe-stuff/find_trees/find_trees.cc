@@ -20,10 +20,10 @@ const std::vector<caffe::Blob<float>*>& NetForward(
     // hack to avoid warning
     class MyNet : public caffe::Net<float> {
     public:
-        void my_pre_forward(const std::vector<caffe::Blob<float>*>& bottom) {
+        void my_pre_forward(const std::vector<caffe::Blob<float>*>& a_bottom) {
             // Copy bottom to net bottoms
-            for (int i = 0; i < bottom.size(); ++i) {
-              net_input_blobs_[i]->CopyFrom(*bottom[i]);
+            for (size_t i = 0; i < a_bottom.size(); ++i) {
+                net_input_blobs_[i]->CopyFrom(*a_bottom[i]);
             }
         }
     };
@@ -53,8 +53,22 @@ int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
     caffe::Blob<float> blob(1 /* batch size = 1 */, 3 /* channels, rgb */, tile_height, tile_width);
     float* blob_raw = reinterpret_cast<float*>(blob.mutable_cpu_data());
 
-    for (int top_y = 0; top_y + tile_height < params.img_height; top_y += step_y) {
-        for (int left_x = 0; left_x + tile_width < params.img_width; left_x += step_x) {
+    for (int top_y = 0; top_y < params.img_height; top_y += step_y) {
+        if (top_y + tile_height > params.img_height) {
+            top_y = params.img_height - tile_height;
+        }
+        if (top_y < 0) {
+            continue;
+        }
+
+        for (int left_x = 0; left_x < params.img_width; left_x += step_x) {
+            if (left_x + tile_width > params.img_width) {
+                left_x = params.img_width - tile_width;
+            }
+            if (left_x < 0) {
+                continue;
+            }
+
             for (int y = top_y, offst = 0, offst2 = y * params.img_width;
                  y < top_y + tile_height;
                  y++, offst += tile_width, offst2 += params.img_width) {
