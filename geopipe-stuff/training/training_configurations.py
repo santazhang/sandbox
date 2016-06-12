@@ -6,7 +6,7 @@ TILE_TYPE_TREE = 2
 # for 0x1500 precision orthoimages
 TILE_STEP_X = 7
 TILE_STEP_Y = 7
-TILE_SIZES = [7, 14, 28]
+TILE_SIZES = [7] # [7. 14, 28]
 
 TRAINING_BATCH_SIZE = 500
 TEST_BATCHES = 4  # per group, so total (tree + non_tree)is 2 * TRAINING_BATCH_SIZE * TEST_BATCHES

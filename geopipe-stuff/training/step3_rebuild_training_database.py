@@ -11,7 +11,7 @@ from utils import *
 
 for channels in TRAINING_COMBINATIONS:
     config_name = "-".join(channels)
-    if config_name not in ["R-G-B", "IR"]:
+    if config_name not in ["R-G-B", "IR", "LAB_A", "CMYK_Y"]:
         print("  *** NOT SUPPORTED YET: %s" % config_name)
         continue
     print("Building training data for: %s" % config_name)
@@ -21,8 +21,13 @@ for channels in TRAINING_COMBINATIONS:
             channels = "rgb"
         elif config_name == "IR":
             channels = "ir"
+        elif config_name == "LAB_A":
+            channels = "lab_a"
+        elif config_name == "CMYK_Y":
+            channels = "cmyk_y"
         else:
             continue
+
         tree_tile_dir = "04_training_data_preview/tree_%dx%d_%s" % (tile_size, tile_size, channels)
         not_tree_tile_dir = "04_training_data_preview/not_tree_%dx%d_%s" % (tile_size, tile_size, channels)
         tree_data_files = []
@@ -45,7 +50,7 @@ for channels in TRAINING_COMBINATIONS:
         if per_group_image_samples < 2 * num_test_images:
             print("  *** Too few training sample images found (%d, at least %d wanted)" % (per_group_image_samples, 2 * num_test_images))
             continue
-        print("Choose %d images (for each group) from %d tree tiles and %d not-tree tiles" % (per_group_image_samples, len(not_tree_data_files), len(tree_data_files)))
+        print("Choose %d images (for each group) from %d not-tree tiles and %d tree tiles" % (per_group_image_samples, len(not_tree_data_files), len(tree_data_files)))
         random.shuffle(not_tree_data_files)
         random.shuffle(tree_data_files)
         not_tree_data_files = not_tree_data_files[:per_group_image_samples]
@@ -71,7 +76,7 @@ for channels in TRAINING_COMBINATIONS:
 
         if config_name == "R-G-B":
             use_gray_if_necessary = ""
-        elif config_name == "IR":
+        elif config_name in ["IR", "LAB_A", "CMYK_Y"]:
             use_gray_if_necessary = " --gray"
         else:
             print("  *** NOT SUPPORTED YET: %s" % config_name)
@@ -81,9 +86,9 @@ for channels in TRAINING_COMBINATIONS:
         run_cmd("rm -rfv '05_training_data/%dx%d-%s-train-lmdb/'" % (tile_size, tile_size, config_name))
 
         run_cmd("../deps/_build/caffe/build/tools/convert_imageset --backend=lmdb --shuffle " + use_gray_if_necessary +
-                "/ %s 05_training_data/%dx%d-%s-test-lmdb/" % (test_list_txt_fn, tile_size, tile_size, config_name))
+                " / %s 05_training_data/%dx%d-%s-test-lmdb/" % (test_list_txt_fn, tile_size, tile_size, config_name))
         run_cmd("../deps/_build/caffe/build/tools/convert_imageset --backend=lmdb --shuffle " + use_gray_if_necessary +
-                "/ %s 05_training_data/%dx%d-%s-train-lmdb/" % (train_list_txt_fn, tile_size, tile_size, config_name))
+                " / %s 05_training_data/%dx%d-%s-train-lmdb/" % (train_list_txt_fn, tile_size, tile_size, config_name))
 
         os.remove(test_list_txt_fn)
         os.remove(train_list_txt_fn)
