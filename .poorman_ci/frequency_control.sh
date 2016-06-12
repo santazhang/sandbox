@@ -2,6 +2,8 @@
 
 # Usage: frequency_control.sh project min_interval_h src_tree command
 
+set -x
+
 if [ "$#" -lt 3 ]; then
     echo "Usage: frequency_control.sh project min_interval_h src_tree command"
     exit 1
