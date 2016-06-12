@@ -55,19 +55,19 @@ for channels in TRAINING_COMBINATIONS:
         with open(test_list_txt_fn, "w") as f:
             for x in not_tree_data_files[:num_test_images]:
                 f.write(x)
-                f.write(" %d\n" % TILE_TYPE_NOT_TREE)
+                f.write(" 0\n")
             for x in tree_data_files[:num_test_images]:
                 f.write(x)
-                f.write(" %d\n" % TILE_TYPE_TREE)
+                f.write(" 1\n")
 
         train_list_txt_fn = "05_training_data/%dx%d-" % (tile_size, tile_size) + config_name + ".train-list.txt"
         with open(train_list_txt_fn, "w") as f:
             for x in not_tree_data_files[num_test_images:]:
                 f.write(x)
-                f.write(" %d\n" % TILE_TYPE_NOT_TREE)
+                f.write(" 0\n")
             for x in tree_data_files[num_test_images:]:
                 f.write(x)
-                f.write(" %d\n" % TILE_TYPE_TREE)
+                f.write(" 1\n")
 
         if config_name == "R-G-B":
             use_gray_if_necessary = ""
