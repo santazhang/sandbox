@@ -36,7 +36,7 @@ layer {
     param { lr_mult: 1 }
     param { lr_mult: 2 }
     convolution_param {
-        num_output: 10
+        num_output: 5
         kernel_size: 3
         stride: 1
         weight_filler {
