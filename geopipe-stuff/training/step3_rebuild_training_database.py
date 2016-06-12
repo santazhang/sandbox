@@ -56,7 +56,7 @@ for channels in TRAINING_COMBINATIONS:
             for x in not_tree_data_files[:num_test_images]:
                 f.write(x)
                 f.write(" %d\n" % TILE_TYPE_NOT_TREE)
-            for x in not_tree_data_files[:num_test_images]:
+            for x in tree_data_files[:num_test_images]:
                 f.write(x)
                 f.write(" %d\n" % TILE_TYPE_TREE)
 
@@ -65,7 +65,7 @@ for channels in TRAINING_COMBINATIONS:
             for x in not_tree_data_files[num_test_images:]:
                 f.write(x)
                 f.write(" %d\n" % TILE_TYPE_NOT_TREE)
-            for x in not_tree_data_files[num_test_images:]:
+            for x in tree_data_files[num_test_images:]:
                 f.write(x)
                 f.write(" %d\n" % TILE_TYPE_TREE)
 
