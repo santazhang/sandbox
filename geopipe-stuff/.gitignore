@@ -9,8 +9,9 @@ training/04_*/
 !training/04_*/README
 training/05_*/
 !training/05_*/README
-training/06_*/
 mark_trees/Makefile
 mark_trees/.qmake.stash
 mark_trees/mark_trees.app/
 mark_trees/moc_*
+*.solverstate
+*.caffemodel

@@ -7,6 +7,8 @@ if [ "$#" -lt 3 ]; then
     exit 1
 fi
 
+set -x
+
 project=$1
 shift
 min_interval_h=$1

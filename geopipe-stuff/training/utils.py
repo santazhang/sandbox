@@ -15,14 +15,9 @@ def random_token(size=5):
         token += alphabet[random.randint(0, len(alphabet) - 1)]
     return token
 
-def md5_of_file(fpath):
+def md5_of_str(s):
     md5 = hashlib.md5()
-    with open(fpath, 'rb') as f:
-        while True:
-            data = f.read(1024 * 1024)
-            if not data:
-                break
-            md5.update(data)
+    md5.update(s)
     return md5.hexdigest()
 
 def mkdir_p(dpath):

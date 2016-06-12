@@ -101,9 +101,9 @@ for k in image_files:
             draw.polygon(xy, fill=tile_type)
     # im2.show()
 
-    step_x = 7
-    step_y = 7
-    for tile_border_len_a in [7, 14, 28]:
+    step_x = TILE_STEP_X
+    step_y = TILE_STEP_Y
+    for tile_border_len_a in TILE_SIZES:
         tile_width = tile_border_len_a
         tile_height = tile_border_len_a
         print("Using tile size: %dx%d" % (tile_width, tile_height))
@@ -140,15 +140,15 @@ for k in image_files:
                     if tree_ratio > 0.6:
                         extract_fn = os.path.join(tree_tile_dir, "tmp-%s.png" % uniq_token)
                         im_crop.save(extract_fn)
-                        md5_sig = md5_of_file(extract_fn)
-                        new_fn = os.path.join(tree_tile_dir, md5_sig[0:2] + "/" + md5_sig[0:8] + ".png")
-                        mkdir_p(os.path.dirname(new_fn))
-                        os.rename(extract_fn, new_fn)
+                        new_fn = "%s_%02d_%04d_%04d.png" % (geo_id, tile_border_len_a, left_x, top_y)
+                        new_dir = md5_of_str(new_fn)[0:2]
+                        mkdir_p(os.path.join(tree_tile_dir, new_dir))
+                        os.rename(extract_fn, os.path.join(tree_tile_dir, new_dir, new_fn))
                     elif not_tree_ratio > 0.6:
                         extract_fn = os.path.join(not_tree_tile_dir, "tmp-%s.png" % uniq_token)
                         im_crop.save(extract_fn)
-                        md5_sig = md5_of_file(extract_fn)
-                        new_fn = os.path.join(not_tree_tile_dir, md5_sig[0:2] + "/" + md5_sig[0:8] + ".png")
-                        mkdir_p(os.path.dirname(new_fn))
-                        os.rename(extract_fn, new_fn)
+                        new_fn = "%s_%02d_%04d_%04d.png" % (geo_id, tile_border_len_a, left_x, top_y)
+                        new_dir = md5_of_str(new_fn)[0:2]
+                        mkdir_p(os.path.join(not_tree_tile_dir, new_dir))
+                        os.rename(extract_fn, os.path.join(not_tree_tile_dir, new_dir, new_fn))
     print()

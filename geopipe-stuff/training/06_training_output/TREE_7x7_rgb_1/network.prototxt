@@ -1,0 +1,94 @@
+name: "TREE_7x7_rgb_1"
+
+layer {
+    name: "data"
+    type: "Data"
+    data_param {
+        source: "../../05_training_data/7x7-R-G-B-train-lmdb/"
+        backend: LMDB
+        batch_size: 500
+    }
+    top: "data"
+    top: "label"
+    include {
+        phase: TRAIN
+    }
+}
+
+layer {
+    name: "data"
+    type: "Data"
+    data_param {
+        source: "../../05_training_data/7x7-R-G-B-test-lmdb/"
+        backend: LMDB
+        batch_size: 500
+    }
+    top: "data"
+    top: "label"
+    include {
+        phase: TEST
+    }
+}
+
+layer {
+    name: "conv1"
+    type: "Convolution"
+    param { lr_mult: 1 }
+    param { lr_mult: 2 }
+    convolution_param {
+        num_output: 30
+        kernel_size: 3
+        stride: 1
+        weight_filler {
+            type: "xavier"
+        }
+        bias_filler {
+            type: "constant"
+        }
+    }
+    bottom: "data"
+    top: "conv1"
+}
+
+layer {
+    name: "ip1"
+    type: "InnerProduct"
+    param { lr_mult: 1 }
+    param { lr_mult: 2 }
+    inner_product_param {
+        num_output: 2
+        weight_filler {
+            type: "xavier"
+        }
+        bias_filler {
+            type: "constant"
+        }
+    }
+    bottom: "conv1"
+    top: "ip1"
+}
+
+layer {
+    name: "accuracy_train"
+    type: "Accuracy"
+    bottom: "ip1"
+    bottom: "label"
+    top: "accuracy_train"
+    include: { phase: TRAIN }
+}
+
+layer {
+    name: "accuracy_test"
+    type: "Accuracy"
+    bottom: "ip1"
+    bottom: "label"
+    top: "accuracy_train"
+    include: { phase: TEST }
+}
+
+layer {
+    name: "loss"
+    type: "SoftmaxWithLoss"
+    bottom: "ip1"
+    bottom: "label"
+}
