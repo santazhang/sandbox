@@ -133,6 +133,9 @@ int find_generic(
 
 
 int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
+    CHECK_GE(params.img_width, 7);
+    CHECK_GE(params.img_height, 7);
+
     static caffe::Net<float>* caffe_net_7x7_rgb_1 = nullptr;
 
     if (caffe_net_7x7_rgb_1 == nullptr) {
@@ -216,13 +219,20 @@ struct private_tree_info_t {
     int nearest_tree_grid;
     int nearest_tree_idx_in_grid;
     bool covered_by_other_tree;
+
+    int stat_signature = -1;
+    int stat_tree_pixel_count = -1;
+    int stat_not_tree_pixel_count = -1;
 };
 
 class TreeMerger {
 public:
     TreeMerger(const params_t& params, result_t* result)
-            : params_(params), result_(result) {
+            : params_(params), result_(result), tree_mask_(nullptr) {
         init();
+    }
+    ~TreeMerger() {
+        delete[] tree_mask_;
     }
 
     void init();
@@ -271,6 +281,9 @@ private:
 
     void finalize_remove_occluded_trees();
 
+    // load features (histogram, stddev of colors etc)
+    void update_tree_stat(private_tree_info_t* priv_tree);
+
     const params_t& params_;
     result_t* result_;
     int grid_size_;
@@ -278,6 +291,9 @@ private:
     int grid_rows_;
     int grid_count_;
     vector<vector<private_tree_info_t>> grid_;
+
+    // tree_mask_[pixel_id] == 0 means not tree, =1 means tree
+    int8_t* tree_mask_;
 };
 
 void TreeMerger::init() {
@@ -298,10 +314,28 @@ void TreeMerger::init() {
     CHECK_EQ(bottom_right_grid_id + 1, grid_count_);
     grid_.resize(grid_count_);
 
+    const int input_image_pixels = params_.img_width * params_.img_height;
+    tree_mask_ = new int8_t[input_image_pixels];
+    ::memset(tree_mask_, 0, input_image_pixels);
+
+    const int num_tree_tile_rows = (params_.img_height + result_->tile_size - 1) / result_->tile_size;
+    const int num_tree_tile_cols = (params_.img_width + result_->tile_size - 1) / result_->tile_size;
+    for (auto tree_tile_id : result_->tree_tiles) {
+        const int tree_row = tree_tile_id / num_tree_tile_cols;
+        const int tree_col = tree_tile_id % num_tree_tile_cols;
+        for (int y = tree_row * result_->tile_size; y < params_.img_height && y < tree_row * result_->tile_size + result_->tile_size ; y++) {
+            int yoffst = y * params_.img_width;
+            for (int x = tree_col * result_->tile_size; x < params_.img_width && x < tree_col * result_->tile_size + result_->tile_size ; x++) {
+                tree_mask_[yoffst + x] = 1;
+            }
+        }
+    }
+
     for (const auto& t : result_->trees) {
         private_tree_info_t priv_ti;
         priv_ti.ti = t;
-        // TODO load features (histogram, stddev of colors etc)
+        // load features (histogram, stddev of colors etc)
+        update_tree_stat(&priv_ti);
         int g = grid_id(t.x_pixels, t.y_pixels);
         grid_[g].push_back(priv_ti);
     }
@@ -444,6 +478,7 @@ bool TreeMerger::merge_step() {
             t.nearest_tree_dist_edge_to_edge = DBL_MAX;
             t.nearest_tree_grid = -1;
             t.nearest_tree_idx_in_grid = -1;
+            update_tree_stat(&t);
         }
     }
 
@@ -763,6 +798,92 @@ void TreeMerger::finalize_remove_occluded_trees() {
     grid_ = new_grid;
 
     LOG(INFO) << "Remove occuluded trees: " << tree_count_before << " => " << tree_count_after;
+}
+
+void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
+    // load features (histogram, stddev of colors etc)
+    size_t cksum = std::hash<tree_info_t>()(priv_tree->ti);
+    int cksum2 = static_cast<int>(cksum & 0x7FFFFFFF);
+    if (cksum2 == priv_tree->stat_signature) {
+        // tree info not changed, do not need to update
+        return;
+    }
+    priv_tree->stat_signature = cksum2;
+
+    // based on mid-point algorithm
+    // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+    const double x_center = priv_tree->ti.x_pixels;
+    const double y_center = priv_tree->ti.y_pixels;
+    const double radius = priv_tree->ti.radius_pixels;
+    double xx = radius;
+    double yy = 0;
+    double err = 0;
+
+    int num_tree_pixels = 0;
+    int num_not_tree_pixels = 0;
+
+    auto collect_stats = [&num_tree_pixels, &num_not_tree_pixels, this]
+    (const int y, int xl, int xr) {
+        int yoffst = y * this->params_.img_width;
+        if (xl < 0) {
+            xl = 0;
+        }
+        if (xr >= this->params_.img_width) {
+            xr = this->params_.img_width - 1;
+        }
+
+        for (int x = xl; x <= xr; x++) {
+            if (this->tree_mask_[yoffst + x]) {
+                num_tree_pixels++;
+            } else {
+                num_not_tree_pixels++;
+            }
+        }
+
+        // TODO collect more stats
+    };
+    // iterate every pixel inside the tree, collect stats
+    while (xx >= yy) {
+        int y = y_center + yy;
+        int xl = x_center + xx;
+        int xr = x_center - xx;
+        // for x in [xl..xr], do (x, y)...
+        if (y >= 0 && y < params_.img_height) {
+            collect_stats(y, xl, xr);
+        }
+
+        y = y_center - yy;
+        // for x in [xl..xr], do (x, y)...
+        if (y >= 0 && y < params_.img_height) {
+            collect_stats(y, xl, xr);
+        }
+
+        y = y_center + xx;
+        xl = x_center - yy;
+        xr = x_center + yy;
+        // for x in [xl..xr], do (x, y)...
+        if (y >= 0 && y < params_.img_height) {
+            collect_stats(y, xl, xr);
+        }
+
+        y = y_center - xx;
+        // for x in [xl..xr], do (x, y)...
+        if (y >= 0 && y < params_.img_height) {
+            collect_stats(y, xl, xr);
+        }
+
+        yy++;
+        err += 1 + 2*yy;
+        if (2*(err-xx) + 1 > 0) {
+            xx--;
+            err += 1-2*xx;
+        }
+    }
+
+
+    // LOG(INFO) << "tree " << num_tree_pixels << " not tree " << num_not_tree_pixels;
+    priv_tree->stat_tree_pixel_count = num_tree_pixels;
+    priv_tree->stat_not_tree_pixel_count = num_not_tree_pixels;
 }
 
 }  // anonymous namespace

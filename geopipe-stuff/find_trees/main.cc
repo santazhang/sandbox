@@ -97,6 +97,47 @@ int main(int argc, char* argv[]) {
         cv::circle(input_image, pt, t.radius_pixels, cv::Scalar(0, 0, 255) /* red */);
     }
 
+//     {
+//         // based on mid-point algorithm
+//         // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+//         double x_center = 350.5;
+//         double y_center = 350.3;
+//         double radius = 190.3;
+//         double xx = radius;
+//         double yy = 0;
+//         double err = 0;
+//
+//         while (xx >= yy) {
+//             int y = y_center + yy;
+//             int xl = x_center + xx;
+//             int xr = x_center - xx;
+//             // for x in [xl..xr], do (x, y)...
+//             cv::line(input_image, cv::Point(xl, y), cv::Point(xr, y), cv::Scalar(255, 0, 0));
+//
+//             y = y_center - yy;
+//             // for x in [xl..xr], do (x, y)...
+//             cv::line(input_image, cv::Point(xl, y), cv::Point(xr, y), cv::Scalar(255, 0, 0));
+//
+//             y = y_center + xx;
+//             xl = x_center - yy;
+//             xr = x_center + yy;
+//             // for x in [xl..xr], do (x, y)...
+//             cv::line(input_image, cv::Point(xl, y), cv::Point(xr, y), cv::Scalar(255, 0, 0));
+//
+//             y = y_center - xx;
+//             // for x in [xl..xr], do (x, y)...
+//             cv::line(input_image, cv::Point(xl, y), cv::Point(xr, y), cv::Scalar(255, 0, 0));
+//
+//             yy++;
+//             err += 1 + 2*yy;
+//             if (2*(err-xx) + 1 > 0) {
+//                 xx--;
+//                 err += 1-2*xx;
+//             }
+//         }
+//     }
+
+
     cv::imshow("Trees", input_image);
     cv::waitKey(0);
 
