@@ -9,7 +9,7 @@ struct params_t {
     int img_width;
     int img_height;
 
-    // no ownership
+    // no ownership; contiguous bytes
     const uint8_t* channel_red;
     const uint8_t* channel_green;
     const uint8_t* channel_blue;
@@ -30,13 +30,15 @@ struct params_t {
 };
 
 struct tree_info_t {
-    double x_pixels = -1.0;  // 0 ~ img.width - 1
-    double y_pixels = -1.0;  // 0 ~ img.height - 1
-    double radius_pixels = -1.0;  // 0 ~ max_tree_radius
+    double x_pixels = -1.0;  // range: [0, img.width)
+    double y_pixels = -1.0;  // range: [0, img.height)
+    double radius_pixels = -1.0;  // range: [0, max_tree_radius]
 };
 
 struct result_t {
     std::vector<tree_info_t> trees;
+    int tile_size = -1;
+    std::vector<int> tree_tiles;
 };
 
 int find(const params_t& params, result_t* result);

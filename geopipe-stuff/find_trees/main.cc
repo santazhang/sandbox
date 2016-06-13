@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
     }
 
     find_trees::params_t params;
-    params.img_width = input_image.size().width;
-    params.img_height = input_image.size().height;
+    params.img_width = image_width;
+    params.img_height = image_height;
     params.channel_red = contiguous_red;
     params.channel_green = contiguous_green;
     params.channel_blue = contiguous_blue;
@@ -81,10 +81,22 @@ int main(int argc, char* argv[]) {
     LOG(INFO) << "Find return code = " << st;
     LOG(INFO) << "Found " << result.trees.size() << " trees";
 
+
+    const int tile_size = result.tile_size;
+    const int tile_rows = (image_height + tile_size - 1) / tile_size;
+    const int tile_cols = (image_width + tile_size - 1) / tile_size;
+    for (const auto& t : result.tree_tiles) {
+        int row = t / tile_rows;
+        int col = t % tile_cols;
+        cv::Point p1(col * tile_size, row * tile_size);
+        cv::Point p2(p1.x + tile_size, p1.y + tile_size);
+        cv::rectangle(input_image, p1, p2, cv::Scalar(0, 255, 0));
+    }
     for (const auto& t : result.trees) {
         cv::Point pt(t.x_pixels, t.y_pixels);
         cv::circle(input_image, pt, t.radius_pixels, cv::Scalar(0, 0, 255) /* red */);
     }
+
     cv::imshow("Trees", input_image);
     cv::waitKey(0);
 
