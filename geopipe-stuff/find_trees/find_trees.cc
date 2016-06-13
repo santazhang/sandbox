@@ -264,6 +264,8 @@ private:
     tree_info_t merge_trees(const tree_info_t& t1, const tree_info_t& t2);
     bool should_merge(const tree_info_t& t1, const tree_info_t& t2);
 
+    bool merge_step_remove_occluded_trees();
+
     const params_t& params_;
     result_t* result_;
     int grid_size_;
@@ -475,8 +477,8 @@ bool TreeMerger::merge_step() {
     unordered_set<tree_info_t> trees_merged;
 
     // will contain all trees in grid_ that are not merged
-    vector<vector<private_tree_info_t>> new_grid_;
-    new_grid_.resize(grid_count_);
+    vector<vector<private_tree_info_t>> new_grid;
+    new_grid.resize(grid_count_);
 
     for (size_t i_grid = 0; i_grid < grid_.size(); i_grid++) {
         const auto& g = grid_[i_grid];
@@ -487,42 +489,52 @@ bool TreeMerger::merge_step() {
 
             if (t.nearest_tree_grid < 0 || t.nearest_tree_idx_in_grid < 0) {
                 // t has no near by trees, so keep t
-                new_grid_[i_grid].push_back(t);
+                new_grid[i_grid].push_back(t);
                 continue;
             }
 
             const auto& t2 = grid_[t.nearest_tree_grid][t.nearest_tree_idx_in_grid];
             if (trees_merged.find(t2.ti) != trees_merged.end()) {
                 // t's nearest tree has been merged with others, so t is kept unmerged
-                new_grid_[i_grid].push_back(t);
+                new_grid[i_grid].push_back(t);
                 continue;
             }
 
             if (!should_merge(t.ti, t2.ti)) {
                 // if cannot merge, keep t untouch, continue
-                new_grid_[i_grid].push_back(t);
+                new_grid[i_grid].push_back(t);
                 continue;
             }
 
-            // merge t and t2, push new tree back to new_grid_
+            // merge t and t2, push new tree back to new_grid
             tree_info_t merged_ti = merge_trees(t.ti, t2.ti);
             private_tree_info_t priv_merged_ti;
             priv_merged_ti.ti = merged_ti;
             int merged_grid_id = grid_id(merged_ti.x_pixels, merged_ti.y_pixels);
             // LOG(INFO) << "GRID ID = " << merged_grid_id;
-            new_grid_[merged_grid_id].push_back(priv_merged_ti);
+            new_grid[merged_grid_id].push_back(priv_merged_ti);
             trees_merged.insert(t.ti);
             trees_merged.insert(t2.ti);
             has_progress = true;
         }
     }
-    grid_ = new_grid_;
+    grid_ = new_grid;
 
+    if (merge_step_remove_occluded_trees()) {
+        has_progress = true;
+    }
 
-    new_grid_.clear();
-    new_grid_.resize(grid_count_);
+    return has_progress;
+}
 
-    // remove trees covered by other trees
+static double distance2d(double x1, double y1, double x2, double y2) {
+    double dx = x1 - x2;
+    double dy = y1 - y2;
+    return ::sqrt(dx*dx + dy*dy);
+}
+
+bool TreeMerger::merge_step_remove_occluded_trees() {
+    bool has_progress = false;
 
     for (auto& g : grid_) {
         for (auto& t : g) {
@@ -530,7 +542,9 @@ bool TreeMerger::merge_step() {
         }
     }
 
-    apply_on_near_by_tree_pairs([] (int ta_grid, int ta_idx_in_grid, private_tree_info_t& ta,
+    // check if tree is fully covered by another tree
+    apply_on_near_by_tree_pairs([&has_progress]
+                                   (int ta_grid, int ta_idx_in_grid, private_tree_info_t& ta,
                                     int tb_grid, int tb_idx_in_grid, private_tree_info_t& tb) {
 
         private_tree_info_t* tbig;
@@ -547,18 +561,178 @@ bool TreeMerger::merge_step() {
         double dist_center_to_center = sqrt(dx*dx + dy*dy);
         if (dist_center_to_center < 1.1 * (tbig->ti.radius_pixels - tsmall->ti.radius_pixels)) {
             tsmall->covered_by_other_tree = true;
+            has_progress = true;
         }
     });
-    
+
+    // similar to apply_on_near_by_tree_pairs, but check all 3x3 near by grids
+    for (int ga = 0; ga < grid_count_; ga++) {
+        int neighbor_grid_ids[9] = {ga, -1, -1, -1, -1};
+        int neighbor_grid_count = 1;
+
+        int ga_row = ga / grid_cols_;
+        int ga_col = ga % grid_cols_;
+
+        // 3 grids above ga
+        if (ga_row > 0) {
+            if (ga_col > 0) {
+                neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_ - 1;
+                neighbor_grid_count++;
+            }
+            neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_;
+            neighbor_grid_count++;
+            if (ga_col != grid_cols_ - 1) {
+                neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_ + 1;
+                neighbor_grid_count++;
+            }
+        }
+
+        // left and right
+        if (ga_col > 0) {
+            neighbor_grid_ids[neighbor_grid_count] = ga - 1;
+            neighbor_grid_count++;
+        }
+        if (ga_col != grid_cols_ - 1) {
+            neighbor_grid_ids[neighbor_grid_count] = ga + 1;
+            neighbor_grid_count++;
+        }
+
+        // 3 grids below ga
+        if (ga_row < grid_rows_ - 1) {
+            if (ga_col > 0) {
+                neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_ - 1;
+                neighbor_grid_count++;
+            }
+            neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_;
+            neighbor_grid_count++;
+            if (ga_col != grid_cols_ - 1) {
+                neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_ + 1;
+                neighbor_grid_count++;
+            }
+        }
+
+        for (size_t idx_a = 0; idx_a < grid_[ga].size(); idx_a++) {
+            auto& ta = grid_[ga][idx_a];
+
+            // use 5x5 boxes to cover the tree ta
+            const int boxes_step = 5;
+            // top-left point of boxes
+            struct xy_pair {
+                int x;
+                int y;
+            };
+            vector<xy_pair> ta_boxes;
+            for (int box_x = ta.ti.x_pixels - ta.ti.radius_pixels - boxes_step; box_x <= ta.ti.x_pixels + ta.ti.radius_pixels + boxes_step; box_x += boxes_step) {
+                for (int box_y = ta.ti.y_pixels - ta.ti.radius_pixels - boxes_step; box_y <= ta.ti.y_pixels + ta.ti.radius_pixels + boxes_step; box_y += boxes_step) {
+                    double d = distance2d(box_x, box_y, ta.ti.x_pixels, ta.ti.y_pixels);
+                    if (d <= ta.ti.radius_pixels + 0.001) {
+                        xy_pair xyp;
+                        xyp.x = box_x;
+                        xyp.y = box_y;
+                        ta_boxes.push_back(xyp);
+                        continue;
+                    }
+                    d = distance2d(box_x + boxes_step, box_y, ta.ti.x_pixels, ta.ti.y_pixels);
+                    if (d <= ta.ti.radius_pixels + 0.001) {
+                        xy_pair xyp;
+                        xyp.x = box_x + boxes_step;
+                        xyp.y = box_y;
+                        ta_boxes.push_back(xyp);
+                        continue;
+                    }
+                    d = distance2d(box_x, box_y + boxes_step, ta.ti.x_pixels, ta.ti.y_pixels);
+                    if (d <= ta.ti.radius_pixels + 0.001) {
+                        xy_pair xyp;
+                        xyp.x = box_x;
+                        xyp.y = box_y + boxes_step;
+                        ta_boxes.push_back(xyp);
+                        continue;
+                    }
+                    d = distance2d(box_x + boxes_step, box_y + boxes_step, ta.ti.x_pixels, ta.ti.y_pixels);
+                    if (d <= ta.ti.radius_pixels + 0.001) {
+                        xy_pair xyp;
+                        xyp.x = box_x + boxes_step;
+                        xyp.y = box_y + boxes_step;
+                        ta_boxes.push_back(xyp);
+                        continue;
+                    }
+                }
+            }
+
+            vector<private_tree_info_t*> tb_candidates;
+            for (int idx_neighbor = 0; idx_neighbor < neighbor_grid_count; idx_neighbor++) {
+                int gb = neighbor_grid_ids[idx_neighbor];
+                for (size_t idx_b = 0; idx_b < grid_[gb].size(); idx_b++) {
+                    auto& tb = grid_[gb][idx_b];
+                    if (&tb == &ta) {
+                        continue;
+                    }
+                    if (tb.ti.radius_pixels > ta.ti.radius_pixels) {
+                        tb_candidates.push_back(&tb);
+                    }
+                }
+            }
+            // sort neighbor tb_candidates according to radius (bigger first), greedily check occulusion
+            std::sort(tb_candidates.begin(), tb_candidates.end(),
+            [] (private_tree_info_t* t1, private_tree_info_t* t2) {
+                return t1->ti.radius_pixels > t2->ti.radius_pixels;
+            });
+            
+            for (private_tree_info_t* tb : tb_candidates) {
+                size_t i_box = 0;
+                while (i_box < ta_boxes.size()) {
+                    xy_pair xyp = ta_boxes[i_box];
+                    double d = distance2d(xyp.x, xyp.y, tb->ti.x_pixels, tb->ti.y_pixels);
+                    if (d > tb->ti.radius_pixels - 0.001) {
+                        // box not covered
+                        i_box++;
+                        continue;
+                    }
+                    d = distance2d(xyp.x, xyp.y + boxes_step, tb->ti.x_pixels, tb->ti.y_pixels);
+                    if (d > tb->ti.radius_pixels - 0.001) {
+                        // box not covered
+                        i_box++;
+                        continue;
+                    }
+                    d = distance2d(xyp.x + boxes_step, xyp.y, tb->ti.x_pixels, tb->ti.y_pixels);
+                    if (d > tb->ti.radius_pixels - 0.001) {
+                        // box not covered
+                        i_box++;
+                        continue;
+                    }
+                    d = distance2d(xyp.x + boxes_step, xyp.y + boxes_step, tb->ti.x_pixels, tb->ti.y_pixels);
+                    if (d > tb->ti.radius_pixels - 0.001) {
+                        // box not covered
+                        i_box++;
+                        continue;
+                    }
+
+                    // remove covered ones from ta_boxes
+                    ta_boxes[i_box] = ta_boxes.back();
+                    ta_boxes.pop_back();
+                    // no i_box++
+                }
+
+                // if ta_boxes is empty, tree is surely covered
+                if (ta_boxes.empty()) {
+                    ta.covered_by_other_tree = true;
+                    has_progress = true;
+                }
+            }
+        }
+    }
+
+    vector<vector<private_tree_info_t>> new_grid;
+    new_grid.resize(grid_count_);
     for (size_t i_grid = 0; i_grid < grid_.size(); i_grid++) {
         const auto& g = grid_[i_grid];
         for (const auto& t : g) {
             if (!t.covered_by_other_tree) {
-                new_grid_[i_grid].push_back(t);
+                new_grid[i_grid].push_back(t);
             }
         }
     }
-    grid_ = new_grid_;
+    grid_ = new_grid;
 
     return has_progress;
 }
