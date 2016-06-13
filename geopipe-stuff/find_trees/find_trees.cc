@@ -127,7 +127,7 @@ int find_generic(
             tile_id++;
         }
     }
-    
+
     return 0;
 }
 
@@ -236,6 +236,13 @@ public:
                 break;
             }
         }
+
+        // final greedy pass to remove smaller trees covered by big trees
+        // sort trees by radius, big trees first. if a new tree has been covered by existing trees, remove it
+        finalize_remove_occluded_trees();
+
+
+        // prepare the results
         LOG(INFO) << "Merged trees in " << i_step << " steps";
         result_->trees.clear();
         for (const auto& g : grid_) {
@@ -243,8 +250,6 @@ public:
                 result_->trees.push_back(priv_ti.ti);
             }
         }
-        // TODO final greedy pass to remove smaller trees covered by big trees
-        // sort trees by radius, big trees first. if a new tree has been covered by existing trees, remove it
     }
 
     // return: true if has progress, false if no progress
@@ -264,7 +269,7 @@ private:
     tree_info_t merge_trees(const tree_info_t& t1, const tree_info_t& t2);
     bool should_merge(const tree_info_t& t1, const tree_info_t& t2);
 
-    bool merge_step_remove_occluded_trees();
+    void finalize_remove_occluded_trees();
 
     const params_t& params_;
     result_t* result_;
@@ -292,7 +297,7 @@ void TreeMerger::init() {
     grid_count_ = grid_cols_ * grid_rows_;
     CHECK_EQ(bottom_right_grid_id + 1, grid_count_);
     grid_.resize(grid_count_);
-    
+
     for (const auto& t : result_->trees) {
         private_tree_info_t priv_ti;
         priv_ti.ti = t;
@@ -520,21 +525,8 @@ bool TreeMerger::merge_step() {
     }
     grid_ = new_grid;
 
-    if (merge_step_remove_occluded_trees()) {
-        has_progress = true;
-    }
 
-    return has_progress;
-}
-
-static double distance2d(double x1, double y1, double x2, double y2) {
-    double dx = x1 - x2;
-    double dy = y1 - y2;
-    return ::sqrt(dx*dx + dy*dy);
-}
-
-bool TreeMerger::merge_step_remove_occluded_trees() {
-    bool has_progress = false;
+    // remove trees fully covered by another single tree
 
     for (auto& g : grid_) {
         for (auto& t : g) {
@@ -564,6 +556,36 @@ bool TreeMerger::merge_step_remove_occluded_trees() {
             has_progress = true;
         }
     });
+
+    new_grid.clear();
+    new_grid.resize(grid_count_);
+    for (size_t i_grid = 0; i_grid < grid_.size(); i_grid++) {
+        const auto& g = grid_[i_grid];
+        for (const auto& t : g) {
+            if (!t.covered_by_other_tree) {
+                new_grid[i_grid].push_back(t);
+            }
+        }
+    }
+    grid_ = new_grid;
+
+    return has_progress;
+}
+
+static inline double distance2d(double x1, double y1, double x2, double y2) {
+    double dx = x1 - x2;
+    double dy = y1 - y2;
+    return ::sqrt(dx*dx + dy*dy);
+}
+
+void TreeMerger::finalize_remove_occluded_trees() {
+    size_t tree_count_before = 0;
+    for (auto& g : grid_) {
+        for (auto& t : g) {
+            t.covered_by_other_tree = false;
+            tree_count_before++;
+        }
+    }
 
     // similar to apply_on_near_by_tree_pairs, but check all 3x3 near by grids
     for (int ga = 0; ga < grid_count_; ga++) {
@@ -658,6 +680,7 @@ bool TreeMerger::merge_step_remove_occluded_trees() {
                     }
                 }
             }
+            int orig_ta_boxes_count = ta_boxes.size();
 
             vector<private_tree_info_t*> tb_candidates;
             for (int idx_neighbor = 0; idx_neighbor < neighbor_grid_count; idx_neighbor++) {
@@ -677,8 +700,12 @@ bool TreeMerger::merge_step_remove_occluded_trees() {
             [] (private_tree_info_t* t1, private_tree_info_t* t2) {
                 return t1->ti.radius_pixels > t2->ti.radius_pixels;
             });
-            
+
             for (private_tree_info_t* tb : tb_candidates) {
+                if (ta.covered_by_other_tree) {
+                    break;
+                }
+
                 size_t i_box = 0;
                 while (i_box < ta_boxes.size()) {
                     xy_pair xyp = ta_boxes[i_box];
@@ -713,10 +740,9 @@ bool TreeMerger::merge_step_remove_occluded_trees() {
                     // no i_box++
                 }
 
-                // if ta_boxes is empty, tree is surely covered
-                if (ta_boxes.empty()) {
+                // if nearly all of the tree has been covered
+                if (ta_boxes.size() < 0.1 * orig_ta_boxes_count) {
                     ta.covered_by_other_tree = true;
-                    has_progress = true;
                 }
             }
         }
@@ -724,17 +750,19 @@ bool TreeMerger::merge_step_remove_occluded_trees() {
 
     vector<vector<private_tree_info_t>> new_grid;
     new_grid.resize(grid_count_);
+    size_t tree_count_after = 0;
     for (size_t i_grid = 0; i_grid < grid_.size(); i_grid++) {
         const auto& g = grid_[i_grid];
         for (const auto& t : g) {
             if (!t.covered_by_other_tree) {
                 new_grid[i_grid].push_back(t);
+                tree_count_after++;
             }
         }
     }
     grid_ = new_grid;
 
-    return has_progress;
+    LOG(INFO) << "Remove occuluded trees: " << tree_count_before << " => " << tree_count_after;
 }
 
 }  // anonymous namespace
