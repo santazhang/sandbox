@@ -1,11 +1,15 @@
 #include "find_trees.h"
 #include "caffe_models.h"
+#include "xxhash.h"
 
 #include <stdio.h>
 #include <math.h>
 
+#include <algorithm>
 #include <functional>
 #include <vector>
+#include <unordered_set>
+#include <utility>
 
 #ifndef CPU_ONLY
 #define CPU_ONLY
@@ -13,10 +17,24 @@
 
 #include <caffe/caffe.hpp>
 
+namespace std {
+
+template <>
+struct hash<find_trees::tree_info_t> {
+    size_t operator()(const find_trees::tree_info_t& ti) const {
+        static int seed = 2016;
+        return ::XXH32(&ti, sizeof(ti), seed);
+    }
+};
+
+}  // namespace std
+
 
 namespace {
 
 using std::vector;
+using std::unordered_set;
+using std::pair;
 using namespace find_trees;
 
 const std::vector<caffe::Blob<float>*>& NetForward(
@@ -194,6 +212,10 @@ int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
 
 struct private_tree_info_t {
     tree_info_t ti;
+    double nearest_tree_dist_edge_to_edge;
+    int nearest_tree_grid;
+    int nearest_tree_idx_in_grid;
+    bool covered_by_other_tree;
 };
 
 class TreeMerger {
@@ -207,23 +229,27 @@ public:
 
     void merge() {
         const int max_steps = 1000;
-        for (int i = 0; i < max_steps; i++) {
+        int i_step = 0;
+        for (; i_step < max_steps; i_step++) {
             bool has_progress = merge_step();
             if (!has_progress) {
                 break;
             }
         }
+        LOG(INFO) << "Merged trees in " << i_step << " steps";
         result_->trees.clear();
         for (const auto& g : grid_) {
             for (const auto& priv_ti : g) {
                 result_->trees.push_back(priv_ti.ti);
             }
         }
+        // TODO final greedy pass to remove smaller trees covered by big trees
+        // sort trees by radius, big trees first. if a new tree has been covered by existing trees, remove it
     }
 
     // return: true if has progress, false if no progress
     bool merge_step();
-    
+
     int grid_id(double x, double y) {
         int x1 = ::floor(x / grid_size_);
         int y1 = ::floor(y / grid_size_);
@@ -231,6 +257,13 @@ public:
     }
 
 private:
+    void apply_on_near_by_tree_pairs(
+        std::function<void(int /* ta_grid */, int /* ta_idx_in_grid */, private_tree_info_t& /* ta */,
+                           int /* tb_grid */, int /* tb_idx_in_grid */, private_tree_info_t& /* tb */)>&& func);
+
+    tree_info_t merge_trees(const tree_info_t& t1, const tree_info_t& t2);
+    bool should_merge(const tree_info_t& t1, const tree_info_t& t2);
+
     const params_t& params_;
     result_t* result_;
     int grid_size_;
@@ -270,9 +303,10 @@ void TreeMerger::init() {
     // }
 }
 
-bool TreeMerger::merge_step() {
-    // TODO merge trees!
-    LOG(ERROR) << "NOT IMPLEMENTED YET: tree merge";
+void TreeMerger::apply_on_near_by_tree_pairs(
+    std::function<void(int /* ta_grid */, int /* ta_idx_in_grid */, private_tree_info_t& /* ta */,
+                       int /* tb_grid */, int /* tb_idx_in_grid */, private_tree_info_t& /* tb */)>&& func) {
+
     for (int ga = 0; ga < grid_count_; ga++) {
         // only need to check neighbor grids on forward direction (right, down)
         int neighbor_grid_ids[5] = {ga, -1, -1, -1, -1};
@@ -297,25 +331,236 @@ bool TreeMerger::merge_step() {
             }
         }
 
-        for (const auto& ta : grid_[ga]) {
-            for (int idx = 0; idx < neighbor_grid_count; idx++) {
-                int neighbor_grid_id = neighbor_grid_ids[idx];
-                for (const auto& tb : grid_[neighbor_grid_id]) {
-                    if (&ta == &tb) {
-                        continue;
-                    }
+        for (size_t idx_a = 0; idx_a < grid_[ga].size(); idx_a++) {
+            auto& ta = grid_[ga][idx_a];
+            for (int idx_neighbor = 0; idx_neighbor < neighbor_grid_count; idx_neighbor++) {
+                int gb = neighbor_grid_ids[idx_neighbor];
+                size_t idx_b = 0;
+                if (ga == gb) {
+                    idx_b = idx_a + 1;
+                }
+                for (; idx_b < grid_[gb].size(); idx_b++) {
+                    auto& tb = grid_[gb][idx_b];
+                    CHECK(&ta != &tb);
 
-                    double dx = ta.ti.x_pixels - tb.ti.x_pixels;
-                    double dy = ta.ti.y_pixels - tb.ti.y_pixels;
-                    double dist_center_to_center = sqrt(dx*dx + dy*dy);
-                    double dist_edge_to_edge = dist_center_to_center - ta.ti.radius_pixels - tb.ti.radius_pixels;
-                    // LOG(INFO) << "dist_edge_to_edge=" << dist_edge_to_edge;
-                    // TODO MERGERS!
+                    func(ga, idx_a, ta, gb, idx_b, tb);
                 }
             }
         }
     }
-    return false;
+}
+
+tree_info_t TreeMerger::merge_trees(const tree_info_t& t1, const tree_info_t& t2) {
+    tree_info_t merged;
+    double dx = t1.x_pixels - t2.x_pixels;
+    double dy = t1.y_pixels - t2.y_pixels;
+    double d = ::sqrt(dx*dx + dy*dy);
+    if (d < 0.001) {
+        // merge into to bigger tree
+        if (t1.radius_pixels < t2.radius_pixels) {
+            return t2;
+        } else {
+            return t1;
+        }
+    }
+
+    const tree_info_t* ta;  // point to smaller axis value
+    const tree_info_t* tb;  // point to bigger axis value
+    if (t2.x_pixels > t1.x_pixels) {
+        ta = &t1;
+        tb = &t2;
+    } else {
+        ta = &t2;
+        tb = &t1;
+    }
+
+    double kx = (tb->x_pixels - ta->x_pixels) / d;
+    double xl = ta->x_pixels - kx * ta->radius_pixels;
+    double xr = tb->x_pixels + kx * tb->radius_pixels;
+    double new_x = (xl + xr) / 2.0;
+    // printf("d=%lf kx=%lf xl=%lf xr=%lf new_x=%lf\n", d, kx, xl, xr, new_x);
+
+    if (t2.y_pixels > t1.y_pixels) {
+        ta = &t1;
+        tb = &t2;
+    } else {
+        ta = &t2;
+        tb = &t1;
+    }
+    double ky = (tb->y_pixels - ta->y_pixels) / d;
+    double yl = ta->y_pixels - ky * ta->radius_pixels;
+    double yr = tb->y_pixels + ky * tb->radius_pixels;
+    double new_y = (yl + yr) / 2.0;
+    // printf("d=%lf ky=%lf yl=%lf yr=%lf new_y=%lf\n", d, ky, yl, yr, new_y);
+
+    dx = xr - xl;
+    dy = yr - yl;
+    double new_r = 0.5 * ::sqrt(dx*dx + dy*dy);
+
+    merged.x_pixels = new_x;
+    merged.y_pixels = new_y;
+    merged.radius_pixels = new_r;
+
+    // printf("  *** merge: (%lf,%lf,r=%lf) & (%lf, %lf,r=%lf) => (%lf, %lf,r=%lf)\n",
+    //        t1.x_pixels, t1.y_pixels, t1.radius_pixels, t2.x_pixels, t2.y_pixels, t2.radius_pixels,
+    //        new_x, new_y, new_r);
+
+    return merged;
+}
+
+bool TreeMerger::should_merge(const tree_info_t& t1, const tree_info_t& t2) {
+    // TODO check if can really merge (not exceed max tree radius, distance cannot be too big, not much empty pixels etc)
+
+    double dx = t1.x_pixels - t2.x_pixels;
+    double dy = t1.y_pixels - t2.y_pixels;
+    double dist_center_to_center = sqrt(dx*dx + dy*dy);
+    double dist_edge_to_edge = dist_center_to_center - t1.radius_pixels - t2.radius_pixels;
+
+    double min_r = std::min(t1.radius_pixels, t2.radius_pixels);
+    if (dist_edge_to_edge > 0.2 * min_r) {
+        return false;
+    }
+
+    tree_info_t merged_ti = merge_trees(t1, t2);
+    if (merged_ti.radius_pixels > params_.max_tree_radius) {
+        return false;
+    }
+
+    return true;
+}
+
+bool TreeMerger::merge_step() {
+    bool has_progress = false;
+
+    for (auto& g : grid_) {
+        for (auto& t : g) {
+            t.nearest_tree_dist_edge_to_edge = DBL_MAX;
+            t.nearest_tree_grid = -1;
+            t.nearest_tree_idx_in_grid = -1;
+        }
+    }
+
+    apply_on_near_by_tree_pairs([] (int ta_grid, int ta_idx_in_grid, private_tree_info_t& ta,
+                                    int tb_grid, int tb_idx_in_grid, private_tree_info_t& tb) {
+
+        double dx = ta.ti.x_pixels - tb.ti.x_pixels;
+        double dy = ta.ti.y_pixels - tb.ti.y_pixels;
+        double dist_center_to_center = sqrt(dx*dx + dy*dy);
+        double dist_edge_to_edge = dist_center_to_center - ta.ti.radius_pixels - tb.ti.radius_pixels;
+        // TODO also use other features to determine the *CLOSEST* tree
+        if (dist_edge_to_edge < ta.nearest_tree_dist_edge_to_edge) {
+            ta.nearest_tree_dist_edge_to_edge = dist_edge_to_edge;
+            ta.nearest_tree_grid = tb_grid;
+            ta.nearest_tree_idx_in_grid = tb_idx_in_grid;
+            tb.nearest_tree_dist_edge_to_edge = dist_edge_to_edge;
+            tb.nearest_tree_grid = ta_grid;
+            tb.nearest_tree_idx_in_grid = ta_idx_in_grid;
+        }
+    });
+
+    // for (auto& g : grid_) {
+    //     for (auto& t : g) {
+    //         if (t.nearest_tree_grid < 0 || t.nearest_tree_idx_in_grid < 0) {
+    //             LOG(INFO) << "Tree x=" << t.ti.x_pixels << ",y=" << t.ti.y_pixels << ",r=" << t.ti.radius_pixels
+    //                       << " does not have near by trees";
+    //             continue;
+    //         }
+    //         const auto& t2 = grid_[t.nearest_tree_grid][t.nearest_tree_idx_in_grid];
+    //         LOG(INFO) << "Tree x=" << t.ti.x_pixels << ",y=" << t.ti.y_pixels << ",r=" << t.ti.radius_pixels
+    //                   << " closest to Tree x=" << t2.ti.x_pixels << ",y=" << t2.ti.y_pixels << ",r=" << t2.ti.radius_pixels
+    //                   << "; dist=" << t.nearest_tree_dist_edge_to_edge;
+    //     }
+    // }
+
+    unordered_set<tree_info_t> trees_merged;
+
+    // will contain all trees in grid_ that are not merged
+    vector<vector<private_tree_info_t>> new_grid_;
+    new_grid_.resize(grid_count_);
+
+    for (size_t i_grid = 0; i_grid < grid_.size(); i_grid++) {
+        const auto& g = grid_[i_grid];
+        for (const auto& t : g) {
+            if (trees_merged.find(t.ti) != trees_merged.end()) {
+                continue;
+            }
+
+            if (t.nearest_tree_grid < 0 || t.nearest_tree_idx_in_grid < 0) {
+                // t has no near by trees, so keep t
+                new_grid_[i_grid].push_back(t);
+                continue;
+            }
+
+            const auto& t2 = grid_[t.nearest_tree_grid][t.nearest_tree_idx_in_grid];
+            if (trees_merged.find(t2.ti) != trees_merged.end()) {
+                // t's nearest tree has been merged with others, so t is kept unmerged
+                new_grid_[i_grid].push_back(t);
+                continue;
+            }
+
+            if (!should_merge(t.ti, t2.ti)) {
+                // if cannot merge, keep t untouch, continue
+                new_grid_[i_grid].push_back(t);
+                continue;
+            }
+
+            // merge t and t2, push new tree back to new_grid_
+            tree_info_t merged_ti = merge_trees(t.ti, t2.ti);
+            private_tree_info_t priv_merged_ti;
+            priv_merged_ti.ti = merged_ti;
+            int merged_grid_id = grid_id(merged_ti.x_pixels, merged_ti.y_pixels);
+            // LOG(INFO) << "GRID ID = " << merged_grid_id;
+            new_grid_[merged_grid_id].push_back(priv_merged_ti);
+            trees_merged.insert(t.ti);
+            trees_merged.insert(t2.ti);
+            has_progress = true;
+        }
+    }
+    grid_ = new_grid_;
+
+
+    new_grid_.clear();
+    new_grid_.resize(grid_count_);
+
+    // remove trees covered by other trees
+
+    for (auto& g : grid_) {
+        for (auto& t : g) {
+            t.covered_by_other_tree = false;
+        }
+    }
+
+    apply_on_near_by_tree_pairs([] (int ta_grid, int ta_idx_in_grid, private_tree_info_t& ta,
+                                    int tb_grid, int tb_idx_in_grid, private_tree_info_t& tb) {
+
+        private_tree_info_t* tbig;
+        private_tree_info_t* tsmall;
+        if (ta.ti.radius_pixels > tb.ti.radius_pixels) {
+            tbig = &ta;
+            tsmall = &tb;
+        } else {
+            tbig = &tb;
+            tsmall = &ta;
+        }
+        double dx = ta.ti.x_pixels - tb.ti.x_pixels;
+        double dy = ta.ti.y_pixels - tb.ti.y_pixels;
+        double dist_center_to_center = sqrt(dx*dx + dy*dy);
+        if (dist_center_to_center < 1.1 * (tbig->ti.radius_pixels - tsmall->ti.radius_pixels)) {
+            tsmall->covered_by_other_tree = true;
+        }
+    });
+    
+    for (size_t i_grid = 0; i_grid < grid_.size(); i_grid++) {
+        const auto& g = grid_[i_grid];
+        for (const auto& t : g) {
+            if (!t.covered_by_other_tree) {
+                new_grid_[i_grid].push_back(t);
+            }
+        }
+    }
+    grid_ = new_grid_;
+
+    return has_progress;
 }
 
 }  // anonymous namespace

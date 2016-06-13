@@ -33,6 +33,12 @@ struct tree_info_t {
     double x_pixels = -1.0;  // range: [0, img.width)
     double y_pixels = -1.0;  // range: [0, img.height)
     double radius_pixels = -1.0;  // range: [0, max_tree_radius]
+
+    bool operator ==(const tree_info_t& o) const {
+        return x_pixels == o.x_pixels &&
+               y_pixels == o.y_pixels &&
+               radius_pixels == o.radius_pixels;
+    }
 };
 
 struct result_t {
