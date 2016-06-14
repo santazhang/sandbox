@@ -215,7 +215,7 @@ int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
 
 struct private_tree_info_t {
     tree_info_t ti;
-    double nearest_tree_dist_edge_to_edge;
+    double cost_to_merge_with_nearest_tree;
     int nearest_tree_grid;
     int nearest_tree_idx_in_grid;
     bool covered_by_other_tree;
@@ -223,6 +223,8 @@ struct private_tree_info_t {
     int stat_signature = -1;
     int stat_tree_pixel_count = -1;
     int stat_not_tree_pixel_count = -1;
+    double stat_intensity_avg = -1.0;
+    double stat_intensity_var = -1.0;
 };
 
 class TreeMerger {
@@ -277,7 +279,9 @@ private:
                            int /* tb_grid */, int /* tb_idx_in_grid */, private_tree_info_t& /* tb */)>&& func);
 
     tree_info_t merge_trees(const tree_info_t& t1, const tree_info_t& t2);
-    bool should_merge(const tree_info_t& t1, const tree_info_t& t2);
+    bool should_merge(const private_tree_info_t& t1, const private_tree_info_t& t2);
+
+    double calc_cost_to_merge(const private_tree_info_t& ta, const private_tree_info_t& tb);
 
     void finalize_remove_occluded_trees();
 
@@ -449,21 +453,51 @@ tree_info_t TreeMerger::merge_trees(const tree_info_t& t1, const tree_info_t& t2
     return merged;
 }
 
-bool TreeMerger::should_merge(const tree_info_t& t1, const tree_info_t& t2) {
-    // TODO check if can really merge (not exceed max tree radius, distance cannot be too big, not much empty pixels etc)
+bool TreeMerger::should_merge(const private_tree_info_t& t1, const private_tree_info_t& t2) {
+    // check if can really merge (not exceed max tree radius, distance cannot be too big, not much empty pixels etc)
 
-    double dx = t1.x_pixels - t2.x_pixels;
-    double dy = t1.y_pixels - t2.y_pixels;
+    double dx = t1.ti.x_pixels - t2.ti.x_pixels;
+    double dy = t1.ti.y_pixels - t2.ti.y_pixels;
     double dist_center_to_center = sqrt(dx*dx + dy*dy);
-    double dist_edge_to_edge = dist_center_to_center - t1.radius_pixels - t2.radius_pixels;
+    double dist_edge_to_edge = dist_center_to_center - t1.ti.radius_pixels - t2.ti.radius_pixels;
+    if (dist_edge_to_edge < 0) {
+        dist_edge_to_edge = 0;
+    }
 
-    double min_r = std::min(t1.radius_pixels, t2.radius_pixels);
+    // trees are too far apart
+    double min_r = std::min(t1.ti.radius_pixels, t2.ti.radius_pixels);
     if (dist_edge_to_edge > 0.2 * min_r) {
         return false;
     }
 
-    tree_info_t merged_ti = merge_trees(t1, t2);
-    if (merged_ti.radius_pixels > params_.max_tree_radius) {
+    // tree is too big
+    private_tree_info_t merged_ti;
+    merged_ti.ti = merge_trees(t1.ti, t2.ti);
+    if (merged_ti.ti.radius_pixels > params_.max_tree_radius) {
+        return false;
+    }
+
+    const private_tree_info_t* t_small;
+    const private_tree_info_t* t_big;
+    if (t1.ti.radius_pixels < t2.ti.radius_pixels) {
+        t_small = &t1;
+        t_big = &t2;
+    } else {
+        t_small = &t2;
+        t_big = &t1;
+    }
+
+    // if (dist_edge_to_edge < 1 && t_small->ti.radius_pixels < 0.2 * t_big->ti.radius_pixels) {
+    //     return true;
+    // }
+
+    double not_tree_ratio1 = double(t1.stat_not_tree_pixel_count) / (t1.stat_tree_pixel_count + t1.stat_not_tree_pixel_count);
+    double not_tree_ratio2 = double(t2.stat_not_tree_pixel_count) / (t2.stat_tree_pixel_count + t2.stat_not_tree_pixel_count);
+    update_tree_stat(&merged_ti);
+    double not_tree_ratio_merged = double(merged_ti.stat_not_tree_pixel_count) / (merged_ti.stat_tree_pixel_count + merged_ti.stat_not_tree_pixel_count);
+    if (not_tree_ratio_merged > std::max(not_tree_ratio1, not_tree_ratio2) + 0.1 || not_tree_ratio_merged > 0.5) {
+        // too many not-tree pixels considered part of a tree
+        // LOG(INFO) << "ratio: " << not_tree_ratio1 << "  " << not_tree_ratio2 << " => " << not_tree_ratio_merged;
         return false;
     }
 
@@ -475,26 +509,22 @@ bool TreeMerger::merge_step() {
 
     for (auto& g : grid_) {
         for (auto& t : g) {
-            t.nearest_tree_dist_edge_to_edge = DBL_MAX;
+            t.cost_to_merge_with_nearest_tree = DBL_MAX;
             t.nearest_tree_grid = -1;
             t.nearest_tree_idx_in_grid = -1;
             update_tree_stat(&t);
         }
     }
 
-    apply_on_near_by_tree_pairs([] (int ta_grid, int ta_idx_in_grid, private_tree_info_t& ta,
+    apply_on_near_by_tree_pairs([this] (int ta_grid, int ta_idx_in_grid, private_tree_info_t& ta,
                                     int tb_grid, int tb_idx_in_grid, private_tree_info_t& tb) {
 
-        double dx = ta.ti.x_pixels - tb.ti.x_pixels;
-        double dy = ta.ti.y_pixels - tb.ti.y_pixels;
-        double dist_center_to_center = sqrt(dx*dx + dy*dy);
-        double dist_edge_to_edge = dist_center_to_center - ta.ti.radius_pixels - tb.ti.radius_pixels;
-        // TODO also use other features to determine the *CLOSEST* tree
-        if (dist_edge_to_edge < ta.nearest_tree_dist_edge_to_edge) {
-            ta.nearest_tree_dist_edge_to_edge = dist_edge_to_edge;
+        const double cost_to_merge = this->calc_cost_to_merge(ta, tb);
+        if (cost_to_merge < ta.cost_to_merge_with_nearest_tree) {
+            ta.cost_to_merge_with_nearest_tree = cost_to_merge;
             ta.nearest_tree_grid = tb_grid;
             ta.nearest_tree_idx_in_grid = tb_idx_in_grid;
-            tb.nearest_tree_dist_edge_to_edge = dist_edge_to_edge;
+            tb.cost_to_merge_with_nearest_tree = cost_to_merge;
             tb.nearest_tree_grid = ta_grid;
             tb.nearest_tree_idx_in_grid = ta_idx_in_grid;
         }
@@ -540,7 +570,7 @@ bool TreeMerger::merge_step() {
                 continue;
             }
 
-            if (!should_merge(t.ti, t2.ti)) {
+            if (!should_merge(t, t2)) {
                 // if cannot merge, keep t untouch, continue
                 new_grid[i_grid].push_back(t);
                 continue;
@@ -611,6 +641,40 @@ static inline double distance2d(double x1, double y1, double x2, double y2) {
     double dx = x1 - x2;
     double dy = y1 - y2;
     return ::sqrt(dx*dx + dy*dy);
+}
+
+
+double TreeMerger::calc_cost_to_merge(const private_tree_info_t& ta, const private_tree_info_t& tb) {
+    double dist_center_to_center = distance2d(ta.ti.x_pixels, ta.ti.y_pixels, tb.ti.x_pixels, tb.ti.y_pixels);
+    double dist_border_to_border = dist_center_to_center - ta.ti.radius_pixels - tb.ti.radius_pixels;
+    if (dist_border_to_border < 0) {
+        dist_border_to_border = 0;
+    }
+    
+    // derived from Bhattacharyya distance between intensity distribution
+    // https://en.wikipedia.org/wiki/Bhattacharyya_distance
+    double dist_intensity = 0;
+    {
+        double s1 = ta.stat_intensity_var * ta.stat_intensity_var;
+        double s2 = tb.stat_intensity_var * tb.stat_intensity_var;
+        double udiff = ta.stat_intensity_avg - ta.stat_intensity_avg;
+        double udiff2 = udiff * udiff;
+        // got rid of coefficient and some const, for faster calc
+        dist_intensity = ::log(s1/s2 + s2/s1 + 2) + udiff2 / (s1 + s2);
+    }
+
+
+    // private_tree_info_t merged_ti;
+    // merged_ti.ti = merge_trees(ta.ti, tb.ti);
+    //
+    // double not_tree_ratio1 = double(ta.stat_not_tree_pixel_count) / (ta.stat_tree_pixel_count + ta.stat_not_tree_pixel_count);
+    // double not_tree_ratio2 = double(tb.stat_not_tree_pixel_count) / (tb.stat_tree_pixel_count + tb.stat_not_tree_pixel_count);
+    // update_tree_stat(&merged_ti);
+    // double not_tree_ratio_merged = double(merged_ti.stat_not_tree_pixel_count) / (merged_ti.stat_tree_pixel_count + merged_ti.stat_not_tree_pixel_count);
+
+    // TODO maybe train some non-linear cost function?
+    double cost = 1000.0 * dist_intensity + dist_border_to_border;
+    return cost;
 }
 
 void TreeMerger::finalize_remove_occluded_trees() {
@@ -821,8 +885,11 @@ void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
 
     int num_tree_pixels = 0;
     int num_not_tree_pixels = 0;
+    int num_pixels = 0;
+    double sum_intensity = 0;
+    double sum_intensity2 = 0;
 
-    auto collect_stats = [&num_tree_pixels, &num_not_tree_pixels, this]
+    auto collect_stats = [&num_tree_pixels, &num_not_tree_pixels, &num_pixels, &sum_intensity, &sum_intensity2, this]
     (const int y, int xl, int xr) {
         int yoffst = y * this->params_.img_width;
         if (xl < 0) {
@@ -832,21 +899,29 @@ void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
             xr = this->params_.img_width - 1;
         }
 
+        num_pixels += xr - xl + 1;
+
+        CHECK_GE(xr, xl);
         for (int x = xl; x <= xr; x++) {
             if (this->tree_mask_[yoffst + x]) {
                 num_tree_pixels++;
             } else {
                 num_not_tree_pixels++;
             }
-        }
 
-        // TODO collect more stats
+            double intensity = 0.2126 * this->params_.channel_red[yoffst + x] +
+                               0.7152 * this->params_.channel_green[yoffst + x] +
+                               0.0722 * this->params_.channel_blue[yoffst + x];
+
+            sum_intensity += intensity;
+            sum_intensity2 += intensity * intensity;
+        }
     };
     // iterate every pixel inside the tree, collect stats
     while (xx >= yy) {
         int y = y_center + yy;
-        int xl = x_center + xx;
-        int xr = x_center - xx;
+        int xl = x_center - xx;
+        int xr = x_center + xx;
         // for x in [xl..xr], do (x, y)...
         if (y >= 0 && y < params_.img_height) {
             collect_stats(y, xl, xr);
@@ -884,6 +959,13 @@ void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
     // LOG(INFO) << "tree " << num_tree_pixels << " not tree " << num_not_tree_pixels;
     priv_tree->stat_tree_pixel_count = num_tree_pixels;
     priv_tree->stat_not_tree_pixel_count = num_not_tree_pixels;
+
+    // LOG(INFO) << "num pixels=" << num_pixels;
+    double expectation1 = sum_intensity / num_pixels;
+    double expectation2 = sum_intensity2 / num_pixels - expectation1*expectation1;
+    priv_tree->stat_intensity_avg = expectation1;
+    priv_tree->stat_intensity_var = ::sqrt(expectation2);
+    // LOG(INFO) << "intensity: avg=" << priv_tree->stat_intensity_avg << " var=" << priv_tree->stat_intensity_var;
 }
 
 }  // anonymous namespace

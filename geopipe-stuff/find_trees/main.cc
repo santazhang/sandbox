@@ -109,8 +109,8 @@ int main(int argc, char* argv[]) {
 //
 //         while (xx >= yy) {
 //             int y = y_center + yy;
-//             int xl = x_center + xx;
-//             int xr = x_center - xx;
+//             int xl = x_center - xx;
+//             int xr = x_center + xx;
 //             // for x in [xl..xr], do (x, y)...
 //             cv::line(input_image, cv::Point(xl, y), cv::Point(xr, y), cv::Scalar(255, 0, 0));
 //
