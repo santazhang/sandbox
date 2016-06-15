@@ -1,41 +1,21 @@
-#include "build_config.h"
-
 #include "find_trees.h"
 #include "caffe_models.h"
 #include "xxhash.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
-#include <float.h>
 
-#include <iostream>
 #include <algorithm>
 #include <functional>
 #include <vector>
 #include <unordered_set>
 #include <utility>
 
-#ifndef USE_LIBSVM_INSTEAD_OF_CAFFE
+#ifndef CPU_ONLY
+#define CPU_ONLY
+#endif  // CPU_ONLY
 
 #include <caffe/caffe.hpp>
-
-#define verify_eq(a, b) CHECK_EQ(a, b)
-#define verify_ge(a, b) CHECK_GE(a, b)
-#define verify_gt(a, b) CHECK_GT(a, b)
-#define verify(t) CHECK(t)
-
-#else
-
-#include "svm.h"
-
-#define verify_eq(a, b) if (!((a) == (b))) { ::perror("verify_eq: " #a ", " #b " in " __FILE__); ::abort(); }
-#define verify_ge(a, b) if (!((a) >= (b))) { ::perror("verify_ge: " #a ", " #b " in " __FILE__); ::abort(); }
-#define verify_gt(a, b) if (!((a) > (b))) { ::perror("verify_gt: " #a ", " #b " in " __FILE__); ::abort(); }
-#define verify(t) if (!(t)) { ::perror("verify: " #t " in " __FILE__); ::abort(); }
-
-
-#endif  // #ifndef USE_LIBSVM_INSTEAD_OF_CAFFE
 
 namespace std {
 
@@ -52,8 +32,6 @@ struct hash<find_trees::tree_info_t> {
 
 namespace {
 
-using std::cout;
-using std::endl;
 using std::vector;
 using std::unordered_set;
 using std::pair;
@@ -65,7 +43,6 @@ static inline double distance2d(double x1, double y1, double x2, double y2) {
     return ::sqrt(dx*dx + dy*dy);
 }
 
-#ifndef USE_LIBSVM_INSTEAD_OF_CAFFE
 const std::vector<caffe::Blob<float>*>& NetForward(
         caffe::Net<float>* net, const std::vector<caffe::Blob<float>*>& bottom, float* loss) {
 
@@ -85,7 +62,6 @@ const std::vector<caffe::Blob<float>*>& NetForward(
     return mynet->Forward(loss);
 }
 
-
 int find_generic(
         caffe::Net<float>* caffe_net,
         const params_t& params,
@@ -98,7 +74,7 @@ int find_generic(
         const uint8_t* channel_ptrs[]) {
 
     result->tile_size = tile_width;
-    verify_eq(tile_width, tile_height);
+    CHECK_EQ(tile_width, tile_height);
     result->tile_rows = (params.img_height + tile_height - 1) / tile_height;
     result->tile_cols = (params.img_width + tile_width - 1) / tile_width;
     result->tile_step_x = step_x;
@@ -167,8 +143,8 @@ int find_generic(
 
 
 int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
-    verify_ge(params.img_width, 7);
-    verify_ge(params.img_height, 7);
+    CHECK_GE(params.img_width, 7);
+    CHECK_GE(params.img_height, 7);
 
     static caffe::Net<float>* caffe_net_7x7_rgb_1 = nullptr;
 
@@ -187,17 +163,6 @@ int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
                         7 /* step_x */, 7 /* step_y */,
                         channel_ptrs);
 }
-
-
-#else
-
-int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
-    // TODO find trees using svm!
-    cout << "   *** NOT IMPLEMENTED YET!" << endl;
-    return -1;
-}
-
-#endif  // #ifndef USE_LIBSVM_INSTEAD_OF_CAFFE
 
 
 struct private_tree_info_t {
@@ -243,7 +208,7 @@ public:
         finalize_remove_occluded_trees();
 
         // prepare the results
-        std::cout << "Merged trees in " << i_step << " steps" << std::endl;
+        LOG(INFO) << "Merged trees in " << i_step << " steps";
         result_->trees.clear();
         for (const auto& g : grid_) {
             for (const auto& priv_ti : g) {
@@ -293,9 +258,9 @@ private:
 };
 
 void TreeMerger::init() {
-    std::cout << "max_tree_radius=" << params_.max_tree_radius << std::endl;
+    LOG(INFO) << "max_tree_radius=" << params_.max_tree_radius;
     grid_size_ = params_.max_tree_radius * 1.2 + 1;
-    cout << "choosing grid_size=" << grid_size_ << endl;
+    LOG(INFO) << "choosing grid_size=" << grid_size_;
     grid_cols_ = params_.img_width / grid_size_;
     if (grid_cols_ * grid_size_ < params_.img_width) {
         grid_cols_++;
@@ -304,10 +269,10 @@ void TreeMerger::init() {
     if (grid_rows_ * grid_size_ < params_.img_height) {
         grid_rows_++;
     }
-    cout << "image is cut into " << grid_cols_ << "x" << grid_rows_ << " grids" << endl;
+    LOG(INFO) << "image is cut into " << grid_cols_ << "x" << grid_rows_ << " grids";
     int bottom_right_grid_id = grid_id(params_.img_width - 0.0001, params_.img_height - 0.0001);
     grid_count_ = grid_cols_ * grid_rows_;
-    verify_eq(bottom_right_grid_id + 1, grid_count_);
+    CHECK_EQ(bottom_right_grid_id + 1, grid_count_);
     grid_.resize(grid_count_);
 
     const int input_image_pixels = params_.img_width * params_.img_height;
@@ -376,7 +341,7 @@ void TreeMerger::apply_on_near_by_tree_pairs(
                 }
                 for (; idx_b < grid_[gb].size(); idx_b++) {
                     auto& tb = grid_[gb][idx_b];
-                    verify(&ta != &tb);
+                    CHECK(&ta != &tb);
 
                     func(ga, idx_a, ta, gb, idx_b, tb);
                 }
@@ -870,7 +835,7 @@ void TreeMerger::finalize_remove_occluded_trees() {
     }
     grid_ = new_grid;
 
-    cout << "Remove occuluded trees: " << tree_count_before << " => " << tree_count_after << endl;
+    LOG(INFO) << "Remove occuluded trees: " << tree_count_before << " => " << tree_count_after;
 }
 
 void TreeMerger::finalize_filter_noisy_tiny_trees() {
@@ -894,7 +859,7 @@ void TreeMerger::finalize_filter_noisy_tiny_trees() {
     // LOG(INFO) << "radius min: " << radius_dist.front() << " max:" << radius_dist.back()
     //     << " avg:" << radius_avg << " " << filter_pct << "%: " << radius_filter1 << " radius_var =" << radius_var;
     double radius_filter2 = (radius_filter1 + radius_avg) / 2;
-    cout << "Filtering trees with radius < " << radius_filter2 << endl;
+    LOG(INFO) << "Filtering trees with radius < " << radius_filter2;
     int before_cnt = result_->trees.size();
     idx = 0;
     while (idx < result_->trees.size()) {
@@ -905,7 +870,7 @@ void TreeMerger::finalize_filter_noisy_tiny_trees() {
         }
         idx++;
     }
-    cout << "Filtered noisy small trees: " << before_cnt << " => " << result_->trees.size() << endl;
+    LOG(INFO) << "Filtered noisy small trees: " << before_cnt << " => " << result_->trees.size();
 }
 
 void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
@@ -954,7 +919,7 @@ void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
 
         num_pixels += xr - xl + 1;
 
-        verify_ge(xr, xl);
+        CHECK_GE(xr, xl);
         for (int x = xl; x <= xr; x++) {
             if (this->tree_mask_[yoffst + x]) {
                 num_tree_pixels++;
@@ -1038,9 +1003,9 @@ void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
 namespace find_trees {
 
 int find(const params_t& params, result_t* result) {
-    verify_gt(params.img_width, 0);
-    verify_gt(params.img_height, 0);
-    verify_gt(params.max_tree_radius, 0);
+    CHECK_GT(params.img_width, 0);
+    CHECK_GT(params.img_height, 0);
+    CHECK_GT(params.max_tree_radius, 0);
 
     int ret = find_using_7x7_rgb_1(params, result);
 

@@ -62,7 +62,7 @@ def build(bld):
                 includes=".",
                 use="LASLIB GFLAGS")
 
-    bld.stlib(source=bld.path.ant_glob("find_trees/*.cpp find_trees/*.cc find_trees/*.c", excl="find_trees/main.cc"),
+    bld.stlib(source=bld.path.ant_glob("find_trees/*.cc find_trees/*.c", excl="find_trees/main.cc"),
               target="find_trees",
               use="CAFFE GLOG PROTOBUF BOOST_SYSTEM")
 

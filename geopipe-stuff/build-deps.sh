@@ -39,8 +39,3 @@ rsync -avx ../caffe .
 cd caffe
 cp ../../caffe-Makefile.config Makefile.config
 make -j$N_CPU
-
-cd $DEPS_ROOT/_build
-rsync -avx ../libsvm .
-cd libsvm
-make
