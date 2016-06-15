@@ -1,3 +1,7 @@
+#include "build_config.h"
+
+#ifndef USE_LIBSVM_INSTEAD_OF_CAFFE
+
 #include "caffe_models.h"
 
 #include <glog/logging.h>
@@ -303,3 +307,7 @@ caffe::NetParameter get_trained_weights_7x7_rgb_1() {
 }
 
 }  // namespace find_trees
+
+
+#endif  // #ifndef USE_LIBSVM_INSTEAD_OF_CAFFE
+
