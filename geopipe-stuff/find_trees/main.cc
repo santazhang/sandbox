@@ -81,17 +81,18 @@ int main(int argc, char* argv[]) {
     LOG(INFO) << "Find return code = " << st;
     LOG(INFO) << "Found " << result.trees.size() << " trees";
 
-
-    const int tile_size = result.tile_size;
-    const int tile_rows = (image_height + tile_size - 1) / tile_size;
-    const int tile_cols = (image_width + tile_size - 1) / tile_size;
+    cv::Mat tree_tiles_overlay;
+    input_image.copyTo(tree_tiles_overlay);
     for (const auto& t : result.tree_tiles) {
-        int row = t / tile_rows;
-        int col = t % tile_cols;
-        cv::Point p1(col * tile_size, row * tile_size);
-        cv::Point p2(p1.x + tile_size, p1.y + tile_size);
-        cv::rectangle(input_image, p1, p2, cv::Scalar(0, 255, 0));
+        int row = t / result.tile_cols;
+        int col = t % result.tile_cols;
+        cv::Point p1(col * result.tile_step_x, row * result.tile_step_y);
+        cv::Point p2(p1.x + result.tile_size, p1.y + result.tile_size);
+        cv::rectangle(tree_tiles_overlay, p1, p2, cv::Scalar(0, 255, 0));
     }
+    // http://stackoverflow.com/a/36005085
+    const double alpha = 0.2;
+    cv::addWeighted(tree_tiles_overlay, alpha, input_image, 1 - alpha, 0, input_image);
     for (const auto& t : result.trees) {
         cv::Point pt(t.x_pixels, t.y_pixels);
         cv::circle(input_image, pt, t.radius_pixels, cv::Scalar(0, 0, 255) /* red */);
@@ -138,8 +139,12 @@ int main(int argc, char* argv[]) {
 //     }
 
 
-    cv::imshow("Trees", input_image);
-    cv::waitKey(0);
+    // cv::imshow("Trees", input_image);
+    // cv::waitKey(0);
+
+    const char* result_img_fn = "/tmp/find-trees-result.png";
+    cv::imwrite(result_img_fn, input_image);
+    LOG(INFO) << "Result image saved to: " << result_img_fn;
 
     delete[] contiguous_red;
     delete[] contiguous_green;

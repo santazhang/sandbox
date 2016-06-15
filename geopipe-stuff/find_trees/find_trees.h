@@ -44,6 +44,10 @@ struct tree_info_t {
 struct result_t {
     std::vector<tree_info_t> trees;
     int tile_size = -1;
+    int tile_rows = -1;
+    int tile_cols = -1;
+    int tile_step_x = -1;
+    int tile_step_y = -1;
 
     // NOTE: if there's a band of pixels on the rigth side (or bottom), that
     // is > 0px thick, but less than tile_size thick, it is still treated as a

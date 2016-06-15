@@ -37,6 +37,12 @@ using std::unordered_set;
 using std::pair;
 using namespace find_trees;
 
+static inline double distance2d(double x1, double y1, double x2, double y2) {
+    double dx = x1 - x2;
+    double dy = y1 - y2;
+    return ::sqrt(dx*dx + dy*dy);
+}
+
 const std::vector<caffe::Blob<float>*>& NetForward(
         caffe::Net<float>* net, const std::vector<caffe::Blob<float>*>& bottom, float* loss) {
 
@@ -69,6 +75,10 @@ int find_generic(
 
     result->tile_size = tile_width;
     CHECK_EQ(tile_width, tile_height);
+    result->tile_rows = (params.img_height + tile_height - 1) / tile_height;
+    result->tile_cols = (params.img_width + tile_width - 1) / tile_width;
+    result->tile_step_x = step_x;
+    result->tile_step_y = step_y;
 
     const int tile_pixels = tile_height * tile_width;
     caffe::Blob<float> blob(1 /* batch size = 1 */, num_channels, tile_height, tile_width);
@@ -152,64 +162,6 @@ int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
                         3 /* num_channels*/, 7 /* tile_width */, 7 /* tile_height */,
                         7 /* step_x */, 7 /* step_y */,
                         channel_ptrs);
-
-    // const int step_y = 7;
-    // const int step_x = 7;
-    // const int tile_width = 7;
-    // const int tile_height = 7;
-    // const int tile_pixels = tile_height * tile_width;
-    //
-    // caffe::Blob<float> blob(1 /* batch size = 1 */, 3 /* channels, rgb */, tile_height, tile_width);
-    // float* blob_raw = reinterpret_cast<float*>(blob.mutable_cpu_data());
-    //
-    // for (int top_y = 0; top_y < params.img_height; top_y += step_y) {
-    //     if (top_y + tile_height > params.img_height) {
-    //         top_y = params.img_height - tile_height;
-    //     }
-    //     if (top_y < 0) {
-    //         continue;
-    //     }
-    //
-    //     for (int left_x = 0; left_x < params.img_width; left_x += step_x) {
-    //         if (left_x + tile_width > params.img_width) {
-    //             left_x = params.img_width - tile_width;
-    //         }
-    //         if (left_x < 0) {
-    //             continue;
-    //         }
-    //
-    //         for (int y = top_y, offst = 0, offst2 = y * params.img_width;
-    //              y < top_y + tile_height;
-    //              y++, offst += tile_width, offst2 += params.img_width) {
-    //
-    //             for (int x = left_x, x_diff = 0 ; x < left_x + tile_width; x++, x_diff++) {
-    //                 // blob_raw[0 * 7 * 7 + y_diff * 7 + x_diff] = channel_red[tile_width * y + x];
-    //                 // blob_raw[1 * 7 * 7 + y_diff * 7 + x_diff] = channel_green[tile_width * y + x];
-    //                 // blob_raw[2 * 7 * 7 + y_diff * 7 + x_diff] = channel_blue[tile_width * y + x];
-    //                 blob_raw[0 * tile_pixels + offst + x_diff] = params.channel_red[offst2 + x];
-    //                 blob_raw[1 * tile_pixels + offst + x_diff] = params.channel_green[offst2 + x];
-    //                 blob_raw[2 * tile_pixels + offst + x_diff] = params.channel_blue[offst2 + x];
-    //             }
-    //         }
-    //
-    //         // predict!
-    //         std::vector<caffe::Blob<float>*> bottom;
-    //         bottom.push_back(&blob);
-    //         float loss_value = 0.0;
-    //         const std::vector<caffe::Blob<float>*>& predict_result = NetForward(caffe_net_7x7_rgb_1, bottom, &loss_value);
-    //         caffe::Blob<float>* b = predict_result[0];
-    //         if (b->cpu_data()[0] < b->cpu_data()[1]) {
-    //             // TREE!
-    //             tree_info_t t;
-    //             t.x_pixels = left_x + 3.5;
-    //             t.y_pixels = top_y + 3.5;
-    //             t.radius_pixels = 4.9;  // ~sqrt(2)*(7/2)
-    //             result->trees.push_back(t);
-    //         }
-    //     }
-    // }
-    //
-    // return 0;
 }
 
 
@@ -225,6 +177,8 @@ struct private_tree_info_t {
     int stat_not_tree_pixel_count = -1;
     double stat_intensity_avg = -1.0;
     double stat_intensity_var = -1.0;
+    double stat_tree_pixel_center_x = -1.0;
+    double stat_tree_pixel_center_y = -1.0;
 };
 
 class TreeMerger {
@@ -253,7 +207,6 @@ public:
         // sort trees by radius, big trees first. if a new tree has been covered by existing trees, remove it
         finalize_remove_occluded_trees();
 
-
         // prepare the results
         LOG(INFO) << "Merged trees in " << i_step << " steps";
         result_->trees.clear();
@@ -262,6 +215,9 @@ public:
                 result_->trees.push_back(priv_ti.ti);
             }
         }
+
+        // remove the tiny small trees
+        finalize_filter_noisy_tiny_trees();
     }
 
     // return: true if has progress, false if no progress
@@ -284,6 +240,7 @@ private:
     double calc_cost_to_merge(const private_tree_info_t& ta, const private_tree_info_t& tb);
 
     void finalize_remove_occluded_trees();
+    void finalize_filter_noisy_tiny_trees();
 
     // load features (histogram, stddev of colors etc)
     void update_tree_stat(private_tree_info_t* priv_tree);
@@ -322,11 +279,9 @@ void TreeMerger::init() {
     tree_mask_ = new int8_t[input_image_pixels];
     ::memset(tree_mask_, 0, input_image_pixels);
 
-    const int num_tree_tile_rows = (params_.img_height + result_->tile_size - 1) / result_->tile_size;
-    const int num_tree_tile_cols = (params_.img_width + result_->tile_size - 1) / result_->tile_size;
     for (auto tree_tile_id : result_->tree_tiles) {
-        const int tree_row = tree_tile_id / num_tree_tile_cols;
-        const int tree_col = tree_tile_id % num_tree_tile_cols;
+        const int tree_row = tree_tile_id / result_->tile_cols;
+        const int tree_col = tree_tile_id % result_->tile_cols;
         for (int y = tree_row * result_->tile_size; y < params_.img_height && y < tree_row * result_->tile_size + result_->tile_size ; y++) {
             int yoffst = y * params_.img_width;
             for (int x = tree_col * result_->tile_size; x < params_.img_width && x < tree_col * result_->tile_size + result_->tile_size ; x++) {
@@ -513,6 +468,23 @@ bool TreeMerger::merge_step() {
             t.nearest_tree_grid = -1;
             t.nearest_tree_idx_in_grid = -1;
             update_tree_stat(&t);
+            // move according to gravity center
+            if (t.stat_tree_pixel_center_x >= 0.0 && t.stat_tree_pixel_center_y >= 0.0) {
+                double d = distance2d(t.ti.x_pixels, t.ti.y_pixels, t.stat_tree_pixel_center_x, t.stat_tree_pixel_center_y);
+                if (d > 0.49) {
+                    // printf("XX %lf %lf %lf %lf d=%lf\n", t.ti.x_pixels, t.ti.y_pixels, t.stat_tree_pixel_center_x, t.stat_tree_pixel_center_y, d);
+                    double new_x_pixels = (t.ti.x_pixels + t.stat_tree_pixel_center_x) / 2;
+                    double new_y_pixels = (t.ti.y_pixels + t.stat_tree_pixel_center_y) / 2;
+                    if (new_x_pixels >= 0 && new_x_pixels < params_.img_width && new_y_pixels >= 0 && new_y_pixels < params_.img_height) {
+                        t.ti.x_pixels = new_x_pixels;
+                        t.ti.y_pixels = new_y_pixels;
+                        t.ti.radius_pixels -= 0.3 * d;
+                        if (t.ti.radius_pixels < 0.1) {
+                            t.ti.radius_pixels = 0.1;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -616,7 +588,10 @@ bool TreeMerger::merge_step() {
         double dx = ta.ti.x_pixels - tb.ti.x_pixels;
         double dy = ta.ti.y_pixels - tb.ti.y_pixels;
         double dist_center_to_center = sqrt(dx*dx + dy*dy);
-        if (dist_center_to_center < 1.1 * (tbig->ti.radius_pixels - tsmall->ti.radius_pixels)) {
+        // tsmall->ti.radius_pixels - (tbig->ti.radius_pixels - dist_center_to_center):
+        // the portion of small tree outside big tree
+        double min_outside_ratio = 0.7;  // increase => less crowded trees (keep it < 1.0)
+        if (tsmall->ti.radius_pixels - (tbig->ti.radius_pixels - dist_center_to_center) < min_outside_ratio * tsmall->ti.radius_pixels) {
             tsmall->covered_by_other_tree = true;
             has_progress = true;
         }
@@ -636,13 +611,6 @@ bool TreeMerger::merge_step() {
 
     return has_progress;
 }
-
-static inline double distance2d(double x1, double y1, double x2, double y2) {
-    double dx = x1 - x2;
-    double dy = y1 - y2;
-    return ::sqrt(dx*dx + dy*dy);
-}
-
 
 double TreeMerger::calc_cost_to_merge(const private_tree_info_t& ta, const private_tree_info_t& tb) {
     double dist_center_to_center = distance2d(ta.ti.x_pixels, ta.ti.y_pixels, tb.ti.x_pixels, tb.ti.y_pixels);
@@ -673,7 +641,11 @@ double TreeMerger::calc_cost_to_merge(const private_tree_info_t& ta, const priva
     // double not_tree_ratio_merged = double(merged_ti.stat_not_tree_pixel_count) / (merged_ti.stat_tree_pixel_count + merged_ti.stat_not_tree_pixel_count);
 
     // TODO maybe train some non-linear cost function?
-    double cost = 1000.0 * dist_intensity + dist_border_to_border;
+    // LOG(INFO) << "dist inten=" << dist_intensity << " dis bord=" << dist_border_to_border;
+
+    // dist_intensity usually in range 1.3 ~ 2.5
+    // dist_border_to_border usually in range 30 ~ 120 (max tree size = 67, 7x7 tree tiles)
+    double cost = 40.0 * dist_intensity + dist_border_to_border;
     return cost;
 }
 
@@ -685,6 +657,8 @@ void TreeMerger::finalize_remove_occluded_trees() {
             tree_count_before++;
         }
     }
+
+    // TODO switch to pixel based code
 
     // similar to apply_on_near_by_tree_pairs, but check all 3x3 near by grids
     for (int ga = 0; ga < grid_count_; ga++) {
@@ -864,6 +838,41 @@ void TreeMerger::finalize_remove_occluded_trees() {
     LOG(INFO) << "Remove occuluded trees: " << tree_count_before << " => " << tree_count_after;
 }
 
+void TreeMerger::finalize_filter_noisy_tiny_trees() {
+    if (result_->trees.size() < 10) {
+        return;
+    }
+    vector<double> radius_dist;
+    radius_dist.reserve(result_->trees.size());
+
+    double radius_sum = 0.0;
+    for (const auto& t : result_->trees) {
+        radius_dist.push_back(t.radius_pixels);
+        radius_sum += t.radius_pixels;
+    }
+    double radius_avg = radius_sum / result_->trees.size();
+
+    std::sort(radius_dist.begin(), radius_dist.end());
+    int filter_pct = 30;
+    size_t idx = radius_dist.size() * filter_pct / 100;
+    double radius_filter1 = radius_dist[idx];
+    // LOG(INFO) << "radius min: " << radius_dist.front() << " max:" << radius_dist.back()
+    //     << " avg:" << radius_avg << " " << filter_pct << "%: " << radius_filter1 << " radius_var =" << radius_var;
+    double radius_filter2 = (radius_filter1 + radius_avg) / 2;
+    LOG(INFO) << "Filtering trees with radius < " << radius_filter2;
+    int before_cnt = result_->trees.size();
+    idx = 0;
+    while (idx < result_->trees.size()) {
+        if (result_->trees[idx].radius_pixels < radius_filter2) {
+            result_->trees[idx] = result_->trees.back();
+            result_->trees.pop_back();
+            continue;
+        }
+        idx++;
+    }
+    LOG(INFO) << "Filtered noisy small trees: " << before_cnt << " => " << result_->trees.size();
+}
+
 void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
     // load features (histogram, stddev of colors etc)
     size_t cksum = std::hash<tree_info_t>()(priv_tree->ti);
@@ -888,12 +897,21 @@ void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
     int num_pixels = 0;
     double sum_intensity = 0;
     double sum_intensity2 = 0;
+    double sum_x = 0;
+    double sum_y = 0;
 
-    auto collect_stats = [&num_tree_pixels, &num_not_tree_pixels, &num_pixels, &sum_intensity, &sum_intensity2, this]
+    auto collect_stats = [&num_tree_pixels, &num_not_tree_pixels, &num_pixels, &sum_intensity, &sum_intensity2, this,
+                          &sum_x, &sum_y]
     (const int y, int xl, int xr) {
         int yoffst = y * this->params_.img_width;
         if (xl < 0) {
             xl = 0;
+        }
+        if (xl >= this->params_.img_width) {
+            xl = this->params_.img_width - 1;
+        }
+        if (xr < 0) {
+            xr = 0;
         }
         if (xr >= this->params_.img_width) {
             xr = this->params_.img_width - 1;
@@ -905,6 +923,8 @@ void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
         for (int x = xl; x <= xr; x++) {
             if (this->tree_mask_[yoffst + x]) {
                 num_tree_pixels++;
+                sum_x += x;
+                sum_y += y;
             } else {
                 num_not_tree_pixels++;
             }
@@ -922,6 +942,7 @@ void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
         int y = y_center + yy;
         int xl = x_center - xx;
         int xr = x_center + xx;
+
         // for x in [xl..xr], do (x, y)...
         if (y >= 0 && y < params_.img_height) {
             collect_stats(y, xl, xr);
@@ -966,6 +987,14 @@ void TreeMerger::update_tree_stat(private_tree_info_t* priv_tree) {
     priv_tree->stat_intensity_avg = expectation1;
     priv_tree->stat_intensity_var = ::sqrt(expectation2);
     // LOG(INFO) << "intensity: avg=" << priv_tree->stat_intensity_avg << " var=" << priv_tree->stat_intensity_var;
+    if (num_tree_pixels > 0) {
+        priv_tree->stat_tree_pixel_center_x = sum_x / num_tree_pixels;
+        priv_tree->stat_tree_pixel_center_y = sum_y / num_tree_pixels;
+    } else {
+        priv_tree->stat_tree_pixel_center_x = priv_tree->ti.x_pixels;
+        priv_tree->stat_tree_pixel_center_y = priv_tree->ti.y_pixels;
+    }
+    // printf("YYY: %lf %lf %lf %lf %lf\n", priv_tree->ti.x_pixels, priv_tree->ti.y_pixels, priv_tree->stat_tree_pixel_center_x, priv_tree->stat_tree_pixel_center_x, priv_tree->ti.radius_pixels);
 }
 
 }  // anonymous namespace
