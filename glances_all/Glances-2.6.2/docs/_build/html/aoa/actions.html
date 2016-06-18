@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Actions &mdash; Glances 2.6.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.6.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Glances 2.6.2 documentation" href="../index.html" />
+    <link rel="up" title="Anatomy Of The Application" href="index.html" />
+    <link rel="next" title="Gateway To Other Services" href="../gw/index.html" />
+    <link rel="prev" title="Docker" href="docker.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="actions">
+<span id="id1"></span><h1>Actions<a class="headerlink" href="#actions" title="Permalink to this headline">¶</a></h1>
+<p>Glances can trigger actions on events.</p>
+<p>By <code class="docutils literal"><span class="pre">action</span></code>, we mean all shell command line. For example, if you want
+to execute the <code class="docutils literal"><span class="pre">foo.py</span></code> script if the last 5 minutes load are critical
+then add the <code class="docutils literal"><span class="pre">_action</span></code> line to the Glances configuration file:</p>
+<div class="highlight-ini"><div class="highlight"><pre><span></span><span class="k">[load]</span>
+<span class="na">critical</span><span class="o">=</span><span class="s">5.0</span>
+<span class="na">critical_action</span><span class="o">=</span><span class="s">python /path/to/foo.py</span>
+</pre></div>
+</div>
+<p>All the stats are available in the command line through the use of the
+<a class="reference external" href="https://mustache.github.io/">{{mustache}}</a> syntax. Another example would be to create a log file
+containing used vs total disk space if a space trigger warning is
+reached:</p>
+<div class="highlight-ini"><div class="highlight"><pre><span></span><span class="k">[fs]</span>
+<span class="na">warning</span><span class="o">=</span><span class="s">70</span>
+<span class="na">warning_action</span><span class="o">=</span><span class="s">echo {{mnt_point}} {{used}}/{{size}} &gt; /tmp/fs.alert</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You can use all the stats for the current plugin. See
+<a class="reference external" href="https://github.com/nicolargo/glances/wiki/The-Glances-2.x-API-How-to">https://github.com/nicolargo/glances/wiki/The-Glances-2.x-API-How-to</a>
+for the stats list.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Glances</a></h1>
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=nicolargo&repo=glances&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cmds.html">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Anatomy Of The Application</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="header.html">Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quicklook.html">Quick Look</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cpu.html">CPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="load.html">Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html">Memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html">Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="disk.html">Disk I/O</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fs.html">File System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="folders.html">Folders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sensors.html">Sensors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ps.html">Processes List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor.html">Monitored Processes List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logs.html">Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="docker.html">Docker</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Actions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gw/index.html">Gateway To Other Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../support.html">Support</a></li>
+</ul>
+
+<h3>Useful Links</h3>
+<ul>
+  <li><a href="https://pypi.python.org/pypi/Glances">Glances @ PyPI</a></li>
+  <li><a href="https://github.com/nicolargo/glances">Glances @ GitHub</a></li>
+  <li><a href="https://github.com/nicolargo/glances/issues">Issue Tracker</a></li>
+  <li><a href="https://groups.google.com/forum/#!forum/glances-users">Forum</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Nicolas Hennion.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

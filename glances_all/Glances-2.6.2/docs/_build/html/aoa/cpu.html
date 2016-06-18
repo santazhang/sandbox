@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CPU &mdash; Glances 2.6.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.6.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Glances 2.6.2 documentation" href="../index.html" />
+    <link rel="up" title="Anatomy Of The Application" href="index.html" />
+    <link rel="next" title="Load" href="load.html" />
+    <link rel="prev" title="Quick Look" href="quicklook.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cpu">
+<span id="id1"></span><h1>CPU<a class="headerlink" href="#cpu" title="Permalink to this headline">¶</a></h1>
+<p>The CPU stats are shown as a percentage and for the configured refresh
+time. The total CPU usage is displayed on the first line.</p>
+<img alt="../_images/cpu.png" src="../_images/cpu.png" />
+<p>If enough horizontal space is available, extended CPU information are
+displayed.</p>
+<img alt="../_images/cpu-wide.png" src="../_images/cpu-wide.png" />
+<p>To switch to per-CPU stats, just hit the <code class="docutils literal"><span class="pre">1</span></code> key:</p>
+<img alt="../_images/per-cpu.png" src="../_images/per-cpu.png" />
+<p>By default, <code class="docutils literal"><span class="pre">steal</span></code> CPU time alerts aren&#8217;t logged. If you want that,
+just add to the configuration file:</p>
+<div class="highlight-ini"><div class="highlight"><pre><span></span><span class="k">[cpu]</span>
+<span class="na">steal_log</span><span class="o">=</span><span class="s">True</span>
+</pre></div>
+</div>
+<p>Legend:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="59%" />
+<col width="41%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">CPU (user/system)</th>
+<th class="head">Status</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">&lt;50%</span></code></td>
+<td><code class="docutils literal"><span class="pre">OK</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">&gt;50%</span></code></td>
+<td><code class="docutils literal"><span class="pre">CAREFUL</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">&gt;70%</span></code></td>
+<td><code class="docutils literal"><span class="pre">WARNING</span></code></td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">&gt;90%</span></code></td>
+<td><code class="docutils literal"><span class="pre">CRITICAL</span></code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Limit values can be overwritten in the configuration file under
+the <code class="docutils literal"><span class="pre">[cpu]</span></code> and/or <code class="docutils literal"><span class="pre">[percpu]</span></code> sections.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Glances</a></h1>
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=nicolargo&repo=glances&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cmds.html">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Anatomy Of The Application</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="header.html">Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quicklook.html">Quick Look</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">CPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="load.html">Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html">Memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html">Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="disk.html">Disk I/O</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fs.html">File System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="folders.html">Folders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sensors.html">Sensors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ps.html">Processes List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor.html">Monitored Processes List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logs.html">Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="docker.html">Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="actions.html">Actions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gw/index.html">Gateway To Other Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../support.html">Support</a></li>
+</ul>
+
+<h3>Useful Links</h3>
+<ul>
+  <li><a href="https://pypi.python.org/pypi/Glances">Glances @ PyPI</a></li>
+  <li><a href="https://github.com/nicolargo/glances">Glances @ GitHub</a></li>
+  <li><a href="https://github.com/nicolargo/glances/issues">Issue Tracker</a></li>
+  <li><a href="https://groups.google.com/forum/#!forum/glances-users">Forum</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Nicolas Hennion.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

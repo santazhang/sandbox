@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Configuration &mdash; Glances 2.6.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.6.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Glances 2.6.2 documentation" href="index.html" />
+    <link rel="next" title="Anatomy Of The Application" href="aoa/index.html" />
+    <link rel="prev" title="Command Reference" href="cmds.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="configuration">
+<span id="config"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>No configuration file is mandatory to use Glances.</p>
+<p>Furthermore a configuration file is needed to access more settings.</p>
+<div class="section" id="location">
+<h2>Location<a class="headerlink" href="#location" title="Permalink to this headline">¶</a></h2>
+<p>You can put the <code class="docutils literal"><span class="pre">glances.conf</span></code> file in the following locations:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">Linux</span></code></td>
+<td>~/.config/glances, /etc/glances</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">*BSD</span></code></td>
+<td>~/.config/glances, /usr/local/etc/glances</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">OS</span> <span class="pre">X</span></code></td>
+<td>~/Library/Application Support/glances, /usr/local/etc/glances</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">Windows</span></code></td>
+<td>%APPDATA%glances</td>
+</tr>
+</tbody>
+</table>
+<p>On Windows XP, the <code class="docutils literal"><span class="pre">%APPDATA%</span></code> path is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>C:\Documents and Settings\&lt;User&gt;\Application Data
+</pre></div>
+</div>
+<p>Since Windows Vista and newer versions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>C:\Users\&lt;User&gt;\AppData\Roaming
+</pre></div>
+</div>
+<p>User-specific options override system-wide options and options given on
+the command line override either.</p>
+</div>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<p>Glances reads configuration files in the <em>ini</em> syntax.</p>
+<p>Each plugin and export module can have a section. Below an example for
+the CPU plugin:</p>
+<div class="highlight-ini"><div class="highlight"><pre><span></span><span class="k">[cpu]</span>
+<span class="na">user_careful</span><span class="o">=</span><span class="s">50</span>
+<span class="na">user_warning</span><span class="o">=</span><span class="s">70</span>
+<span class="na">user_critical</span><span class="o">=</span><span class="s">90</span>
+<span class="na">iowait_careful</span><span class="o">=</span><span class="s">50</span>
+<span class="na">iowait_warning</span><span class="o">=</span><span class="s">70</span>
+<span class="na">iowait_critical</span><span class="o">=</span><span class="s">90</span>
+<span class="na">system_careful</span><span class="o">=</span><span class="s">50</span>
+<span class="na">system_warning</span><span class="o">=</span><span class="s">70</span>
+<span class="na">system_critical</span><span class="o">=</span><span class="s">90</span>
+<span class="na">steal_careful</span><span class="o">=</span><span class="s">50</span>
+<span class="na">steal_warning</span><span class="o">=</span><span class="s">70</span>
+<span class="na">steal_critical</span><span class="o">=</span><span class="s">90</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<p>Glances logs all of its internal messages to a log file.</p>
+<p><code class="docutils literal"><span class="pre">DEBUG</span></code> messages can been logged using the <code class="docutils literal"><span class="pre">-d</span></code> option on the command
+line.</p>
+<p>By default, the <code class="docutils literal"><span class="pre">glances.log</span></code> file is under the temporary directory:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">Linux,</span> <span class="pre">*BSD,</span> <span class="pre">OS</span> <span class="pre">X</span></code></td>
+<td>/tmp</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">Windows</span></code></td>
+<td>%APPDATA%\Local\temp</td>
+</tr>
+</tbody>
+</table>
+<p>If <code class="docutils literal"><span class="pre">glances.log</span></code> is not writable, a new file will be created and
+returned to the user console.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Glances</a></h1>
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=nicolargo&repo=glances&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cmds.html">Command Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#location">Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aoa/index.html">Anatomy Of The Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gw/index.html">Gateway To Other Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+</ul>
+
+<h3>Useful Links</h3>
+<ul>
+  <li><a href="https://pypi.python.org/pypi/Glances">Glances @ PyPI</a></li>
+  <li><a href="https://github.com/nicolargo/glances">Glances @ GitHub</a></li>
+  <li><a href="https://github.com/nicolargo/glances/issues">Issue Tracker</a></li>
+  <li><a href="https://groups.google.com/forum/#!forum/glances-users">Forum</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Nicolas Hennion.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

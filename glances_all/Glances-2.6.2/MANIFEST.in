@@ -1,0 +1,8 @@
+include AUTHORS
+include COPYING
+include NEWS
+include README.rst
+include conf/glances.conf
+recursive-include docs *
+recursive-include glances *.py
+recursive-include glances/outputs/static *

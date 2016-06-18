@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Sensors &mdash; Glances 2.6.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.6.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Glances 2.6.2 documentation" href="../index.html" />
+    <link rel="up" title="Anatomy Of The Application" href="index.html" />
+    <link rel="next" title="Processes List" href="ps.html" />
+    <link rel="prev" title="Folders" href="folders.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="sensors">
+<span id="id1"></span><h1>Sensors<a class="headerlink" href="#sensors" title="Permalink to this headline">¶</a></h1>
+<p><em>Availability: Linux</em></p>
+<img alt="../_images/sensors.png" src="../_images/sensors.png" />
+<p>Glances can displays the sensors information using <code class="docutils literal"><span class="pre">lm-sensors</span></code>,
+<code class="docutils literal"><span class="pre">hddtemp</span></code> and <a class="reference external" href="https://github.com/nicolargo/batinfo">batinfo</a>.</p>
+<p>All of the above libraries are available only on Linux.</p>
+<p>As of <code class="docutils literal"><span class="pre">lm-sensors</span></code>, a filter is being applied in order to display
+temperature and fan speed only.</p>
+<p>There is no alert on this information.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Limit values and sensors alias names can be defined in the
+configuration file under the <code class="docutils literal"><span class="pre">[sensors]</span></code> section.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Glances</a></h1>
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=nicolargo&repo=glances&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cmds.html">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Anatomy Of The Application</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="header.html">Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quicklook.html">Quick Look</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cpu.html">CPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="load.html">Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html">Memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html">Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="disk.html">Disk I/O</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fs.html">File System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="folders.html">Folders</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Sensors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ps.html">Processes List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor.html">Monitored Processes List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logs.html">Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="docker.html">Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="actions.html">Actions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gw/index.html">Gateway To Other Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../support.html">Support</a></li>
+</ul>
+
+<h3>Useful Links</h3>
+<ul>
+  <li><a href="https://pypi.python.org/pypi/Glances">Glances @ PyPI</a></li>
+  <li><a href="https://github.com/nicolargo/glances">Glances @ GitHub</a></li>
+  <li><a href="https://github.com/nicolargo/glances/issues">Issue Tracker</a></li>
+  <li><a href="https://groups.google.com/forum/#!forum/glances-users">Forum</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Nicolas Hennion.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Glances &mdash; Glances 2.6.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.6.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Glances 2.6.2 documentation" href="#" />
+    <link rel="next" title="Quickstart" href="quickstart.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="glances">
+<h1>Glances<a class="headerlink" href="#glances" title="Permalink to this headline">¶</a></h1>
+<img alt="_images/screenshot-wide.png" src="_images/screenshot-wide.png" />
+<p>Glances is a cross-platform curses-based monitoring tool which aims to
+present a maximum of information in a minimum of space, ideally to fit
+in a classical 80x24 terminal or higher to have additional information.
+It can adapt dynamically the displayed information depending on the
+terminal size. It can also work in client/server mode. Remote monitoring
+could be done via terminal or web interface.</p>
+<p>Glances is written in Python and uses the <a class="reference external" href="https://github.com/giampaolo/psutil">psutil</a> library to get
+information from your system.</p>
+</div>
+<div class="section" id="table-of-contents">
+<h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#standalone-mode">Standalone Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#client-server-mode">Client/Server Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#web-server-mode">Web Server Mode</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cmds.html">Command Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cmds.html#command-line-options">Command-Line Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cmds.html#interactive-commands">Interactive Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#location">Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#syntax">Syntax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aoa/index.html">Anatomy Of The Application</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aoa/header.html">Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/quicklook.html">Quick Look</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/cpu.html">CPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/load.html">Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/memory.html">Memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/network.html">Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/disk.html">Disk I/O</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/fs.html">File System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/folders.html">Folders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/sensors.html">Sensors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/ps.html">Processes List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/monitor.html">Monitored Processes List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/logs.html">Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/docker.html">Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aoa/actions.html">Actions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gw/index.html">Gateway To Other Services</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gw/csv.html">CSV</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gw/influxdb.html">InfluxDB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gw/opentsdb.html">OpenTSDB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gw/statsd.html">StatsD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gw/rabbitmq.html">RabbitMQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gw/elastic.html">Elasticsearch</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Glances</a></h1>
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=nicolargo&repo=glances&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cmds.html">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aoa/index.html">Anatomy Of The Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gw/index.html">Gateway To Other Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+</ul>
+
+<h3>Useful Links</h3>
+<ul>
+  <li><a href="https://pypi.python.org/pypi/Glances">Glances @ PyPI</a></li>
+  <li><a href="https://github.com/nicolargo/glances">Glances @ GitHub</a></li>
+  <li><a href="https://github.com/nicolargo/glances/issues">Issue Tracker</a></li>
+  <li><a href="https://groups.google.com/forum/#!forum/glances-users">Forum</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Nicolas Hennion.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

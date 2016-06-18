@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Quickstart &mdash; Glances 2.6.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.6.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Glances 2.6.2 documentation" href="index.html" />
+    <link rel="next" title="Command Reference" href="cmds.html" />
+    <link rel="prev" title="Glances" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="quickstart">
+<span id="id1"></span><h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<p>This page gives a good introduction in how to get started with Glances.
+Glances offers 3 modes:</p>
+<ul class="simple">
+<li>Standalone</li>
+<li>Client/Server</li>
+<li>Web server</li>
+</ul>
+<div class="section" id="standalone-mode">
+<h2>Standalone Mode<a class="headerlink" href="#standalone-mode" title="Permalink to this headline">¶</a></h2>
+<p>Simply run:</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="gp">$</span> glances
+</pre></div>
+</div>
+</div>
+<div class="section" id="client-server-mode">
+<h2>Client/Server Mode<a class="headerlink" href="#client-server-mode" title="Permalink to this headline">¶</a></h2>
+<p>If you want to remotely monitor a machine, called <code class="docutils literal"><span class="pre">server</span></code>, from
+another one, called <code class="docutils literal"><span class="pre">client</span></code>, just run on the server:</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">server$ glances -s</span>
+</pre></div>
+</div>
+<p>and on the client:</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">client$ glances -c @server</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">&#64;server</span></code> is the IP address or hostname of the server.</p>
+<p>Glances can centralize available Glances servers using the <code class="docutils literal"><span class="pre">--browser</span></code>
+option. The server list can be statically defined via the configuration
+file (section <code class="docutils literal"><span class="pre">[serverlist]</span></code>).</p>
+<p>In server mode, you can set the bind address with <code class="docutils literal"><span class="pre">-B</span> <span class="pre">ADDRESS</span></code> and
+the listening TCP port with <code class="docutils literal"><span class="pre">-p</span> <span class="pre">PORT</span></code>.</p>
+<p>In client mode, you can set the TCP port of the server with <code class="docutils literal"><span class="pre">-p</span> <span class="pre">PORT</span></code>.</p>
+<p>Default binding address is <code class="docutils literal"><span class="pre">0.0.0.0</span></code> (Glances will listen on all the
+available network interfaces) and TCP port is <code class="docutils literal"><span class="pre">61209</span></code>.</p>
+<p>In client/server mode, limits are set by the server side.</p>
+<p>You can set a password to access to the server <code class="docutils literal"><span class="pre">--password</span></code>. By
+default, the username is <code class="docutils literal"><span class="pre">glances</span></code> but you can change it with
+<code class="docutils literal"><span class="pre">--username</span></code>.</p>
+<p>If you ask it, the SHA password will be stored in <code class="docutils literal"><span class="pre">username.pwd</span></code> file.</p>
+<p>Glances is <code class="docutils literal"><span class="pre">IPv6</span></code> compatible. Just use the <code class="docutils literal"><span class="pre">-B</span> <span class="pre">::</span></code> option to bind to
+all IPv6 addresses.</p>
+<div class="section" id="autodiscover">
+<h3>Autodiscover<a class="headerlink" href="#autodiscover" title="Permalink to this headline">¶</a></h3>
+<p>Glances can also detect and display all Glances servers available on
+your network via the <code class="docutils literal"><span class="pre">zeroconf</span></code> protocol (not available on Windows):</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">client$ glances --browser</span>
+</pre></div>
+</div>
+<p>Use <code class="docutils literal"><span class="pre">--disable-autodiscover</span></code> to disable it.</p>
+</div>
+<div class="section" id="snmp">
+<h3>SNMP<a class="headerlink" href="#snmp" title="Permalink to this headline">¶</a></h3>
+<p>As an experimental feature, if Glances server is not detected by the
+client, the latter will try to grab stats using the <code class="docutils literal"><span class="pre">SNMP</span></code> protocol:</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">client$ glances -c @snmpserver</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Stats grabbed by SNMP request are limited and OS dependent.</p>
+</div>
+</div>
+</div>
+<div class="section" id="web-server-mode">
+<h2>Web Server Mode<a class="headerlink" href="#web-server-mode" title="Permalink to this headline">¶</a></h2>
+<img alt="_images/screenshot-web.png" src="_images/screenshot-web.png" />
+<p>If you want to remotely monitor a machine, called <code class="docutils literal"><span class="pre">server</span></code>, from any
+device with a web browser, just run the server with the <code class="docutils literal"><span class="pre">-w</span></code> option:</p>
+<div class="highlight-console"><div class="highlight"><pre><span></span><span class="go">server$ glances -w</span>
+</pre></div>
+</div>
+<p>then on the client enter the following URL in your favorite web browser:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>http://@server:61208
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">&#64;server</span></code> is the IP address or hostname of the server.</p>
+<p>To change the refresh rate of the page, just add the period in seconds
+at the end of the URL. For example, to refresh the page every <code class="docutils literal"><span class="pre">10</span></code>
+seconds:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>http://@server:61208/10
+</pre></div>
+</div>
+<p>The Glances web interface follows responsive web design principles.</p>
+<p>Here&#8217;s a screenshot from Chrome on Android:</p>
+<img alt="_images/screenshot-web2.png" src="_images/screenshot-web2.png" />
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Glances</a></h1>
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=nicolargo&repo=glances&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#standalone-mode">Standalone Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#client-server-mode">Client/Server Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#web-server-mode">Web Server Mode</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cmds.html">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aoa/index.html">Anatomy Of The Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gw/index.html">Gateway To Other Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+</ul>
+
+<h3>Useful Links</h3>
+<ul>
+  <li><a href="https://pypi.python.org/pypi/Glances">Glances @ PyPI</a></li>
+  <li><a href="https://github.com/nicolargo/glances">Glances @ GitHub</a></li>
+  <li><a href="https://github.com/nicolargo/glances/issues">Issue Tracker</a></li>
+  <li><a href="https://groups.google.com/forum/#!forum/glances-users">Forum</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Nicolas Hennion.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

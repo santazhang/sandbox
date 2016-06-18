@@ -1,0 +1,263 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Processes List &mdash; Glances 2.6.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.6.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Glances 2.6.2 documentation" href="../index.html" />
+    <link rel="up" title="Anatomy Of The Application" href="index.html" />
+    <link rel="next" title="Monitored Processes List" href="monitor.html" />
+    <link rel="prev" title="Sensors" href="sensors.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="processes-list">
+<span id="ps"></span><h1>Processes List<a class="headerlink" href="#processes-list" title="Permalink to this headline">¶</a></h1>
+<p>Compact view:</p>
+<img alt="../_images/processlist.png" src="../_images/processlist.png" />
+<p>Full view:</p>
+<img alt="../_images/processlist-wide.png" src="../_images/processlist-wide.png" />
+<p>Filtered view:</p>
+<img alt="../_images/processlist-filter.png" src="../_images/processlist-filter.png" />
+<p>The process view consists of 3 parts:</p>
+<ul class="simple">
+<li>Processes summary</li>
+<li>Monitored processes list (optional)</li>
+<li>Processes list</li>
+</ul>
+<p>The processes summary line displays:</p>
+<ul class="simple">
+<li>Tasks number (total number of processes)</li>
+<li>Threads number</li>
+<li>Running tasks number</li>
+<li>Sleeping tasks number</li>
+<li>Other tasks number (not running or sleeping)</li>
+<li>Sort key</li>
+</ul>
+<p>By default, or if you hit the <code class="docutils literal"><span class="pre">a</span></code> key, the processes list is
+automatically sorted by:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">CPU</span></code>: if there is no alert (default behavior)</li>
+<li><code class="docutils literal"><span class="pre">CPU</span></code>: if a CPU or LOAD alert is detected</li>
+<li><code class="docutils literal"><span class="pre">MEM</span></code>: if a memory alert is detected</li>
+<li><code class="docutils literal"><span class="pre">DISK</span> <span class="pre">I/O</span></code>: if a CPU iowait alert is detected</li>
+</ul>
+<p>The number of processes in the list is adapted to the screen size.</p>
+<div class="section" id="columns-display">
+<h2>Columns display<a class="headerlink" href="#columns-display" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="35%" />
+<col width="65%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">CPU%</span></code></td>
+<td><p class="first">% of CPU used by the process</p>
+<p class="last">If Irix/Solaris mode is off, the value is
+divided by logical core number</p>
+</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">MEM%</span></code></td>
+<td>% of MEM used by the process</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">VIRT</span></code></td>
+<td><p class="first">Virtual Memory Size</p>
+<p class="last">The total amount of virtual memory used by the
+process</p>
+</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">RES</span></code></td>
+<td><p class="first">Resident Memory Size</p>
+<p class="last">The non-swapped physical memory a process is
+using</p>
+</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">PID</span></code></td>
+<td>Process ID</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">USER</span></code></td>
+<td>User ID</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">NI</span></code></td>
+<td>Nice level of the process</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">S</span></code></td>
+<td><p class="first">Process status</p>
+<p>The status of the process:</p>
+<ul class="last simple">
+<li><code class="docutils literal"><span class="pre">R</span></code>: running</li>
+<li><code class="docutils literal"><span class="pre">S</span></code>: sleeping (may be interrupted)</li>
+<li><code class="docutils literal"><span class="pre">D</span></code>: disk sleep (may not be interrupted)</li>
+<li><code class="docutils literal"><span class="pre">T</span></code>: traced/stopped</li>
+<li><code class="docutils literal"><span class="pre">Z</span></code>: zombie</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">TIME+</span></code></td>
+<td>Cumulative CPU time used by the process</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">R/s</span></code></td>
+<td>Per process I/O read rate in B/s</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">W/s</span></code></td>
+<td>Per process I/O write rate in B/s</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">COMMAND</span></code></td>
+<td><p class="first">Process command line or command name</p>
+<p class="last">User can switch to the process name by
+pressing on the <code class="docutils literal"><span class="pre">'/'</span></code> key</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="extended-info">
+<h2>Extended info<a class="headerlink" href="#extended-info" title="Permalink to this headline">¶</a></h2>
+<img alt="../_images/processlist-top.png" src="../_images/processlist-top.png" />
+<p>In standalone mode, additional information are provided for the top
+process:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="35%" />
+<col width="65%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">CPU</span> <span class="pre">affinity</span></code></td>
+<td>Number of cores used by the process</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">Memory</span> <span class="pre">info</span></code></td>
+<td><p class="first">Extended memory information about the process</p>
+<p class="last">For example, on Linux: swap, shared, text,
+lib, data and dirty</p>
+</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">Open</span></code></td>
+<td>The number of threads, files and network
+sessions (TCP and UDP) used by the process</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">IO</span> <span class="pre">nice</span></code></td>
+<td>The process I/O niceness (priority)</td>
+</tr>
+</tbody>
+</table>
+<p>The extended stats feature can be enabled using the
+<code class="docutils literal"><span class="pre">--enable-process-extended</span></code> option (command line) or the <code class="docutils literal"><span class="pre">e</span></code> key
+(curses interface).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Limit values can be overwritten in the configuration file under
+the <code class="docutils literal"><span class="pre">[process]</span></code> section.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Glances</a></h1>
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=nicolargo&repo=glances&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cmds.html">Command Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Anatomy Of The Application</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="header.html">Header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quicklook.html">Quick Look</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cpu.html">CPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="load.html">Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html">Memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html">Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="disk.html">Disk I/O</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fs.html">File System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="folders.html">Folders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sensors.html">Sensors</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Processes List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor.html">Monitored Processes List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logs.html">Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="docker.html">Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="actions.html">Actions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gw/index.html">Gateway To Other Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../support.html">Support</a></li>
+</ul>
+
+<h3>Useful Links</h3>
+<ul>
+  <li><a href="https://pypi.python.org/pypi/Glances">Glances @ PyPI</a></li>
+  <li><a href="https://github.com/nicolargo/glances">Glances @ GitHub</a></li>
+  <li><a href="https://github.com/nicolargo/glances/issues">Issue Tracker</a></li>
+  <li><a href="https://groups.google.com/forum/#!forum/glances-users">Forum</a></li>
+</ul>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Nicolas Hennion.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
