@@ -20,15 +20,15 @@ else
     exit 1
 fi
 
-FOLLY_VERSION="0806af8"
-WANGLE_VERSION="74acf30"
-PROXYGEN_VERSION="62fc6e2"
-ROCKSDB_VERSION="7360db3"
-PROTOBUF_VERSION="088c5c4"
-RE2_VERSION="49337bd"
+FOLLY_VERSION="0232cb3"
+WANGLE_VERSION="abd50dd"
+PROXYGEN_VERSION="52aeab2"
+ROCKSDB_VERSION="c4e19b7"
+PROTOBUF_VERSION="a897ebb"
+RE2_VERSION="b34c075"
 GPERFTOOLS_VERSION="689e4a5bb4b2a8afecb85e83b8e4f294f80b6124"
 GFLAGS_VERSION="9db828953a1047c95bf5fb780c3c1f9453f806eb"
-GRPC_VERSION="a9e3ea3"
+GRPC_VERSION="00ab530"
 GLOG_VERSION="f46e0745a842b2edc924b6d384acf01fd7034c62"
 
 run_cmd() {
@@ -142,6 +142,8 @@ get_macosx_hack() {
     pushd $ROOT/src > /dev/null
     rm -rf macosx_hack
     git clone https://gist.github.com/256985a658d765abed93.git macosx_hack
+    cd macosx_hack
+    git checkout 775bb68a9d825c746596d05456c891b72193cc13
     popd > /dev/null
 }
 
@@ -383,3 +385,5 @@ get_re2
 get_protobuf
 get_grpc
 get_gperftools
+
+echo "Goodbye"
