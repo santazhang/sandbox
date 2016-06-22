@@ -386,4 +386,4 @@ get_protobuf
 get_grpc
 get_gperftools
 
-echo "Goodbye"
+echo "Goodbye."
