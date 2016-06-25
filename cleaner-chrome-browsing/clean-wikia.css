@@ -1,0 +1,15 @@
+.flite_ad_div,
+.WikiaNotifications,
+#WikiaArticleBottomAd,
+#WikiaFooter,
+#NATIVE_TABOOLA_ARTICLE,
+#RECIRCULATION_RAIL,
+.wikia-ad,
+#WikiaTopAds,
+#monetization-adunit-above_footer,
+#WikiaBar,
+#NATIVE_TABOOLA_RAIL,
+.home-top-right-ads {
+  display: none !important;
+  visibility: hidden;
+}

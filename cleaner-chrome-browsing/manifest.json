@@ -10,8 +10,15 @@
   }, {
     "matches": ["http://*.gamepedia.com/*", "https://*.gamepedia.com/*"],
     "css": ["clean-gamepedia.css"]
+  }, {
+    "matches": ["http://*.wikia.com/*", "https://*.wikia.com/*"],
+    "css": ["clean-wikia.css"],
+    "js": ["clean-wikia.js"],
+    "run_at": "document_start"
   }],
   "permissions": [
+    "http://*.wikia.com/*",
+    "https://*.wikia.com/*",
     "http://*.gamepedia.com/*",
     "https://*.gamepedia.com/*",
     "http://www.flickr.com/*",
