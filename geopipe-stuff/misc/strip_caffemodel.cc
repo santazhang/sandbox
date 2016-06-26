@@ -40,8 +40,8 @@ int main(int argc, char* argv[]) {
             *(stripped_net.mutable_layer()->Add()) = layer;
         }
     }
-    prototxt = "";
-    CHECK(google::protobuf::TextFormat::PrintToString(stripped_net, &prototxt));
+    // prototxt = "";
+    // CHECK(google::protobuf::TextFormat::PrintToString(stripped_net, &prototxt));
     // printf("%s\n", prototxt.c_str());
     string stripped;
     CHECK(stripped_net.SerializeToString(&proto_binary));

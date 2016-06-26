@@ -104,23 +104,29 @@ for tile_size in TILE_SIZES:
         not_tree_data_files = not_tree_data_files[:per_group_image_samples]
         tree_data_files = tree_data_files[:per_group_image_samples]
 
+        random.seed(os.getpid() + 28194)
         test_list_txt_fn = "05_training_data/%dx%d-" % (tile_size, tile_size) + config_name + ".test-list.txt"
         with open(test_list_txt_fn, "w") as f:
+            out = []
             for x in not_tree_data_files[:num_test_images]:
-                f.write(x)
-                f.write(" 0\n")
+                out += x + " 0\n",
             for x in tree_data_files[:num_test_images]:
+                out += x + " 1\n",
+            random.shuffle(out)
+            for x in out:
                 f.write(x)
-                f.write(" 1\n")
 
+        random.seed(os.getpid() + 938184)
         train_list_txt_fn = "05_training_data/%dx%d-" % (tile_size, tile_size) + config_name + ".train-list.txt"
         with open(train_list_txt_fn, "w") as f:
+            out = []
             for x in not_tree_data_files[num_test_images:]:
-                f.write(x)
-                f.write(" 0\n")
+                out += x + " 0\n",
             for x in tree_data_files[num_test_images:]:
+                out += x + " 1\n",
+            random.shuffle(out)
+            for x in out:
                 f.write(x)
-                f.write(" 1\n")
 
         if config_name == "R-G-B":
             use_gray_if_necessary = ""
@@ -138,5 +144,5 @@ for tile_size in TILE_SIZES:
         run_cmd("../deps/_build/caffe/build/tools/convert_imageset --backend=lmdb " + use_gray_if_necessary +
                 " / %s 05_training_data/%dx%d-%s-train-lmdb/" % (train_list_txt_fn, tile_size, tile_size, config_name))
 
-        os.remove(test_list_txt_fn)
-        os.remove(train_list_txt_fn)
+        # os.remove(test_list_txt_fn)
+        # os.remove(train_list_txt_fn)
