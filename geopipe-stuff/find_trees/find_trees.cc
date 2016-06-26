@@ -1,6 +1,7 @@
 #include "find_trees.h"
 #include "merge_trees.h"
 #include "caffe_models.h"
+#include "colors.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -125,6 +126,30 @@ int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
                         3 /* num_channels*/, 7 /* tile_width */, 7 /* tile_height */,
                         7 /* step_x */, 7 /* step_y */,
                         channel_ptrs);
+}
+
+int find_using_7x7_rgb_lab_a_1(const params_t& params, result_t* result) {
+    CHECK_GE(params.img_width, 7);
+    CHECK_GE(params.img_height, 7);
+
+    caffe::Net<float>* caffe_net_7x7_rgb_lab_a_1 = get_caffe_net_7x7_rgb_lab_a_1();
+
+    const int n_pixels = params.img_width * params.img_height;
+    uint8_t* lab_a_channel = new uint8_t[n_pixels];
+
+    fill_lab_a_channel(n_pixels, lab_a_channel, params.channel_red, params.channel_green, params.channel_blue);
+
+    const uint8_t* channel_ptrs[4] = {
+        params.channel_red, params.channel_green, params.channel_blue, lab_a_channel
+    };
+    int ret = find_generic(caffe_net_7x7_rgb_lab_a_1, params, result,
+                           4 /* num_channels*/, 7 /* tile_width */, 7 /* tile_height */,
+                           7 /* step_x */, 7 /* step_y */,
+                           channel_ptrs);
+
+    delete[] lab_a_channel;
+
+    return ret;
 }
 
 

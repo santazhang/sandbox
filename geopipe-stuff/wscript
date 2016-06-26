@@ -80,3 +80,8 @@ def build(bld):
                 target="caffenet_prototxt_to_binary",
                 includes=".",
                 use="GFLAGS CAFFE GLOG PROTOBUF BOOST_SYSTEM")
+
+    bld.program(source="test/extract_lab_a_channel.cc",
+                target="extract_lab_a_channel",
+                includes=".",
+                use="find_trees GFLAGS CAFFE GLOG PROTOBUF BOOST_SYSTEM OPENCV_CORE OPENCV_HIGHGUI")
