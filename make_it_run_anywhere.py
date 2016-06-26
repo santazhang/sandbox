@@ -53,6 +53,8 @@ if ret != 0:
     panic("  *** Failed to analyse binary dependency! Is %s a binary program?\n\n( *** stdout *** )\n%s\n( *** stderr *** )\n%s" % (bin_fn, stdout_data, stderr_data))
 
 
+so_missing = set()
+
 def parse_dependency_helper(ldd_output, known_deps):
     new_deps = set()
     for l in ldd_output.split("\n"):
@@ -62,6 +64,9 @@ def parse_dependency_helper(ldd_output, known_deps):
         if "=>" in l:
             sp = l.split("=>")
             so_name = sp[0].strip()
+            if l.endswith("not found"):
+                so_missing.add(so_name)
+                continue
             so_fn = sp[1].strip().split()[0]
             if so_fn.startswith("(0x"):
                 continue  # linux-vdso
@@ -127,8 +132,10 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 # export LD_DEBUG=files,statistics
 
 LD_LIBRARY_PATH=$DIR/.run_anywhere_payload:$LD_LIBRARY_PATH $DIR/.run_anywhere_payload/%s --inhibit-cache --inhibit-rpath $DIR/%s $DIR/%s "$@"
-
     """.strip() % (ld_linux_so, relpath, relpath) + "\n")
 
 chmod_ax(os.path.join(payload_dir, ld_linux_so))
 chmod_ax(bin_fn_wrapper)
+
+if len(so_missing) > 0:
+    print("\n  *** Missing: %s\n" % (" ".join(sorted(so_missing))))
