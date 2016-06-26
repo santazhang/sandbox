@@ -1,12 +1,15 @@
 #pragma once
 
-#include "caffe/proto/caffe.pb.h"
+#ifndef CPU_ONLY
+#define CPU_ONLY
+#endif  // CPU_ONLY
+
+#include <caffe/caffe.hpp>
 
 #include <string>
 
 namespace find_trees {
 
-caffe::NetParameter get_net_param_7x7_rgb_1();
-caffe::NetParameter get_trained_weights_7x7_rgb_1();
+caffe::Net<float>* get_caffe_net_7x7_rgb_1();
 
 }  // namespace find_trees
