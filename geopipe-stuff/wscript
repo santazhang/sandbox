@@ -57,11 +57,6 @@ def build(bld):
                 target="t",
                 use="gtest_main LASLIB")
 
-    bld.program(source=bld.path.ant_glob("las2img/*.cc"),
-                target="las2img.bin",
-                includes=".",
-                use="LASLIB GFLAGS")
-
     bld.stlib(source=bld.path.ant_glob("find_trees/*.cc find_trees/*.c", excl="find_trees/main.cc"),
               target="find_trees",
               use="CAFFE GLOG PROTOBUF BOOST_SYSTEM")
@@ -70,3 +65,8 @@ def build(bld):
                 target="find_trees.bin",
                 includes=".",
                 use="find_trees GFLAGS OPENCV_CORE OPENCV_HIGHGUI")
+
+    bld.program(source=bld.path.ant_glob("las2img/*.cc"),
+                target="las2img.bin",
+                includes=".",
+                use="find_trees LASLIB GFLAGS")
