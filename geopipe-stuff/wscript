@@ -70,3 +70,13 @@ def build(bld):
                 target="las2img.bin",
                 includes=".",
                 use="find_trees LASLIB GFLAGS")
+
+    bld.program(source="misc/strip_caffemodel.cc",
+                target="strip_caffemodel",
+                includes=".",
+                use="GFLAGS CAFFE GLOG PROTOBUF BOOST_SYSTEM")
+
+    bld.program(source="misc/caffenet_prototxt_to_binary.cc",
+                target="caffenet_prototxt_to_binary",
+                includes=".",
+                use="GFLAGS CAFFE GLOG PROTOBUF BOOST_SYSTEM")

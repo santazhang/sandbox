@@ -80,6 +80,7 @@ int main(int argc, char* argv[]) {
     int st = find_trees::find(params, &result);
     LOG(INFO) << "Find return code = " << st;
     LOG(INFO) << "Found " << result.trees.size() << " trees";
+    LOG(INFO) << "Found " << result.tree_tiles.size() << " tree tiles";
 
     cv::Mat tree_tiles_overlay;
     input_image.copyTo(tree_tiles_overlay);

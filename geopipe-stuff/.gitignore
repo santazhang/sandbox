@@ -15,3 +15,4 @@ mark_trees/mark_trees.app/
 mark_trees/moc_*
 *.solverstate
 *.caffemodel
+*.pb_binary
