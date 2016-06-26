@@ -309,15 +309,15 @@ bool TreeMerger::should_merge(const private_tree_info_t& t1, const private_tree_
         return false;
     }
 
-    const private_tree_info_t* t_small;
-    const private_tree_info_t* t_big;
-    if (t1.ti.radius_pixels < t2.ti.radius_pixels) {
-        t_small = &t1;
-        t_big = &t2;
-    } else {
-        t_small = &t2;
-        t_big = &t1;
-    }
+    // const private_tree_info_t* t_small;
+    // const private_tree_info_t* t_big;
+    // if (t1.ti.radius_pixels < t2.ti.radius_pixels) {
+    //     t_small = &t1;
+    //     t_big = &t2;
+    // } else {
+    //     t_small = &t2;
+    //     t_big = &t1;
+    // }
 
     // if (dist_edge_to_edge < 1 && t_small->ti.radius_pixels < 0.2 * t_big->ti.radius_pixels) {
     //     return true;
