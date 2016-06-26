@@ -111,14 +111,6 @@ rgb hsv2rgb(hsv in)
     return out;
 }
 
-static inline double lab_cvt_helper(double q) {
-	if (q > 0.008856) {
-		return pow(q, 0.333333);
-	} else {
-		return 7.787 * q + 0.137931;
-	}
-}
-
 
 namespace {
 
