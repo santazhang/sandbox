@@ -1,6 +1,32 @@
 #include "./utils.h"
+#include <math.h>
 
 namespace find_trees {
+
+
+double weighted_mean(int n_samples, double* weights, double* samples) {
+    double s = 0, sw = 0;
+    for (int i = 0; i < n_samples; i++) {
+        s += weights[i] * samples[i];
+        sw += weights[i];
+    }
+    return s / sw;
+}
+
+double weighted_variance(int n_samples, double* weights, double* samples) {
+    double m = weighted_mean(n_samples, weights, samples);
+    double sw = 0, sw2 = 0, s = 0;
+    for (int i = 0; i < n_samples; i++) {
+        sw += weights[i];
+        sw2 += weights[i] * weights[i];
+        s += weights[i] * (samples[i] - m) * (samples[i] - m);
+    }
+    return s / (sw - sw2/sw);
+}
+
+double weighted_stddev(int n_samples, double* weights, double* samples) {
+    return sqrt(weighted_variance(n_samples, weights, samples));
+}
 
 void neighbor_grids_3x3(int grid_rows, int grid_cols, int current_grid_id,
                         int* neighbor_grid_ids, int* p_neighbor_grid_count) {
