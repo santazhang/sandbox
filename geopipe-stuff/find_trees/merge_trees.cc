@@ -1,6 +1,7 @@
 #include "merge_trees.h"
 #include "find_trees.h"
 #include "xxhash.h"
+#include "./utils.h"
 
 #include <functional>
 #include <unordered_set>
@@ -539,49 +540,51 @@ void TreeMerger::finalize_remove_occluded_trees() {
 
     // similar to apply_on_near_by_tree_pairs, but check all 3x3 near by grids
     for (int ga = 0; ga < grid_count_; ga++) {
-        int neighbor_grid_ids[9] = {ga, -1, -1, -1, -1};
+        int neighbor_grid_ids[9] = {ga, -1, -1, -1, -1, -1, -1, -1, -1};
         int neighbor_grid_count = 1;
+        
+        neighbor_grids_3x3(grid_rows_, grid_cols_, ga, neighbor_grid_ids, &neighbor_grid_count);
 
-        int ga_row = ga / grid_cols_;
-        int ga_col = ga % grid_cols_;
-
-        // 3 grids above ga
-        if (ga_row > 0) {
-            if (ga_col > 0) {
-                neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_ - 1;
-                neighbor_grid_count++;
-            }
-            neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_;
-            neighbor_grid_count++;
-            if (ga_col != grid_cols_ - 1) {
-                neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_ + 1;
-                neighbor_grid_count++;
-            }
-        }
-
-        // left and right
-        if (ga_col > 0) {
-            neighbor_grid_ids[neighbor_grid_count] = ga - 1;
-            neighbor_grid_count++;
-        }
-        if (ga_col != grid_cols_ - 1) {
-            neighbor_grid_ids[neighbor_grid_count] = ga + 1;
-            neighbor_grid_count++;
-        }
-
-        // 3 grids below ga
-        if (ga_row < grid_rows_ - 1) {
-            if (ga_col > 0) {
-                neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_ - 1;
-                neighbor_grid_count++;
-            }
-            neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_;
-            neighbor_grid_count++;
-            if (ga_col != grid_cols_ - 1) {
-                neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_ + 1;
-                neighbor_grid_count++;
-            }
-        }
+        // int ga_row = ga / grid_cols_;
+        // int ga_col = ga % grid_cols_;
+        //
+        // // 3 grids above ga
+        // if (ga_row > 0) {
+        //     if (ga_col > 0) {
+        //         neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_ - 1;
+        //         neighbor_grid_count++;
+        //     }
+        //     neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_;
+        //     neighbor_grid_count++;
+        //     if (ga_col != grid_cols_ - 1) {
+        //         neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_ + 1;
+        //         neighbor_grid_count++;
+        //     }
+        // }
+        //
+        // // left and right
+        // if (ga_col > 0) {
+        //     neighbor_grid_ids[neighbor_grid_count] = ga - 1;
+        //     neighbor_grid_count++;
+        // }
+        // if (ga_col != grid_cols_ - 1) {
+        //     neighbor_grid_ids[neighbor_grid_count] = ga + 1;
+        //     neighbor_grid_count++;
+        // }
+        //
+        // // 3 grids below ga
+        // if (ga_row < grid_rows_ - 1) {
+        //     if (ga_col > 0) {
+        //         neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_ - 1;
+        //         neighbor_grid_count++;
+        //     }
+        //     neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_;
+        //     neighbor_grid_count++;
+        //     if (ga_col != grid_cols_ - 1) {
+        //         neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_ + 1;
+        //         neighbor_grid_count++;
+        //     }
+        // }
 
         for (size_t idx_a = 0; idx_a < grid_[ga].size(); idx_a++) {
             auto& ta = grid_[ga][idx_a];

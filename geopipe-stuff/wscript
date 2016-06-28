@@ -71,6 +71,11 @@ def build(bld):
                 includes=".",
                 use="find_trees LASLIB GFLAGS")
 
+    bld.program(source="las/las2stats.cc",
+                target="las2stats",
+                includes=".",
+                use="find_trees LASLIB GFLAGS GLOG")
+
     bld.program(source="misc/strip_caffemodel.cc",
                 target="strip_caffemodel",
                 includes=".",
