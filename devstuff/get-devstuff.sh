@@ -20,15 +20,15 @@ else
     exit 1
 fi
 
-FOLLY_VERSION="0232cb3"
-WANGLE_VERSION="abd50dd"
-PROXYGEN_VERSION="52aeab2"
-ROCKSDB_VERSION="c4e19b7"
-PROTOBUF_VERSION="a897ebb"
-RE2_VERSION="b34c075"
+FOLLY_VERSION="f51158b"
+WANGLE_VERSION="abd07a0"
+PROXYGEN_VERSION="2d75dee"
+ROCKSDB_VERSION="6ea41f8"
+PROTOBUF_VERSION="8eb90e3"
+RE2_VERSION="636bc71"
 GPERFTOOLS_VERSION="689e4a5bb4b2a8afecb85e83b8e4f294f80b6124"
 GFLAGS_VERSION="9db828953a1047c95bf5fb780c3c1f9453f806eb"
-GRPC_VERSION="00ab530"
+GRPC_VERSION="286ff57"
 GLOG_VERSION="f46e0745a842b2edc924b6d384acf01fd7034c62"
 
 run_cmd() {
@@ -238,8 +238,6 @@ get_proxygen() {
             mv proxygen/lib/utils/Time.h proxygen/lib/utils/TimeUtils.h
             grep -r -l "#include.*/Time\.h" proxygen/ | xargs -n 1 sed -i "" "s/\/Time\.h/\/TimeUtils\.h/g"
             sed -i "" "s/	Time\.h \\\\/	TimeUtils\.h \\\\/g" proxygen/lib/utils/Makefile.am
-            touch proxygen/lib/ssl/dummy.cpp
-            sed -i "" "s/libproxygenssl_la_SOURCES =/libproxygenssl_la_SOURCES = dummy\.cpp/g" proxygen/lib/ssl/Makefile.am
             sed -i "" "s/-lboost_thread/-lboost_thread-mt/g" proxygen/configure.ac
         fi
         cd proxygen
