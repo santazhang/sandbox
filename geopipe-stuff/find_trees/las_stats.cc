@@ -108,7 +108,6 @@ void points_stats(point3d_t* points, int n_points,
                 output_stddev_z[y_pixel*img_width + x_pixel] = weighted_stddev_z;
             }
 
-            // debug code
             for (int y = center_grid_y * grid_size; y < (center_grid_y + 1) * grid_size && y < img_height; y++) {
                 for (int x = center_grid_x * grid_size; x < (center_grid_x + 1) * grid_size && x < img_width; x++) {
                     output_stddev_z[y * img_width + x] = weighted_stddev_z;

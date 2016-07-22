@@ -81,6 +81,11 @@ def build(bld):
                 includes=".",
                 use="GFLAGS CAFFE GLOG PROTOBUF BOOST_SYSTEM")
 
+    bld.program(source="misc/build_z_hint_db.cc",
+                target="build_z_hint_db",
+                includes=".",
+                use="GFLAGS CAFFE GLOG PROTOBUF BOOST_SYSTEM")
+
     bld.program(source="test/extract_lab_a_channel.cc",
                 target="extract_lab_a_channel",
                 includes=".",

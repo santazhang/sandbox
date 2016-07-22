@@ -90,13 +90,21 @@ int main(int argc, char* argv[]) {
 
     LOG(INFO) << "write debug image: /tmp/las-debug-stddev-z.pgm";
     debug_write_pgm("/tmp/las-debug-stddev-z.pgm", img_width, img_height, img_gray);
-    
+
+    float* output_stddev_z_float = new float[img_pixels];
+    for (int i = 0; i < img_pixels; i++) {
+        output_stddev_z_float[i] = static_cast<float>(output_stddev_z[i]);
+    }
+
     FILE* fp = fopen(argv[2], "wb");
-    fwrite(output_stddev_z, sizeof(double), img_pixels, fp);
+    int32_t img_dim[2] = {img_width, img_height};
+    fwrite(img_dim, sizeof(int32_t), 2, fp);
+    fwrite(output_stddev_z_float, sizeof(float), img_pixels, fp);
     fclose(fp);
 
     delete[] img_gray;
     delete[] output_stddev_z;
+    delete[] output_stddev_z_float;
 
     return 0;
 }

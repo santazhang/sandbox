@@ -31,4 +31,4 @@ for e in os.listdir("01_source_data"):
             os.rename(decoded_fn, decoded_fn2)
 
     elif e.endswith(".las"):
-        run_cmd("../build/las2stats -resolution=0.15 '01_source_data/%s' '01_source_data/%s.0x1500m.z_hint'" % (e, e))
+        run_cmd("./las_z_hint.sh -resolution=0.15 '01_source_data/%s' '02_decoded_data/%s.0x1500m.z_hint'" % (e, e))
