@@ -15,6 +15,11 @@ for e in os.listdir("01_source_data"):
     main_fn = e.split(".")[0]
 
     if e.endswith(".jp2"):
+        if "0x1500m" not in e:
+            print("  *** Currently only supports 0.15 resolution images.")
+            print("  *** SKIPPING: %s" % e)
+            continue
+
         run_cmd("'../scripts/decode_4band_jp2.sh' '01_source_data/%s'" % e)
         for ext in [".decoded.CMYK-Y.png",
                     ".decoded.HSB-S.png",
@@ -31,4 +36,4 @@ for e in os.listdir("01_source_data"):
             os.rename(decoded_fn, decoded_fn2)
 
     elif e.endswith(".las"):
-        run_cmd("./las_z_hint.sh -resolution=0.15 '01_source_data/%s' '02_decoded_data/%s.0x1500m.z_hint'" % (e, e))
+        run_cmd("../scripts/run_activated.sh ../build/las2stats -resolution=0.15 '01_source_data/%s' '02_decoded_data/%s.0x1500m.z_hint'" % (e, e))

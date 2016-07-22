@@ -131,7 +131,6 @@ int main(int argc, char* argv[]) {
                 float f_val;
                 CHECK(::fread(&f_val, sizeof(float), 1, file_handle->fp) != 0);
                 datumFloatData->Add(f_val);
-                printf("%f\n", f_val);
             }
         }
 

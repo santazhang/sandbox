@@ -5,6 +5,7 @@
 (Run the following steps in training dir)
 
 2. Copy (or soft link) raw source data (.jp2 and .las files) into 01_source_data/
+   (NOTE: currently presumes 0.15 resolution .jp2 images)
 3. Run step1_prepare_tree_tagging_data.py
 4. Tag tree and not-tree regions with tag-image application
 5. Run step2_prepare_training_data.py
