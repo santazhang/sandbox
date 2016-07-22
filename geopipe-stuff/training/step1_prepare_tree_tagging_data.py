@@ -31,9 +31,4 @@ for e in os.listdir("01_source_data"):
             os.rename(decoded_fn, decoded_fn2)
 
     elif e.endswith(".las"):
-        for stddev_cap in [25,]:
-            run_cmd("../build/las2img.bin -stddev_cap=%d '01_source_data/%s'" % (stddev_cap, e))
-            run_cmd("convert '01_source_data/%s.las.decoded.z_stddev_gaussian.ppm' '02_decoded_data/%s.z_stddev_gaussian.cap%d.png'" % (main_fn, main_fn, stddev_cap))
-            os.remove("01_source_data/%s.las.decoded.z_stddev_gaussian.ppm" % main_fn)
-            os.remove("01_source_data/%s.las.decoded.z_stddev.ppm" % main_fn)
-            os.remove("01_source_data/%s.las.decoded.z.ppm" % main_fn)
+        run_cmd("../build/las2stats -resolution=0.15 '01_source_data/%s' '01_source_data/%s.0x1500m.z_hint'" % (e, e))

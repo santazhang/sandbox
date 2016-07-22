@@ -1,7 +1,50 @@
 #include "./utils.h"
 #include <math.h>
+#include <stdio.h>
 
 namespace find_trees {
+
+void Timer::pause() {
+    if (paused_) {
+        printf("Timer::pause(): timer already paused!\n");
+    } else {
+        base_elapsed_ = elapsed();
+        clear_begin_end_time();
+        paused_ = true;
+    }
+}
+
+void Timer::unpause() {
+    if (paused_) {
+        gettimeofday(&begin_, nullptr);
+        paused_ = false;
+    } else {
+        printf("Timer::unpause(): timer not paused!\n");
+    }
+}
+
+double Timer::elapsed() const {
+    if (end_.tv_sec == 0 && end_.tv_usec == 0) {
+        // not stopped yet
+        struct timeval now;
+        gettimeofday(&now, nullptr);
+        return base_elapsed_ + now.tv_sec - begin_.tv_sec +
+               (now.tv_usec - begin_.tv_usec) / 1000000.0;
+    }
+    return base_elapsed_ + end_.tv_sec - begin_.tv_sec +
+           (end_.tv_usec - begin_.tv_usec) / 1000000.0;
+}
+
+void Progress::print_progress(int percentage) {
+    if (percentage >= 100) {
+        printf("  ... %s: 100%% (%d/%d)\n", descr_.c_str(), done_work_, total_work_);
+    } else {
+        char buf[5];
+        ::snprintf(buf, sizeof(buf), "%3d%%", percentage);
+        printf("  ... %s: %s (%d/%d)\n", descr_.c_str(), buf, done_work_, total_work_);
+        timer_.start();  // restart timer
+    }
+}
 
 
 double weighted_mean(int n_samples, double* weights, double* samples) {

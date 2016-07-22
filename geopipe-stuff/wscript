@@ -66,11 +66,6 @@ def build(bld):
                 includes=".",
                 use="find_trees GFLAGS OPENCV_CORE OPENCV_HIGHGUI")
 
-    bld.program(source=bld.path.ant_glob("las2img/*.cc"),
-                target="las2img.bin",
-                includes=".",
-                use="find_trees LASLIB GFLAGS")
-
     bld.program(source="las/las2stats.cc",
                 target="las2stats",
                 includes=".",

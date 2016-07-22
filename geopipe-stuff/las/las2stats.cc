@@ -13,7 +13,6 @@ using std::vector;
 using namespace find_trees;
 
 DEFINE_double(resolution, 0.15, "meters per pixel on output file");
-DEFINE_double(radius_in_meters, 2, "how far does a las point affect");
 
 int main(int argc, char* argv[]) {
     FLAGS_logtostderr = 1;
@@ -46,10 +45,8 @@ int main(int argc, char* argv[]) {
     const int img_pixels = img_width * img_height;
     LOG(INFO) << "image size: " << img_width << " x " << img_height;
 
-    double* output_weight = new double[img_pixels];
     double* output_stddev_z = new double[img_pixels];
     for (int i = 0; i < img_pixels; i++) {
-        output_weight[i] = 0.0;
         output_stddev_z[i] = 0.0;
     }
     uint8_t* img_gray = new uint8_t[img_pixels];
@@ -79,14 +76,27 @@ int main(int argc, char* argv[]) {
     debug_write_pgm("/tmp/las-debug-points.pgm", img_width, img_height, img_gray);
 
     points_stats(&all_points[0], all_points.size(), min_x, max_x, min_y, max_y,
-                 FLAGS_resolution, FLAGS_radius_in_meters, output_weight, output_stddev_z);
+                 FLAGS_resolution, output_stddev_z);
 
     for (int i = 0; i < img_pixels; i++) {
-        img_gray[i] = output_weight[i];
+        double x = 25 * output_stddev_z[i];
+        if (x > 255) {
+            x = 255;
+        } else if (x < 0) {
+            x = 0;
+        }
+        img_gray[i] = x;
     }
 
-    LOG(INFO) << "write debug image: /tmp/las-debug-weight.pgm";
-    debug_write_pgm("/tmp/las-debug-weight.pgm", img_width, img_height, img_gray);
+    LOG(INFO) << "write debug image: /tmp/las-debug-stddev-z.pgm";
+    debug_write_pgm("/tmp/las-debug-stddev-z.pgm", img_width, img_height, img_gray);
+    
+    FILE* fp = fopen(argv[2], "wb");
+    fwrite(output_stddev_z, sizeof(double), img_pixels, fp);
+    fclose(fp);
+
+    delete[] img_gray;
+    delete[] output_stddev_z;
 
     return 0;
 }
