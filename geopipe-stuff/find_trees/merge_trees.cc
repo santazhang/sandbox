@@ -545,47 +545,6 @@ void TreeMerger::finalize_remove_occluded_trees() {
         
         neighbor_grids_3x3(grid_rows_, grid_cols_, ga, neighbor_grid_ids, &neighbor_grid_count);
 
-        // int ga_row = ga / grid_cols_;
-        // int ga_col = ga % grid_cols_;
-        //
-        // // 3 grids above ga
-        // if (ga_row > 0) {
-        //     if (ga_col > 0) {
-        //         neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_ - 1;
-        //         neighbor_grid_count++;
-        //     }
-        //     neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_;
-        //     neighbor_grid_count++;
-        //     if (ga_col != grid_cols_ - 1) {
-        //         neighbor_grid_ids[neighbor_grid_count] = ga - grid_cols_ + 1;
-        //         neighbor_grid_count++;
-        //     }
-        // }
-        //
-        // // left and right
-        // if (ga_col > 0) {
-        //     neighbor_grid_ids[neighbor_grid_count] = ga - 1;
-        //     neighbor_grid_count++;
-        // }
-        // if (ga_col != grid_cols_ - 1) {
-        //     neighbor_grid_ids[neighbor_grid_count] = ga + 1;
-        //     neighbor_grid_count++;
-        // }
-        //
-        // // 3 grids below ga
-        // if (ga_row < grid_rows_ - 1) {
-        //     if (ga_col > 0) {
-        //         neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_ - 1;
-        //         neighbor_grid_count++;
-        //     }
-        //     neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_;
-        //     neighbor_grid_count++;
-        //     if (ga_col != grid_cols_ - 1) {
-        //         neighbor_grid_ids[neighbor_grid_count] = ga + grid_cols_ + 1;
-        //         neighbor_grid_count++;
-        //     }
-        // }
-
         for (size_t idx_a = 0; idx_a < grid_[ga].size(); idx_a++) {
             auto& ta = grid_[ga][idx_a];
 
@@ -694,7 +653,7 @@ void TreeMerger::finalize_remove_occluded_trees() {
                 }
 
                 // if nearly all of the tree has been covered
-                if (ta_boxes.size() < 0.1 * orig_ta_boxes_count) {
+                if (ta_boxes.size() < 0.4 * orig_ta_boxes_count) {
                     ta.covered_by_other_tree = true;
                 }
             }
@@ -733,12 +692,13 @@ void TreeMerger::finalize_filter_noisy_tiny_trees() {
     double radius_avg = radius_sum / result_->trees.size();
 
     std::sort(radius_dist.begin(), radius_dist.end());
-    int filter_pct = 30;
+    int filter_pct = 80;
+    LOG(INFO) << "Filtering smallest " << filter_pct << "% trees";
     size_t idx = radius_dist.size() * filter_pct / 100;
     double radius_filter1 = radius_dist[idx];
     // LOG(INFO) << "radius min: " << radius_dist.front() << " max:" << radius_dist.back()
     //     << " avg:" << radius_avg << " " << filter_pct << "%: " << radius_filter1 << " radius_var =" << radius_var;
-    double radius_filter2 = (radius_filter1 + radius_avg) / 2;
+    double radius_filter2 = radius_filter1;//(radius_filter1 + radius_avg) / 2;
     LOG(INFO) << "Filtering trees with radius < " << radius_filter2;
     int before_cnt = result_->trees.size();
     idx = 0;

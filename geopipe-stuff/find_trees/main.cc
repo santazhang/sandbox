@@ -26,7 +26,9 @@ int main(int argc, char* argv[]) {
         printf("Usage: %s <image-file> [--ir=ir_image] [--las=las_file]\n", argv[0]);
         exit(1);
     }
-    printf("  *** NOTE: assumes 0.15m resolution!\n");
+
+    LOG(WARNING) << "NOTE: currently (2016.07) only supports 0.15m resolution";
+    LOG(INFO) << "Using resolution = " << FLAGS_resolution;
 
     cv::Mat input_image = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
     //cv::imshow("Input image", input_image);
@@ -150,6 +152,8 @@ int main(int argc, char* argv[]) {
     params.channel_green = contiguous_green;
     params.channel_blue = contiguous_blue;
     params.channel_ir = contiguous_ir;
+
+    params.max_tree_radius = ceilf(10.0 / FLAGS_resolution);
 
     find_trees::result_t result;
     int st = find_trees::find(params, &result);

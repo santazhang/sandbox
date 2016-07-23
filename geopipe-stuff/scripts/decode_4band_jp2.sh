@@ -35,20 +35,20 @@ convert "$TMP_DIR/$IMG_BASENAME.tmp-opj_decompress.png" \
     -channel RGB -alpha off "$TMP_DIR/$IMG_BASENAME.decoded.RGB.png"
 mv "$TMP_DIR/$IMG_BASENAME.decoded.RGB.png" "$IMG_DIR"
 
-convert "$IMG_DIR/$IMG_BASENAME.decoded.RGB.png" \
-    -colorspace LAB -separate "$TMP_DIR/$IMG_BASENAME.decoded.LAB-%d.png"
-mv "$TMP_DIR/$IMG_BASENAME.decoded.LAB-1.png" \
-    "$IMG_DIR/$IMG_BASENAME.decoded.LAB-A.png"
+# convert "$IMG_DIR/$IMG_BASENAME.decoded.RGB.png" \
+#     -colorspace LAB -separate "$TMP_DIR/$IMG_BASENAME.decoded.LAB-%d.png"
+# mv "$TMP_DIR/$IMG_BASENAME.decoded.LAB-1.png" \
+#     "$IMG_DIR/$IMG_BASENAME.decoded.LAB-A.png"
 
-convert "$IMG_DIR/$IMG_BASENAME.decoded.RGB.png" \
-    -colorspace HSB -separate "$TMP_DIR/$IMG_BASENAME.decoded.HSB-%d.png"
-mv "$TMP_DIR/$IMG_BASENAME.decoded.HSB-1.png" \
-    "$IMG_DIR/$IMG_BASENAME.decoded.HSB-S.png"
+# convert "$IMG_DIR/$IMG_BASENAME.decoded.RGB.png" \
+#     -colorspace HSB -separate "$TMP_DIR/$IMG_BASENAME.decoded.HSB-%d.png"
+# mv "$TMP_DIR/$IMG_BASENAME.decoded.HSB-1.png" \
+#     "$IMG_DIR/$IMG_BASENAME.decoded.HSB-S.png"
 
-convert "$IMG_DIR/$IMG_BASENAME.decoded.RGB.png" \
-    -colorspace CMYK -separate "$TMP_DIR/$IMG_BASENAME.decoded.CMYK-%d.png"
-mv "$TMP_DIR/$IMG_BASENAME.decoded.CMYK-2.png" \
-    "$IMG_DIR/$IMG_BASENAME.decoded.CMYK-Y.png"
+# convert "$IMG_DIR/$IMG_BASENAME.decoded.RGB.png" \
+#     -colorspace CMYK -separate "$TMP_DIR/$IMG_BASENAME.decoded.CMYK-%d.png"
+# mv "$TMP_DIR/$IMG_BASENAME.decoded.CMYK-2.png" \
+#     "$IMG_DIR/$IMG_BASENAME.decoded.CMYK-Y.png"
 
 convert "$TMP_DIR/$IMG_BASENAME.tmp-opj_decompress.png" \
     -channel RGBA -separate "$TMP_DIR/$IMG_BASENAME.tmp-extract-band-%d.png"

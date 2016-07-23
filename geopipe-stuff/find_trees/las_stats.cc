@@ -12,7 +12,7 @@ namespace find_trees {
 
 void points_stats(const point3d_t* points, int n_points,
                   double min_x, double max_x, double min_y, double max_y,
-                  double resolution,
+                  double resolution, int points_img_width, int points_img_height,
                   double* output_stddev_z) {
 
 /*
@@ -23,8 +23,8 @@ void points_stats(const point3d_t* points, int n_points,
     * Bilinear interpolate to all pixels. (take special care of borders)
 */
 
-    const int img_width = ceilf((max_x - min_x) / resolution);
-    const int img_height = ceilf((max_y - min_y) / resolution);
+    const int img_width = points_img_width;
+    const int img_height = points_img_height;
     const int img_pixels = img_width * img_height;
     const int grid_size = ceilf(1.0 / resolution);
     const int grid_rows = (img_height + grid_size - 1) / grid_size;

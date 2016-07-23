@@ -21,9 +21,9 @@ for e in os.listdir("01_source_data"):
             continue
 
         run_cmd("'../scripts/decode_4band_jp2.sh' '01_source_data/%s'" % e)
-        for ext in [".decoded.CMYK-Y.png",
-                    ".decoded.HSB-S.png",
-                    ".decoded.LAB-A.png",
+        for ext in [#".decoded.CMYK-Y.png",
+                    #".decoded.HSB-S.png",
+                    #".decoded.LAB-A.png",
                     ".decoded.RGB.png",
                     ".decoded.IR.png"]:
             decoded_fn = os.path.join("01_source_data", main_fn + ext)

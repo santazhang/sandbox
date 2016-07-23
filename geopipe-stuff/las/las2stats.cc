@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     debug_write_pgm("/tmp/las-debug-points.pgm", img_width, img_height, img_gray);
 
     points_stats(&all_points[0], all_points.size(), min_x, max_x, min_y, max_y,
-                 FLAGS_resolution, output_stddev_z);
+                 FLAGS_resolution, img_width, img_height, output_stddev_z);
 
     for (int i = 0; i < img_pixels; i++) {
         double x = 25 * output_stddev_z[i];

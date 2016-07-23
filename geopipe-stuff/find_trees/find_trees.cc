@@ -8,6 +8,7 @@
 #include <math.h>
 
 #include <vector>
+#include <algorithm>
 
 namespace {
 
@@ -59,6 +60,9 @@ int find_generic2(
     // printf("  *** blob dim: 1 %d %d %d\n", num_channels + num_float_channels, tile_height, tile_width);
     float* blob_raw = reinterpret_cast<float*>(blob.mutable_cpu_data());
 
+    int skip_mask_cnt = 0;
+    CHECK_GE(num_channels, 3);
+
     int tile_id = 0;
     for (int top_y = 0; top_y < params.img_height; top_y += step_y) {
         if (top_y + tile_height > params.img_height) {
@@ -75,6 +79,27 @@ int find_generic2(
             if (left_x < 0) {
                 continue;
             }
+
+
+            // RGB intensity skip if TOTALLY BLACK OR WHITE (MASK COLOR)
+            int mask_cnt = 0;
+            for (int y = top_y, offst = 0, offst2 = y * params.img_width;
+                 y < top_y + tile_height;
+                 y++, offst += tile_width, offst2 += params.img_width) {
+
+                for (int x = left_x; x < left_x + tile_width; x++) {
+                    int v = channel_ptrs[0][offst2 + x] + channel_ptrs[1][offst2 + x] + channel_ptrs[2][offst2 + x];
+                    if (v > (255 + 255 + 255) * 0.95 || v < (255 + 255 + 255) * 0.05) {
+                        mask_cnt++;
+                    }
+                }
+            }
+            if (double(mask_cnt) / tile_pixels > 0.7) {
+                skip_mask_cnt++;
+                tile_id++;
+                continue;
+            }
+
 
             for (int y = top_y, offst = 0, offst2 = y * params.img_width;
                  y < top_y + tile_height;
@@ -127,6 +152,10 @@ int find_generic2(
 
             tile_id++;
         }
+    }
+    
+    if (skip_mask_cnt > 0) {
+        LOG(INFO) << "Skipped " << skip_mask_cnt << " possible mask tiles";
     }
 
     return 0;
@@ -203,7 +232,7 @@ int find_using_7x7_rgb_lab_a_1(const params_t& params, result_t* result) {
     return ret;
 }
 
-int find_using_7x7_rgb_las_z_hint_1(const params_t& params, result_t* result) {
+int find_using_7x7_rgb_las_z_hint_1(const params_t& params, result_t* result, const double* las_z_hint) {
     CHECK_GE(params.img_width, 7);
     CHECK_GE(params.img_height, 7);
 
@@ -212,15 +241,6 @@ int find_using_7x7_rgb_las_z_hint_1(const params_t& params, result_t* result) {
     const uint8_t* channel_ptrs[3] = {
         params.channel_red, params.channel_green, params.channel_blue
     };
-    
-    double* las_z_hint = new double[params.img_width * params.img_height];
-
-    CHECK(params.points != nullptr);
-    points_stats(params.points, params.n_points,
-                 params.points_min_x, params.points_max_x, params.points_min_y, params.points_max_y,
-                 params.points_resolution,
-                 /*OUT*/ las_z_hint);
-
     const double* float_channel_ptrs[1] = {
         las_z_hint
     };
@@ -231,10 +251,40 @@ int find_using_7x7_rgb_las_z_hint_1(const params_t& params, result_t* result) {
                         7 /* step_x */, 7 /* step_y */,
                         channel_ptrs, 1 /* float channels */, float_channel_ptrs);
 
-    delete[] las_z_hint;
     return ret;
 }
 
+void filter_result_using_z_hint(const params_t& params, result_t* result, const double* las_z_hint) {
+    const double min_z_hint = 1.0; // TODO: hard coded for now
+    const double max_z_hint = 12.5; // TODO: hard coded for now
+    LOG(INFO) << "Filtering tree tiles with z hint bound = [" << min_z_hint << ", " << max_z_hint << "]";
+    double* z_hint_values = new double[result->tile_size * result->tile_size];
+
+    for (size_t idx = 0; idx < result->tree_tiles.size(); /* empty */) {
+        int tile_id = result->tree_tiles[idx];
+        const int top_y = (tile_id / result->tile_cols) * result->tile_step_y;
+        const int left_x = (tile_id % result->tile_cols) * result->tile_step_x;
+        int z_hint_count = 0;
+        for (int y = top_y; y < top_y + result->tile_size && y < params.img_height; y++) {
+            for (int x = left_x; x < left_x + result->tile_size && x < params.img_width; x++) {
+                z_hint_values[z_hint_count] = las_z_hint[y * params.img_width + x];
+                z_hint_count++;
+            }
+        }
+        std::nth_element(z_hint_values, z_hint_values + z_hint_count/2, z_hint_values + z_hint_count);
+        const double median = z_hint_values[z_hint_count/2];
+        if (median < min_z_hint || median > max_z_hint) {
+            result->tree_tiles[idx] = result->tree_tiles.back();
+            result->tree_tiles.pop_back();
+            result->trees[idx] = result->trees.back();
+            result->trees.pop_back();
+            continue;
+        }
+        idx++;
+    }
+
+    delete[] z_hint_values;
+}
 
 }  // anonymous namespace
 
@@ -246,19 +296,61 @@ int find(const params_t& params, result_t* result) {
     CHECK_GT(params.img_height, 0);
     CHECK_GT(params.max_tree_radius, 0);
 
+    double* las_z_hint = nullptr;
+    if (params.points != nullptr) {
+        int points_img_width = ceilf((params.points_max_x - params.points_min_x) / params.points_resolution);
+        int points_img_height = ceilf((params.points_max_y - params.points_min_y) / params.points_resolution);
+
+        LOG(INFO) << "points approx dimension: " << points_img_width << " x " << points_img_height;
+        bool can_match_up = true;
+        if (points_img_width != params.img_width || points_img_height != params.img_height) {
+            // restrict distortion within 1%
+            if (fabs(double(points_img_width) / params.img_width - 1.0) > 0.01) {
+                can_match_up = false;
+            }
+            if (fabs(double(points_img_height) / params.img_height - 1.0) > 0.01) {
+                can_match_up = false;
+            }
+            if (can_match_up) {
+                points_img_width = params.img_width;
+                points_img_height = params.img_height;
+                LOG(INFO) << "points approx dimension adjusted to: " << points_img_width << " x " << points_img_height;
+            } else {
+                LOG(WARNING) << "points dimension does not match up with image dimension, will not use";
+            }
+        }
+
+        if (can_match_up) {
+            las_z_hint = new double[params.img_width * params.img_height];
+
+            CHECK(params.points != nullptr);
+            points_stats(params.points, params.n_points,
+                         params.points_min_x, params.points_max_x, params.points_min_y, params.points_max_y,
+                         params.points_resolution, points_img_width, points_img_height,
+                         /*OUT*/ las_z_hint);
+        }
+    }
+
     int ret = -1;
 
-    if (params.channel_ir == nullptr && params.points == nullptr) {
+    if (params.channel_ir == nullptr) {
         ret = find_using_7x7_rgb_1(params, result);
-    } else if (params.channel_ir != nullptr && params.points == nullptr) {
-        ret = find_using_7x7_rgb_ir_1(params, result);
-    } else if (params.channel_ir == nullptr && params.points != nullptr) {
-        ret = find_using_7x7_rgb_las_z_hint_1(params, result);
     } else {
-        LOG(FATAL) << "NOT IMPLEMENTED YET: RGB + IR + LAS_Z_HINT";
+        ret = find_using_7x7_rgb_ir_1(params, result);
+    }
+
+    if (las_z_hint != nullptr) {
+        int before = result->trees.size();
+        filter_result_using_z_hint(params, result, las_z_hint);
+        int after = result->trees.size();
+        LOG(INFO) << "Filtered " << (before - after) << " tree tiles using LAS points";
     }
 
     merge_trees(params, result);
+
+    if (las_z_hint != nullptr) {
+        delete[] las_z_hint;
+    }
 
     return ret;
 }
