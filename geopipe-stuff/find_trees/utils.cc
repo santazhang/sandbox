@@ -37,11 +37,11 @@ double Timer::elapsed() const {
 
 void Progress::print_progress(int percentage) {
     if (percentage >= 100) {
-        printf("  ... %s: 100%% (%d/%d)\n", descr_.c_str(), done_work_, total_work_);
+        printf("  ... %s: 100%% (%ld/%ld)\n", descr_.c_str(), (long)done_work_, (long)total_work_);
     } else {
         char buf[5];
         ::snprintf(buf, sizeof(buf), "%3d%%", percentage);
-        printf("  ... %s: %s (%d/%d)\n", descr_.c_str(), buf, done_work_, total_work_);
+        printf("  ... %s: %s (%ld/%ld)\n", descr_.c_str(), buf, (long)done_work_, (long)total_work_);
         timer_.start();  // restart timer
     }
 }
