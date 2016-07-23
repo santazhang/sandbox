@@ -10,7 +10,7 @@ using std::vector;
 
 namespace find_trees {
 
-void points_stats(point3d_t* points, int n_points,
+void points_stats(const point3d_t* points, int n_points,
                   double min_x, double max_x, double min_y, double max_y,
                   double resolution,
                   double* output_stddev_z) {

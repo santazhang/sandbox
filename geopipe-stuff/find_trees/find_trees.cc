@@ -2,6 +2,7 @@
 #include "merge_trees.h"
 #include "caffe_models.h"
 #include "colors.h"
+#include "las_stats.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -33,7 +34,7 @@ const std::vector<caffe::Blob<float>*>& NetForward(
     return mynet->Forward(loss);
 }
 
-int find_generic(
+int find_generic2(
         caffe::Net<float>* caffe_net,
         const params_t& params,
         result_t* result,
@@ -42,7 +43,9 @@ int find_generic(
         int tile_height,
         int step_x,
         int step_y,
-        const uint8_t* channel_ptrs[]) {
+        const uint8_t* channel_ptrs[],
+        int num_float_channels,
+        const double* float_ptrs[]) {
 
     result->tile_size = tile_width;
     CHECK_EQ(tile_width, tile_height);
@@ -52,7 +55,8 @@ int find_generic(
     result->tile_step_y = step_y;
 
     const int tile_pixels = tile_height * tile_width;
-    caffe::Blob<float> blob(1 /* batch size = 1 */, num_channels, tile_height, tile_width);
+    caffe::Blob<float> blob(1 /* batch size = 1 */, num_channels + num_float_channels, tile_height, tile_width);
+    // printf("  *** blob dim: 1 %d %d %d\n", num_channels + num_float_channels, tile_height, tile_width);
     float* blob_raw = reinterpret_cast<float*>(blob.mutable_cpu_data());
 
     int tile_id = 0;
@@ -84,7 +88,23 @@ int find_generic(
                     // blob_raw[1 * tile_pixels + offst + x_diff] = params.channel_green[offst2 + x];
                     // blob_raw[2 * tile_pixels + offst + x_diff] = params.channel_blue[offst2 + x];
                     for (int channel = 0, channel_offst = 0; channel < num_channels; channel++, channel_offst += tile_pixels) {
+                        // printf(" %d --- %d (img channel = %d)\n", channel_offst + offst + x_diff, offst2 + x, channel);
                         blob_raw[channel_offst + offst + x_diff] = channel_ptrs[channel][offst2 + x];
+                    }
+                }
+            }
+            
+            // float channels
+            if (num_float_channels > 0) {
+                for (int y = top_y, offst = 0, offst2 = y * params.img_width; y < top_y + tile_height; y++, offst += tile_width, offst2 += params.img_width) {
+                    for (int x = left_x, x_diff = 0; x < left_x + tile_width; x++, x_diff++) {
+                        for (int flt_channel = 0, channel_offst = num_channels * tile_pixels;
+                             flt_channel < num_float_channels;
+                             flt_channel++, channel_offst += tile_pixels) {
+
+                            // printf(" %d --- %d (float channel = %d)\n", channel_offst + offst + x_diff, offst2 + x, flt_channel);
+                            blob_raw[channel_offst + offst + x_diff] = float_ptrs[flt_channel][offst2 + x];
+                        }
                     }
                 }
             }
@@ -113,6 +133,22 @@ int find_generic(
 }
 
 
+int find_generic(
+        caffe::Net<float>* caffe_net,
+        const params_t& params,
+        result_t* result,
+        int num_channels,
+        int tile_width,
+        int tile_height,
+        int step_x,
+        int step_y,
+        const uint8_t* channel_ptrs[]) {
+
+    return find_generic2(caffe_net, params, result, num_channels, tile_width, tile_height, step_x, step_y, channel_ptrs,
+                         0 /* float channels */, nullptr /* float channel ptrs */);
+}
+
+
 int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
     CHECK_GE(params.img_width, 7);
     CHECK_GE(params.img_height, 7);
@@ -124,6 +160,21 @@ int find_using_7x7_rgb_1(const params_t& params, result_t* result) {
     };
     return find_generic(caffe_net_7x7_rgb_1, params, result,
                         3 /* num_channels*/, 7 /* tile_width */, 7 /* tile_height */,
+                        7 /* step_x */, 7 /* step_y */,
+                        channel_ptrs);
+}
+
+int find_using_7x7_rgb_ir_1(const params_t& params, result_t* result) {
+    CHECK_GE(params.img_width, 7);
+    CHECK_GE(params.img_height, 7);
+
+    caffe::Net<float>* caffe_net_7x7_rgb_1 = get_caffe_net_7x7_rgb_ir_1();
+
+    const uint8_t* channel_ptrs[4] = {
+        params.channel_red, params.channel_green, params.channel_blue, params.channel_ir
+    };
+    return find_generic(caffe_net_7x7_rgb_1, params, result,
+                        4 /* num_channels*/, 7 /* tile_width */, 7 /* tile_height */,
                         7 /* step_x */, 7 /* step_y */,
                         channel_ptrs);
 }
@@ -152,6 +203,38 @@ int find_using_7x7_rgb_lab_a_1(const params_t& params, result_t* result) {
     return ret;
 }
 
+int find_using_7x7_rgb_las_z_hint_1(const params_t& params, result_t* result) {
+    CHECK_GE(params.img_width, 7);
+    CHECK_GE(params.img_height, 7);
+
+    caffe::Net<float>* caffe_net_7x7_rgb_las_z_hint_1 = get_caffe_net_7x7_rgb_las_z_hint_1();
+
+    const uint8_t* channel_ptrs[3] = {
+        params.channel_red, params.channel_green, params.channel_blue
+    };
+    
+    double* las_z_hint = new double[params.img_width * params.img_height];
+
+    CHECK(params.points != nullptr);
+    points_stats(params.points, params.n_points,
+                 params.points_min_x, params.points_max_x, params.points_min_y, params.points_max_y,
+                 params.points_resolution,
+                 /*OUT*/ las_z_hint);
+
+    const double* float_channel_ptrs[1] = {
+        las_z_hint
+    };
+
+    int ret = -1;
+    ret = find_generic2(caffe_net_7x7_rgb_las_z_hint_1, params, result,
+                        3 /* num_channels*/, 7 /* tile_width */, 7 /* tile_height */,
+                        7 /* step_x */, 7 /* step_y */,
+                        channel_ptrs, 1 /* float channels */, float_channel_ptrs);
+
+    delete[] las_z_hint;
+    return ret;
+}
+
 
 }  // anonymous namespace
 
@@ -163,7 +246,17 @@ int find(const params_t& params, result_t* result) {
     CHECK_GT(params.img_height, 0);
     CHECK_GT(params.max_tree_radius, 0);
 
-    int ret = find_using_7x7_rgb_1(params, result);
+    int ret = -1;
+
+    if (params.channel_ir == nullptr && params.points == nullptr) {
+        ret = find_using_7x7_rgb_1(params, result);
+    } else if (params.channel_ir != nullptr && params.points == nullptr) {
+        ret = find_using_7x7_rgb_ir_1(params, result);
+    } else if (params.channel_ir == nullptr && params.points != nullptr) {
+        ret = find_using_7x7_rgb_las_z_hint_1(params, result);
+    } else {
+        LOG(FATAL) << "NOT IMPLEMENTED YET: RGB + IR + LAS_Z_HINT";
+    }
 
     merge_trees(params, result);
 

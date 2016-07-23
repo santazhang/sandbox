@@ -6,11 +6,16 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <laslib/lasreader.hpp>
 #include <glog/logging.h>
 #include <opencv2/opencv.hpp>
 
 using namespace std;
 using namespace find_trees;
+
+DEFINE_string(ir, "", "IR image");
+DEFINE_string(las, "", "LAS file");
+DEFINE_double(resolution, 0.15, "meters per pixel on output file");
 
 int main(int argc, char* argv[]) {
     FLAGS_logtostderr = 1;
@@ -18,9 +23,10 @@ int main(int argc, char* argv[]) {
     ::google::InitGoogleLogging(argv[0]);
 
     if (argc < 2) {
-        printf("Usage: %s <image-file>\n", argv[0]);
+        printf("Usage: %s <image-file> [--ir=ir_image] [--las=las_file]\n", argv[0]);
         exit(1);
     }
+    printf("  *** NOTE: assumes 0.15m resolution!\n");
 
     cv::Mat input_image = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
     //cv::imshow("Input image", input_image);
@@ -70,12 +76,81 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    uint8_t* contiguous_ir = nullptr;
+    if (FLAGS_ir != "") {
+        cv::Mat ir_image = cv::imread(FLAGS_ir, CV_LOAD_IMAGE_GRAYSCALE);
+        CHECK_EQ(ir_image.channels(), 1);
+        CHECK_EQ(ir_image.size().width, image_width);
+        CHECK_EQ(ir_image.size().height, image_height);
+        IplImage ir_image_ipl = (IplImage) ir_image;
+        const char* ir_image_data = ir_image_ipl.imageData;
+        const int ir_image_width_step = ir_image_ipl.widthStep;
+        contiguous_ir = new uint8_t[image_pixels];
+        for (int y = 0; y < image_height; y++) {
+            int offst = y * image_width;
+            int offst2 = y * ir_image_width_step;
+            for (int x = 0, x2 = 0; x < image_width; x++, x2 += image_elem_size) {
+                contiguous_ir[offst + x] = ir_image_data[offst2 + x2];
+            }
+        }
+    }
+    
     find_trees::params_t params;
+
+    vector<point3d_t> all_points;
+
+    if (FLAGS_las != "") {
+        LASreadOpener lasreadopener;
+        std::string las_fn = FLAGS_las;
+        lasreadopener.set_file_name(las_fn.c_str());
+        LASreader* lasreader = lasreadopener.open();
+
+        const double min_x = lasreader->get_min_x();
+        const double max_x = lasreader->get_max_x();
+        const double min_y = lasreader->get_min_y();
+        const double max_y = lasreader->get_max_y();
+        const double min_z = lasreader->get_min_z();
+        const double max_z = lasreader->get_max_z();
+
+        LOG(INFO) << "x: " << min_x << " ~ " << max_x;
+        LOG(INFO) << "y: " << min_y << " ~ " << max_y;
+        LOG(INFO) << "z: " << min_z << " ~ " << max_z;
+
+        const int las_img_width = ceilf((max_x - min_x) / FLAGS_resolution);
+        const int las_img_height = ceilf((max_y - min_y) / FLAGS_resolution);
+        const int las_img_pixels = las_img_width * las_img_height;
+        LOG(INFO) << "las image size: " << las_img_width << " x " << las_img_height;
+
+        all_points.reserve(lasreader->npoints);
+
+        LOG(INFO) << "reading " << lasreader->npoints << " points";
+        while (lasreader->read_point()) {
+            const LASpoint& p = lasreader->point;
+            point3d_t pt;
+            pt.x = p.get_x();
+            pt.y = p.get_y();
+            pt.z = p.get_z();
+            all_points.push_back(pt);
+        }
+        lasreader->close();
+        LOG(INFO) << "done with reading";
+
+        params.n_points = all_points.size();
+        params.points = &all_points[0];
+        params.points_resolution = FLAGS_resolution;
+        params.points_min_x = min_x;
+        params.points_max_x = max_x;
+        params.points_min_y = min_y;
+        params.points_max_y = max_y;
+    }
+
     params.img_width = image_width;
     params.img_height = image_height;
     params.channel_red = contiguous_red;
     params.channel_green = contiguous_green;
     params.channel_blue = contiguous_blue;
+    params.channel_ir = contiguous_ir;
+
     find_trees::result_t result;
     int st = find_trees::find(params, &result);
     LOG(INFO) << "Find return code = " << st;
@@ -99,47 +174,6 @@ int main(int argc, char* argv[]) {
         cv::circle(input_image, pt, t.radius_pixels, cv::Scalar(0, 0, 255) /* red */);
     }
 
-//     {
-//         // based on mid-point algorithm
-//         // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-//         double x_center = 350.5;
-//         double y_center = 350.3;
-//         double radius = 190.3;
-//         double xx = radius;
-//         double yy = 0;
-//         double err = 0;
-//
-//         while (xx >= yy) {
-//             int y = y_center + yy;
-//             int xl = x_center - xx;
-//             int xr = x_center + xx;
-//             // for x in [xl..xr], do (x, y)...
-//             cv::line(input_image, cv::Point(xl, y), cv::Point(xr, y), cv::Scalar(255, 0, 0));
-//
-//             y = y_center - yy;
-//             // for x in [xl..xr], do (x, y)...
-//             cv::line(input_image, cv::Point(xl, y), cv::Point(xr, y), cv::Scalar(255, 0, 0));
-//
-//             y = y_center + xx;
-//             xl = x_center - yy;
-//             xr = x_center + yy;
-//             // for x in [xl..xr], do (x, y)...
-//             cv::line(input_image, cv::Point(xl, y), cv::Point(xr, y), cv::Scalar(255, 0, 0));
-//
-//             y = y_center - xx;
-//             // for x in [xl..xr], do (x, y)...
-//             cv::line(input_image, cv::Point(xl, y), cv::Point(xr, y), cv::Scalar(255, 0, 0));
-//
-//             yy++;
-//             err += 1 + 2*yy;
-//             if (2*(err-xx) + 1 > 0) {
-//                 xx--;
-//                 err += 1-2*xx;
-//             }
-//         }
-//     }
-
-
     // cv::imshow("Trees", input_image);
     // cv::waitKey(0);
 
@@ -150,6 +184,10 @@ int main(int argc, char* argv[]) {
     delete[] contiguous_red;
     delete[] contiguous_green;
     delete[] contiguous_blue;
+
+    if (contiguous_ir != nullptr) {
+        delete[] contiguous_ir;
+    }
 
     return 0;
 }

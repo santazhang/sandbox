@@ -3,6 +3,8 @@
 #include <inttypes.h>
 #include <vector>
 
+#include "las_stats.h"
+
 namespace find_trees {
 
 struct params_t {
@@ -13,6 +15,16 @@ struct params_t {
     const uint8_t* channel_red;
     const uint8_t* channel_green;
     const uint8_t* channel_blue;
+    const uint8_t* channel_ir = nullptr;
+    
+    // las info, also no ownership
+    const point3d_t* points = nullptr;
+    int n_points = -1;
+    double points_min_x = 0;
+    double points_max_x = 0;
+    double points_min_y = 0;
+    double points_max_y = 0;
+    double points_resolution = 0;  // 2016.07: only support 0.15 (for 0x1500 images)
 
     // based on 0x1500 orthoimages, max tree radius = 10 meters
     int max_tree_radius = 67;
@@ -23,6 +35,14 @@ struct params_t {
         channel_red = nullptr;
         channel_green = nullptr;
         channel_blue = nullptr;
+        channel_ir = nullptr;
+        points = nullptr;
+        n_points = -1;
+        points_min_x = 0;
+        points_max_x = 0;
+        points_min_y = 0;
+        points_max_y = 0;
+        points_resolution = 0;
     }
     params_t() {
         reset();

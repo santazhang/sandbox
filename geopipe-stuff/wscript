@@ -64,7 +64,7 @@ def build(bld):
     bld.program(source="find_trees/main.cc",
                 target="find_trees.bin",
                 includes=".",
-                use="find_trees GFLAGS OPENCV_CORE OPENCV_HIGHGUI")
+                use="find_trees LASLIB GFLAGS OPENCV_CORE OPENCV_HIGHGUI")
 
     bld.program(source="las/las2stats.cc",
                 target="las2stats",
