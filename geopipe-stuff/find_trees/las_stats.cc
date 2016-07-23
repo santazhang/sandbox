@@ -25,7 +25,7 @@ void points_stats(const point3d_t* points, int n_points,
 
     const int img_width = points_img_width;
     const int img_height = points_img_height;
-    const int img_pixels = img_width * img_height;
+    // const int img_pixels = img_width * img_height;
     const int grid_size = ceilf(1.0 / resolution);
     const int grid_rows = (img_height + grid_size - 1) / grid_size;
     const int grid_cols = (img_width + grid_size - 1) / grid_size;
@@ -54,7 +54,7 @@ void points_stats(const point3d_t* points, int n_points,
     for (int center_grid_y = 0; center_grid_y < grid_rows; center_grid_y++) {
         for (int center_grid_x = 0; center_grid_x < grid_cols; center_grid_x++) {
             ProgressTicker ticker(&progress);
-            int center_grid_id = center_grid_y * grid_cols + center_grid_x;
+            // int center_grid_id = center_grid_y * grid_cols + center_grid_x;
 
             // http://stats.stackexchange.com/a/171619
             double sum_w = 0;  // sum(w_i)

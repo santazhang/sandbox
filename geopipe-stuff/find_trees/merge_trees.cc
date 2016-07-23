@@ -684,12 +684,12 @@ void TreeMerger::finalize_filter_noisy_tiny_trees() {
     vector<double> radius_dist;
     radius_dist.reserve(result_->trees.size());
 
-    double radius_sum = 0.0;
+    // double radius_sum = 0.0;
     for (const auto& t : result_->trees) {
         radius_dist.push_back(t.radius_pixels);
-        radius_sum += t.radius_pixels;
+        // radius_sum += t.radius_pixels;
     }
-    double radius_avg = radius_sum / result_->trees.size();
+    // double radius_avg = radius_sum / result_->trees.size();
 
     std::sort(radius_dist.begin(), radius_dist.end());
     int filter_pct = 80;
