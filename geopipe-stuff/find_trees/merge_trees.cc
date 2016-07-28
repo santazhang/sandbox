@@ -136,8 +136,10 @@ private:
 
 
 void TreeMerger::init() {
-    LOG(INFO) << "max_tree_radius=" << params_.max_tree_radius;
-    grid_size_ = params_.max_tree_radius * 1.2 + 1;
+    LOG(INFO) << "max_tree_crown_diameter=" << params_.max_tree_crown_diameter;
+    const int max_tree_crown_radius_pixels = ceil(params_.max_tree_crown_diameter / params_.resolution / 2.0);
+    LOG(INFO) << "max_tree_crown_radius_pixels=" << max_tree_crown_radius_pixels;
+    grid_size_ = max_tree_crown_radius_pixels * 1.2 + 1;
     LOG(INFO) << "choosing grid_size=" << grid_size_;
     grid_cols_ = params_.img_width / grid_size_;
     if (grid_cols_ * grid_size_ < params_.img_width) {
@@ -306,7 +308,8 @@ bool TreeMerger::should_merge(const private_tree_info_t& t1, const private_tree_
     // tree is too big
     private_tree_info_t merged_ti;
     merged_ti.ti = merge_trees(t1.ti, t2.ti);
-    if (merged_ti.ti.radius_pixels > params_.max_tree_radius) {
+    const int max_tree_crown_radius_pixels = ceil(params_.max_tree_crown_diameter / params_.resolution / 2.0);
+    if (merged_ti.ti.radius_pixels > max_tree_crown_radius_pixels) {
         return false;
     }
 

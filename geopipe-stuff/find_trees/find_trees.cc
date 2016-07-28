@@ -294,12 +294,13 @@ namespace find_trees {
 int find(const params_t& params, result_t* result) {
     CHECK_GT(params.img_width, 0);
     CHECK_GT(params.img_height, 0);
-    CHECK_GT(params.max_tree_radius, 0);
+    CHECK_GT(params.max_tree_crown_diameter, 0);
+    CHECK_GT(params.resolution, 0);
 
     double* las_z_hint = nullptr;
     if (params.points != nullptr) {
-        int points_img_width = ceilf((params.points_max_x - params.points_min_x) / params.points_resolution);
-        int points_img_height = ceilf((params.points_max_y - params.points_min_y) / params.points_resolution);
+        int points_img_width = ceilf((params.points_max_x - params.points_min_x) / params.resolution);
+        int points_img_height = ceilf((params.points_max_y - params.points_min_y) / params.resolution);
 
         LOG(INFO) << "points approx dimension: " << points_img_width << " x " << points_img_height;
         bool can_match_up = true;
@@ -326,7 +327,7 @@ int find(const params_t& params, result_t* result) {
             CHECK(params.points != nullptr);
             points_stats(params.points, params.n_points,
                          params.points_min_x, params.points_max_x, params.points_min_y, params.points_max_y,
-                         params.points_resolution, points_img_width, points_img_height,
+                         params.resolution, points_img_width, points_img_height,
                          /*OUT*/ las_z_hint);
         }
     }

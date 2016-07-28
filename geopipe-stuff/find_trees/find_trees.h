@@ -24,10 +24,12 @@ struct params_t {
     double points_max_x = 0;
     double points_min_y = 0;
     double points_max_y = 0;
-    double points_resolution = 0;  // 2016.07: only support 0.15 (for 0x1500 images)
 
-    // based on 0x1500 orthoimages, max tree radius = 10 meters
-    int max_tree_radius = 67;
+    // meters per pixel
+    double resolution = -1;  // 2016.07: only optimized for 0.15m images (=0.15)
+
+    // unit: meters
+    double max_tree_crown_diameter = 20.0;
 
     void reset() {
         img_width = -1;
@@ -42,7 +44,7 @@ struct params_t {
         points_max_x = 0;
         points_min_y = 0;
         points_max_y = 0;
-        points_resolution = 0;
+        resolution = -1;
     }
     params_t() {
         reset();

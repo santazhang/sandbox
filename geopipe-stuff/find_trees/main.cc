@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    LOG(WARNING) << "NOTE: currently (2016.07) only supports 0.15m resolution";
+    LOG(WARNING) << "NOTE: (as of 2016.07) only optimized for 0.15m resolution";
     LOG(INFO) << "Using resolution = " << FLAGS_resolution;
 
     cv::Mat input_image = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
@@ -120,7 +120,6 @@ int main(int argc, char* argv[]) {
 
         const int las_img_width = ceilf((max_x - min_x) / FLAGS_resolution);
         const int las_img_height = ceilf((max_y - min_y) / FLAGS_resolution);
-        const int las_img_pixels = las_img_width * las_img_height;
         LOG(INFO) << "las image size: " << las_img_width << " x " << las_img_height;
 
         all_points.reserve(lasreader->npoints);
@@ -139,13 +138,13 @@ int main(int argc, char* argv[]) {
 
         params.n_points = all_points.size();
         params.points = &all_points[0];
-        params.points_resolution = FLAGS_resolution;
         params.points_min_x = min_x;
         params.points_max_x = max_x;
         params.points_min_y = min_y;
         params.points_max_y = max_y;
     }
 
+    params.resolution = FLAGS_resolution;
     params.img_width = image_width;
     params.img_height = image_height;
     params.channel_red = contiguous_red;
@@ -153,7 +152,7 @@ int main(int argc, char* argv[]) {
     params.channel_blue = contiguous_blue;
     params.channel_ir = contiguous_ir;
 
-    params.max_tree_radius = ceilf(10.0 / FLAGS_resolution);
+    params.max_tree_crown_diameter = 20.0; // meters
 
     find_trees::result_t result;
     int st = find_trees::find(params, &result);
