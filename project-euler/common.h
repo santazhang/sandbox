@@ -19,27 +19,16 @@
 static bool is_prime(int64_t n) {
     verify(n > 0);
 
-    if (n == 1) {
-        return false;
-    } else if (n == 2) {
-        return true;
-    } else if (n % 2 == 0) {
-        return false;
-    } else if (n == 3) {
-        return true;
-    } else if (n % 3 == 0) {
-        return false;
-    } else if (n == 5) {
-        return true;
-    } else if (n % 5 == 0) {
-        return false;
-    } else if (n == 7) {
-        return true;
-    } else if (n % 7 == 0) {
-        return false;
-    } else {
-        // https://miller-rabin.appspot.com/
-        static const uint64_t bases[7] = {2, 325, 9375, 28178, 450775, 9780504, 1795265022};
-        return efficient_mr64(bases, 7, n);
-    }
+    // https://miller-rabin.appspot.com/
+    static const uint64_t bases[7] = {2, 325, 9375, 28178, 450775, 9780504, 1795265022};
+    return efficient_mr64(bases, 7, n);
+}
+
+static bool is_prime(int32_t n) {
+    verify(n > 0);
+
+    // https://miller-rabin.appspot.com/
+    // http://primes.utm.edu/prove/merged.html
+    static const uint32_t bases[3] = {2, 7, 61};
+    return efficient_mr32(bases, 3, n);
 }

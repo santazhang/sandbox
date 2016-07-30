@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-std=c++11 -O3 -Wno-c++11-narrowing
+CXXFLAGS=-std=c++11 -O3
 
 .PHONY: all clean
 
