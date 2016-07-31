@@ -5,6 +5,7 @@ CXXFLAGS=-std=c++11 -O3
 
 all: \
 	build/46.bin \
+	build/205.bin \
 	build/565.bin
 
 build/%.bin: %.cc common.h
