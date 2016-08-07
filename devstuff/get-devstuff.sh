@@ -6,8 +6,8 @@ set -e
 OS_UNAME=`uname`
 
 if [[ "$OS_UNAME" == "Linux" ]]; then
-    if ! grep -i "ubuntu 14.04" /etc/issue > /dev/null; then
-        echo "  *** This script only supports Ubuntu 14.04 release."
+    if ! grep -i "ubuntu 1\(4\|6\).04" /etc/issue > /dev/null; then
+        echo "  *** This script only supports Ubuntu 14.04/16.04 release."
         echo "  *** Please manually modify it to make things work."
         exit 1
     fi
