@@ -1,16 +1,3 @@
-diff --git a/wangle/CMakeLists.txt b/wangle/CMakeLists.txt
-index 05c7d5c..2b6f3a3 100644
---- a/wangle/CMakeLists.txt
-+++ b/wangle/CMakeLists.txt
-@@ -81,7 +81,7 @@ target_link_libraries(wangle
-   ${OPENSSL_LIBRARIES}
-   -lglog
-   -lgflags
--  -latomic)
-+)
- 
- install(TARGETS wangle DESTINATION lib)
- foreach(dir ${WANGLE_HEADER_DIRS})
 diff --git a/wangle/concurrent/Async.h b/wangle/concurrent/Async.h
 index 07c18e5..5d9add7 100644
 --- a/wangle/concurrent/Async.h
