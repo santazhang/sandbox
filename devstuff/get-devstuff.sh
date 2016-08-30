@@ -126,7 +126,7 @@ get_gmock_1_7_0() {
     mkdir -p $ROOT/src
     pushd $ROOT/src > /dev/null
     if [ ! -f gmock-1.7.0.zip ]; then
-        wget https://github.com/google/googlemock/archive/release-1.7.0.zip -O gmock-1.7.0.zip
+        wget http://pkgs.fedoraproject.org/repo/pkgs/gmock/gmock-1.7.0.zip/073b984d8798ea1594f5e44d85b20d66/gmock-1.7.0.zip
     fi
     [ -f gmock-1.7.0.zip ] || { echo "  *** Failed to get gmock" ; exit 1; }
     if [ ! -d gmock-1.7.0 ]; then
