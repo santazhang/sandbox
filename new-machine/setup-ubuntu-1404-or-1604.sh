@@ -6,7 +6,7 @@ if ! grep -i "ubuntu 1[46].04" /etc/issue > /dev/null; then
     exit 1
 fi
 
-export PATH="$HOME/.rbenv/bin:$HOME/.rbenv/shims:$PATH"
+export PATH="$HOME/.rbenv/bin:$HOME/.rbenv/shims:$HOME/.local/bin:$PATH"
 
 run_cmd() {
     echo + $@
@@ -77,11 +77,10 @@ ruby_2_3_1_not_installed() {
     return 0
 }
 
-get_ruby_2_3_1() {
-    if ruby_2_3_1_not_installed; then
-        yes | rbenv install 2.3.1 -v
-    fi
-    rbenv global 2.3.1
+get_ruby() {
+    local ruby_ver="2.3.1"
+    yes n | rbenv install $ruby_ver -v
+    rbenv global $ruby_ver
     rbenv rehash
 }
 
@@ -110,7 +109,7 @@ get_pip() {
     if ! grep "export PATH=.*HOME/.local/bin" ~/.bashrc > /dev/null 2>&1; then
         echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
     fi
-    wget http://bootstrap.pypa.io/get-pip.py
+    wget http://bootstrap.pypa.io/get-pip.py -O get-pip.py
     python get-pip.py --user
     pip install -U setuptools
 }
@@ -145,7 +144,7 @@ private_get_toolkit() {
 apt_get_install_packages
 
 get_rbenv
-get_ruby_2_3_1
+get_ruby
 # get_linuxbrew
 get_pip
 
