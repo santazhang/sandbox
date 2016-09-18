@@ -67,16 +67,6 @@ get_rbenv() {
     popd > /dev/null
 }
 
-ruby_2_3_1_not_installed() {
-    if ! which ruby > /dev/null 2>&1; then
-        return 0
-    fi
-    if ruby --version | grep -i "ruby 2.3.1"; then
-        return 1
-    fi
-    return 0
-}
-
 get_ruby() {
     local ruby_ver="2.3.1"
     yes n | rbenv install $ruby_ver -v
