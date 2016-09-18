@@ -1,12 +1,12 @@
 #!/bin/bash
 
-if ! grep -i "ubuntu 14.04" /etc/issue > /dev/null; then
-    echo "  *** This script only supports Ubuntu 14.04 release."
+if ! grep -i "ubuntu 1[46].04" /etc/issue > /dev/null; then
+    echo "  *** This script only supports Ubuntu 14.04 / 16.04 release."
     echo "  *** Please manually modify it to make things work."
     exit 1
 fi
 
-export PATH="$HOME/.linuxbrew/bin:$HOME/.rbenv/bin:$HOME/.rbenv/bin:$HOME/.rbenv/shims:$HOME/.local/bin:$PATH"
+export PATH="$HOME/.rbenv/bin:$HOME/.rbenv/shims:$PATH"
 
 run_cmd() {
     echo + $@
@@ -22,9 +22,11 @@ apt_get_install_packages() {
         htop
         libreadline-dev
         libssl-dev
+        ncdu
         openssh-server
         python-dev
         ruby
+        silversearcher-ag
         tig
         tmux
         vim
@@ -65,42 +67,42 @@ get_rbenv() {
     popd > /dev/null
 }
 
-ruby_2_2_3_not_installed() {
+ruby_2_3_1_not_installed() {
     if ! which ruby > /dev/null 2>&1; then
         return 0
     fi
-    if ruby --version | grep -i "ruby 2.2.3"; then
+    if ruby --version | grep -i "ruby 2.3.1"; then
         return 1
     fi
     return 0
 }
 
-get_ruby_2_2_3() {
-    if ruby_2_2_3_not_installed; then
-        yes | rbenv install 2.2.3 -v
+get_ruby_2_3_1() {
+    if ruby_2_3_1_not_installed; then
+        yes | rbenv install 2.3.1 -v
     fi
-    rbenv global 2.2.3
+    rbenv global 2.3.1
     rbenv rehash
 }
 
-get_linuxbrew() {
-    if ! which brew > /dev/null 2>&1; then
-        yes | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)"
-    fi
-    if ! grep "linuxbrew/bin" ~/.bashrc > /dev/null 2>&1; then
-        echo 'export PATH=$HOME/.linuxbrew/bin:$PATH' >> ~/.bashrc
-    fi
-    # bootstrap gcc: https://github.com/Homebrew/linuxbrew/issues/137
-    if [ -f /usr/bin/gcc ]; then
-        ln -s /usr/bin/gcc ~/.linuxbrew/bin/gcc-4.4
-    fi
-    if [ -f /usr/bin/g++ ]; then
-        ln -s /usr/bin/g++ ~/.linuxbrew/bin/g++-4.4
-    fi
-    if [ -f /usr/bin/gfortran ]; then
-        ln -s /usr/bin/gfortran ~/.linuxbrew/bin/gfortran-4.4
-    fi
-}
+# get_linuxbrew() {
+#     if ! which brew > /dev/null 2>&1; then
+#         yes | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)"
+#     fi
+#     if ! grep "linuxbrew/bin" ~/.bashrc > /dev/null 2>&1; then
+#         echo 'export PATH=$HOME/.linuxbrew/bin:$PATH' >> ~/.bashrc
+#     fi
+#     # bootstrap gcc: https://github.com/Homebrew/linuxbrew/issues/137
+#     if [ -f /usr/bin/gcc ]; then
+#         ln -s /usr/bin/gcc ~/.linuxbrew/bin/gcc-4.4
+#     fi
+#     if [ -f /usr/bin/g++ ]; then
+#         ln -s /usr/bin/g++ ~/.linuxbrew/bin/g++-4.4
+#     fi
+#     if [ -f /usr/bin/gfortran ]; then
+#         ln -s /usr/bin/gfortran ~/.linuxbrew/bin/gfortran-4.4
+#     fi
+# }
 
 get_pip() {
     mkdir -p ~/.local
@@ -143,13 +145,13 @@ private_get_toolkit() {
 apt_get_install_packages
 
 get_rbenv
-get_ruby_2_2_3
-get_linuxbrew
+get_ruby_2_3_1
+# get_linuxbrew
 get_pip
 
-gem install bundler pry teamocil
+gem install bundler pry
 
-brew install ag ncdu
+# brew install ag ncdu
 
 pip install -U --user ipython numpy PyYaml requests
 
