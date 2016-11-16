@@ -20,15 +20,15 @@ else
     exit 1
 fi
 
-FOLLY_VERSION="c98aec4"
-WANGLE_VERSION="d89a941"
-PROXYGEN_VERSION="bd57f81"
-ROCKSDB_VERSION="f4d9863"
-PROTOBUF_VERSION="1102a8a"
-RE2_VERSION="a27435b"
+FOLLY_VERSION="c3e5bdf"
+WANGLE_VERSION="34a04f0"
+PROXYGEN_VERSION="8e76dac"
+ROCKSDB_VERSION="3b192f6"
+PROTOBUF_VERSION="6e93fa4"
+RE2_VERSION="d2402e7"
 GPERFTOOLS_VERSION="689e4a5bb4b2a8afecb85e83b8e4f294f80b6124"
 GFLAGS_VERSION="9db828953a1047c95bf5fb780c3c1f9453f806eb"
-GRPC_VERSION="50be893"
+GRPC_VERSION="b794a96"
 GLOG_VERSION="f46e0745a842b2edc924b6d384acf01fd7034c62"
 
 run_cmd() {
@@ -143,7 +143,7 @@ get_macosx_hack() {
     rm -rf macosx_hack
     git clone https://gist.github.com/256985a658d765abed93.git macosx_hack
     cd macosx_hack
-    git checkout 775bb68a9d825c746596d05456c891b72193cc13
+    git checkout dfbca3038465de9c0f06eaad6c7c4a88731625b5
     popd > /dev/null
 }
 
@@ -223,7 +223,6 @@ get_wangle() {
 }
 
 get_proxygen() {
-    get_gmock_1_7_0
     mkdir -p $ROOT/src
     pushd $ROOT/src > /dev/null
     if version_mismatch proxygen/VERSION $PROXYGEN_VERSION; then
@@ -238,13 +237,8 @@ get_proxygen() {
             mv proxygen/lib/utils/Time.h proxygen/lib/utils/TimeUtils.h
             grep -r -l "#include.*/Time\.h" proxygen/ | xargs -n 1 sed -i "" "s/\/Time\.h/\/TimeUtils\.h/g"
             sed -i "" "s/	Time\.h \\\\/	TimeUtils\.h \\\\/g" proxygen/lib/utils/Makefile.am
-            sed -i "" "s/-lboost_thread/-lboost_thread-mt/g" proxygen/configure.ac
         fi
         cd proxygen
-        mkdir -p lib/test
-        cd lib/test
-        ln -s $ROOT/src/gmock-1.7.0 gmock-1.7.0
-        cd ../..
         autoreconf -if
         ./configure --prefix=$ROOT
         make -j$N_CPU && make install && \
@@ -281,7 +275,8 @@ get_protobuf() {
         git checkout $PROTOBUF_VERSION
         rm -rf .git
         ln -s $ROOT/src/gmock-1.7.0 gmock
-        ./autogen.sh
+        autoreconf -f -i
+        rm -rf autom4te.cache config.h.in~
         ./configure --prefix=$ROOT
         make -j$N_CPU && make install && echo $PROTOBUF_VERSION > VERSION
         [ -f VERSION ] || { echo "  *** Failed to build protobuf" ; exit 1; }
@@ -347,6 +342,7 @@ get_grpc() {
         git checkout $GRPC_VERSION
         git submodule update --init
         rm -rf .git
+        sed -i "" "s/-Wall,no-obsolete//g" third_party/protobuf/autogen.sh
         make -j$N_CPU && make install prefix=$ROOT && echo $GRPC_VERSION > VERSION
         [ -f VERSION ] || { echo "  *** Failed to build grpc" ; exit 1; }
     fi

@@ -11,4 +11,3 @@ index 07c18e5..5d9add7 100644
 +    -> folly::Future<typename folly::isFuture<decltype(fn())>::Inner> {
    return folly::via<F>(getCPUExecutor().get(), std::forward<F>(fn));
  }
- 

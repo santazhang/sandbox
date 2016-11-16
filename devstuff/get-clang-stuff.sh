@@ -27,16 +27,18 @@ cd $OUT_DIR
 mkdir -p src dist/bin dist/lib dist/pylib
 
 # https://gist.github.com/larsch/6823355
+CLANG_VER="3.9.0"
+IWYU_VER="0.7"
 cd $OUT_DIR/src
-wget http://llvm.org/releases/3.7.1/llvm-3.7.1.src.tar.xz
-wget http://llvm.org/releases/3.7.1/cfe-3.7.1.src.tar.xz
-wget http://llvm.org/releases/3.7.1/clang-tools-extra-3.7.1.src.tar.xz
-wget http://include-what-you-use.org/downloads/include-what-you-use-0.5.src.tar.gz
+wget http://llvm.org/releases/$CLANG_VER/llvm-$CLANG_VER.src.tar.xz
+wget http://llvm.org/releases/$CLANG_VER/cfe-$CLANG_VER.src.tar.xz
+wget http://llvm.org/releases/$CLANG_VER/clang-tools-extra-$CLANG_VER.src.tar.xz
+wget http://include-what-you-use.org/downloads/include-what-you-use-$IWYU_VER.src.tar.gz
 mkdir -p llvm/tools/clang/tools/extra
-tar xfJ llvm-3.7.1.src.tar.xz -C llvm --strip-components=1
-tar xfJ cfe-3.7.1.src.tar.xz -C llvm/tools/clang --strip-components=1
-tar xfJ clang-tools-extra-3.7.1.src.tar.xz -C llvm/tools/clang/tools/extra --strip-components=1
-tar xfz include-what-you-use-0.5.src.tar.gz
+tar xfJ llvm-$CLANG_VER.src.tar.xz -C llvm --strip-components=1
+tar xfJ cfe-$CLANG_VER.src.tar.xz -C llvm/tools/clang --strip-components=1
+tar xfJ clang-tools-extra-$CLANG_VER.src.tar.xz -C llvm/tools/clang/tools/extra --strip-components=1
+tar xfz include-what-you-use-$IWYU_VER.src.tar.gz
 
 cd $OUT_DIR/src
 cd llvm
