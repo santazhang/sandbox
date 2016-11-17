@@ -342,8 +342,10 @@ get_grpc() {
         git checkout $GRPC_VERSION
         git submodule update --init
         rm -rf .git
-        sed -i "" "s/-Wall,no-obsolete//g" third_party/protobuf/autogen.sh
-        sed -i "" "s/-Werror//g" Makefile
+        if [ -n "$MACOSX" ]; then
+            sed -i "" "s/-Wall,no-obsolete//g" third_party/protobuf/autogen.sh
+            sed -i "" "s/-Werror//g" Makefile
+        fi
         make -j$N_CPU && make install prefix=$ROOT && echo $GRPC_VERSION > VERSION
         [ -f VERSION ] || { echo "  *** Failed to build grpc" ; exit 1; }
     fi
