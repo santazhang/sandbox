@@ -42,21 +42,13 @@ tar xfz include-what-you-use-$IWYU_VER.src.tar.gz
 
 cd $OUT_DIR/src
 cd llvm
+echo "add_clang_subdirectory(include-what-you-use)" >> tools/clang/tools/CMakeLists.txt
 mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=$OUT_DIR ..
 make -j$N_CPU
 make install
 cp -r ../tools/clang/bindings/python/clang $OUT_DIR/dist/pylib
-
-cd $OUT_DIR/src
-cd include-what-you-use
-mkdir build
-cd build
-cmake -DIWYU_LLVM_ROOT_PATH=$OUT_DIR -DCMAKE_INSTALL_PREFIX=$OUT_DIR \
-    -DCURSES_NEED_NCURSES=true ..
-make -j$N_CPU
-make install
 
 cd $OUT_DIR
 cp bin/clang-format dist/bin
