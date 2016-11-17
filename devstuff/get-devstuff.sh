@@ -343,6 +343,7 @@ get_grpc() {
         git submodule update --init
         rm -rf .git
         sed -i "" "s/-Wall,no-obsolete//g" third_party/protobuf/autogen.sh
+        sed -i "" "s/-Werror//g" Makefile
         make -j$N_CPU && make install prefix=$ROOT && echo $GRPC_VERSION > VERSION
         [ -f VERSION ] || { echo "  *** Failed to build grpc" ; exit 1; }
     fi
@@ -376,8 +377,8 @@ get_wangle
 get_proxygen
 get_rocksdb
 get_re2
+get_gperftools
 get_protobuf
 get_grpc
-get_gperftools
 
 echo "Goodbye."
