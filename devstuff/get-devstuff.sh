@@ -98,14 +98,18 @@ ROOT=$DIR
 
 cat <<ACTIVATE_SH > activate.sh
 ROOT=$ROOT
-export PATH=\$ROOT/bin:\$PATH
-export DYLD_FALLBACK_LIBRARY_PATH=\$ROOT/lib:\$DYLD_FALLBACK_LIBRARY_PATH
-export LD_LIBRARY_PATH=\$ROOT/lib:\$LD_LIBRARY_PATH
-export LIBRARY_PATH=\$ROOT/lib:\$LIBRARY_PATH
-export CPATH=\$ROOT/include:\$CPATH
-export PYTHONPATH=\$ROOT/lib/python:\$PYTHONPATH
-export LDFLAGS="-L\$ROOT/lib \$LDFLAGS"
-export CPPFLAGS="-I\$ROOT/include \$CPPFLAGS"
+# http://stackoverflow.com/a/1397670
+if ! [[ "$ACTIVATED_ENV" =~ (^|:)"$ROOT"(:|$) ]]; then
+    export PATH=\$ROOT/bin:\$PATH
+    export DYLD_FALLBACK_LIBRARY_PATH=\$ROOT/lib:\$DYLD_FALLBACK_LIBRARY_PATH
+    export LD_LIBRARY_PATH=\$ROOT/lib:\$LD_LIBRARY_PATH
+    export LIBRARY_PATH=\$ROOT/lib:\$LIBRARY_PATH
+    export CPATH=\$ROOT/include:\$CPATH
+    export PYTHONPATH=\$ROOT/lib/python:\$PYTHONPATH
+    export LDFLAGS="-L\$ROOT/lib \$LDFLAGS"
+    export CPPFLAGS="-I\$ROOT/include \$CPPFLAGS"
+    export ACTIVATED_ENV=\$ROOT:\$ACTIVATED_ENV
+fi
 ACTIVATE_SH
 
 . activate.sh
