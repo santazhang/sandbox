@@ -1,1 +1,0 @@
-echo STEP 5
