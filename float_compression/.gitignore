@@ -1,5 +1,0 @@
-*.caffemodel
-extract_floats
-*.pb.*
-*.o-*
-*.o
