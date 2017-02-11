@@ -11,6 +11,9 @@ while [ -h "$SOURCE" ]; do
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+# prevent dynamically linking libc
+export CGO_ENABLED=0
+
 GOPATH=$DIR
 cd $DIR
 go build httphere.go
