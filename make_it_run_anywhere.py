@@ -131,7 +131,8 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 # export LD_DEBUG=files,statistics
 
-LD_LIBRARY_PATH=$DIR/.run_anywhere_payload:$LD_LIBRARY_PATH $DIR/.run_anywhere_payload/%s --inhibit-cache --inhibit-rpath $DIR/%s $DIR/%s "$@"
+export LD_LIBRARY_PATH=$DIR/.run_anywhere_payload:$LD_LIBRARY_PATH
+exec $DIR/.run_anywhere_payload/%s --inhibit-cache --inhibit-rpath $DIR/%s $DIR/%s "$@"
     """.strip() % (ld_linux_so, relpath, relpath) + "\n")
 
 chmod_ax(os.path.join(payload_dir, ld_linux_so))
