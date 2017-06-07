@@ -13,7 +13,10 @@ NETIFACES = "netifaces-0.10.4"
 PSUTIL = "psutil-4.3.0"
 LOGUTILS = "logutils-0.3.3"
 
-SCRIPT_ROOT = os.path.abspath(os.path.split(__file__)[0])
+if os.path.islink(__file__):
+    SCRIPT_ROOT = os.path.abspath(os.path.split(os.readlink(__file__))[0])
+else:
+    SCRIPT_ROOT = os.path.abspath(os.path.split(__file__)[0])
 
 PYVER = "-%d.%d" % (sys.version_info[0], sys.version_info[1])
 
