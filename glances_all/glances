@@ -7,11 +7,11 @@ import pkg_resources
 # Require Python 2
 assert sys.version_info[0] == 2
 
-BOTTLE = "bottle-0.12.9"
-GLANCES = "Glances-2.6.2"
-NETIFACES = "netifaces-0.10.4"
-PSUTIL = "psutil-4.3.0"
-LOGUTILS = "logutils-0.3.3"
+BOTTLE = "bottle-0.12.13"
+GLANCES = "Glances-2.11.1"
+NETIFACES = "netifaces-0.10.6"
+PSUTIL = "psutil-5.4.3"
+LOGUTILS = "logutils-0.3.5"
 
 if os.path.islink(__file__):
     SCRIPT_ROOT = os.path.abspath(os.path.split(os.readlink(__file__))[0])
@@ -37,7 +37,7 @@ def main():
 
     if not os.path.exists(NETIFACES_PATH):
         print "Building netifaces"
-        os.system("cd %s; PYTHONPATH=../setuptools-23.0.0:$PYTHONPATH python setup.py build > /dev/null 2>&1" % NETIFACES)
+        os.system("cd %s; PYTHONPATH=../setuptools-38.5.1:$PYTHONPATH python setup.py build > /dev/null 2>&1" % NETIFACES)
 
     import glances
     glances.main()
