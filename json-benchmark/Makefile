@@ -1,6 +1,6 @@
 all: run run_O3
 
-FLAGS=-Ipicojson-1.1.1 -Iyajl-2.1.0/build/yajl-2.1.0/include -Irapidjson-98f8790/include \
+FLAGS=-std=c++11 -Ipicojson-1.1.1 -Iyajl-2.1.0/build/yajl-2.1.0/include -Irapidjson-98f8790/include \
 		-I jsoncpp-7bd75b0/include \
 		-I jansson-2.7/build/include \
 		run.cc \
