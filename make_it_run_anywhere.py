@@ -131,6 +131,9 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 # export LD_DEBUG=files,statistics
 
+# https://github.com/hadolint/hadolint/issues/173#issuecomment-372479773
+export LC_ALL=C.UTF-8
+
 export LD_LIBRARY_PATH=$DIR/.run_anywhere_payload:$LD_LIBRARY_PATH
 exec $DIR/.run_anywhere_payload/%s --inhibit-cache --inhibit-rpath $DIR/%s $DIR/%s "$@"
     """.strip() % (ld_linux_so, relpath, relpath) + "\n")
