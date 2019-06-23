@@ -15,4 +15,4 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 # https://github.com/hadolint/hadolint/issues/173#issuecomment-372479773
 export LC_ALL=C.UTF-8
 
-LD_LIBRARY_PATH=$DIR/.run_anywhere_payload:$LD_LIBRARY_PATH $DIR/.run_anywhere_payload/ld-linux-x86-64.so.2 --inhibit-cache --inhibit-rpath $DIR/.run_anywhere_payload/lua.run_anywhere_real_binary $DIR/.run_anywhere_payload/lua.run_anywhere_real_binary "$@"
+LD_LIBRARY_PATH=$DIR/.run_anywhere_payload:$LD_LIBRARY_PATH exec $DIR/.run_anywhere_payload/ld-linux-x86-64.so.2 --inhibit-cache --inhibit-rpath $DIR/.run_anywhere_payload/lua.run_anywhere_real_binary $DIR/.run_anywhere_payload/lua.run_anywhere_real_binary "$@"
