@@ -1,6 +1,0 @@
-Mac STL library
-
-Located by:
-
-g++ -E -x c++ - -v < /dev/null 
-clang++ -E -x c++ - -v < /dev/null
